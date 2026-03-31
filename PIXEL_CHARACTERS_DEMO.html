@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Characters System - Interactive Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 2.5em;
+      color: #667eea;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: #aaa;
+      font-size: 1.1em;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .demo-box {
+      background: #2a2a2a;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .demo-box:hover {
+      border-color: #667eea;
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .demo-box h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border: 2px solid #444;
+      border-radius: 4px;
+      background: #1a1a1a;
+      display: block;
+      margin: 10px auto;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 0.8em;
+    }
+
+    .info {
+      background: #1a1a1a;
+      border-left: 3px solid #667eea;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 0.9em;
+      line-height: 1.6;
+    }
+
+    .outfit-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+
+    .outfit-btn {
+      padding: 6px 12px;
+      background: #333;
+      color: #aaa;
+      border: 2px solid #444;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      transition: all 0.2s;
+    }
+
+    .outfit-btn:hover {
+      color: #fff;
+      border-color: #667eea;
+    }
+
+    .outfit-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 10px 0;
+      font-size: 0.85em;
+    }
+
+    .stat-item {
+      background: #1a1a1a;
+      padding: 8px;
+      border-radius: 4px;
+      border-left: 3px solid #667eea;
+    }
+
+    .stat-label {
+      color: #aaa;
+      font-size: 0.8em;
+    }
+
+    .stat-value {
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .character-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 10px 0;
+    }
+
+    .character-item {
+      background: #1a1a1a;
+      border: 2px solid #444;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .character-item:hover {
+      border-color: #667eea;
+      transform: scale(1.05);
+    }
+
+    .character-item.active {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .character-item-name {
+      font-weight: bold;
+      font-size: 0.95em;
+      margin-top: 8px;
+      color: #fff;
+    }
+
+    .character-item-role {
+      font-size: 0.75em;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .code-block {
+      background: #0a0a0a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 0.85em;
+      color: #667eea;
+      overflow-x: auto;
+    }
+
+    .title {
+      color: #667eea;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .description {
+      color: #aaa;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      border-top: 2px solid #444;
+      color: #aaa;
+      margin-top: 40px;
+    }
+
+    .stat-animation {
+      display: inline-block;
+      color: #667eea;
+    }
+
+    @media (max-width: 1024px) {
+      .demo-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 1.8em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎮 Pixel Characters - Interactive Demo</h1>
+      <p>8-bit Character System with Animation, Outfits & Customization</p>
+    </header>
+
+    <div class="demo-grid">
+      <!-- DEMO 1: Basic Rendering -->
+      <div class="demo-box">
+        <h3>Demo 1: Basic Character Rendering</h3>
+        <div class="description">Render individual characters at different scales</div>
+        <canvas id="demo1-canvas" width="500" height="200"></canvas>
+        <div class="outfit-selector" id="demo1-outfits"></div>
+      </div>
+
+      <!-- DEMO 2: All Characters Gallery -->
+      <div class="demo-box">
+        <h3>Demo 2: Character Gallery</h3>
+        <div class="description">All 6 NPCs with their default appearance</div>
+        <canvas id="demo2-canvas" width="500" height="200"></canvas>
+      </div>
+
+      <!-- DEMO 3: Outfit Variations -->
+      <div class="demo-box">
+        <h3>Demo 3: Outfit System</h3>
+        <div class="description">Select a character to see all outfit variations</div>
+        <div class="character-list" id="demo3-characters"></div>
+        <canvas id="demo3-canvas" width="500" height="180"></canvas>
+      </div>
+
+      <!-- DEMO 4: Animation -->
+      <div class="demo-box">
+        <h3>Demo 4: Walking Animation</h3>
+        <div class="description">Live animation loop with 4 frames</div>
+        <canvas id="demo4-canvas" width="500" height="150"></canvas>
+        <div class="controls">
+          <button class="btn btn-small" onclick="startAnimation()">Start</button>
+          <button class="btn btn-small" onclick="stopAnimation()">Stop</button>
+          <button class="btn btn-small" onclick="resetAnimation()">Reset</button>
+        </div>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-label">Frame</div>
+            <div class="stat-value" id="demo4-frame">0/4</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Status</div>
+            <div class="stat-value" id="demo4-status">Idle</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEMO 5: Color Customization -->
+      <div class="demo-box">
+        <h3>Demo 5: Color Palette Editor</h3>
+        <div class="description">Customize character colors in real-time</div>
+        <canvas id="demo5-canvas" width="500" height="150"></canvas>
+        <div id="demo5-colors"></div>
+      </div>
+
+      <!-- DEMO 6: Room Display -->
+      <div class="demo-box">
+        <h3>Demo 6: Room with Multiple NPCs</h3>
+        <div class="description">Multiple characters in a room layout</div>
+        <canvas id="demo6-canvas" width="500" height="200"></canvas>
+        <div class="controls">
+          <button class="btn btn-small" onclick="randomizeRoom()">Randomize</button>
+        </div>
+      </div>
+
+      <!-- DEMO 7: Character Info -->
+      <div class="demo-box">
+        <h3>Demo 7: Character Information</h3>
+        <div class="description">Display detailed character metadata</div>
+        <div class="character-list" id="demo7-characters"></div>
+        <div id="demo7-info" class="info"></div>
+      </div>
+
+      <!-- DEMO 8: Scale Comparison -->
+      <div class="demo-box">
+        <h3>Demo 8: Scale Comparison</h3>
+        <div class="description">Same character at different zoom levels</div>
+        <canvas id="demo8-canvas" width="500" height="180"></canvas>
+      </div>
+
+      <!-- DEMO 9: Code Examples -->
+      <div class="demo-box">
+        <h3>Demo 9: Code Integration</h3>
+        <div class="description">Copy-paste ready code examples</div>
+        <div class="code-block">// Basic Render<br />PIXEL_CHARACTERS.renderCharacter(<br />
+          ctx, 100, 100, 'juan', 0, 0, 2<br />);</div>
+        <div class="code-block">// With Label<br />PIXEL_CHARACTERS.renderCharacterWithLabel(<br />
+          ctx, 100, 100, 'sofia', 1, 2<br />);</div>
+        <div class="code-block">// Get Outfits<br />const outfits = PIXEL_CHARACTERS.<br />getOutfits('carlos');</div>
+      </div>
+
+      <!-- DEMO 10: Statistics -->
+      <div class="demo-box">
+        <h3>Demo 10: System Statistics</h3>
+        <div class="description">Character system metadata and capabilities</div>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-label">Total NPCs</div>
+            <div class="stat-value">6</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Outfits per NPC</div>
+            <div class="stat-value">3</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Base Sprite Size</div>
+            <div class="stat-value">32x32px</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Animation Frames</div>
+            <div class="stat-value">4</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Skin Tones</div>
+            <div class="stat-value">5</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Color Palette</div>
+            <div class="stat-value" id="demo10-palette">—</div>
+          </div>
+        </div>
+        <div class="info">
+          <div class="title">Available Methods:</div>
+          renderCharacter | renderCharacterWithLabel | renderIsometric | getSpriteSheet |
+          getSingleFrame | AnimationController | getOutfits | getOutfitNames | getCharacterData
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Pixel Characters System © 2026 | 8-bit Pokémon-style Agency Game</p>
+      <p>All characters are procedurally generated using Canvas 2D</p>
+      <p style="margin-top: 10px; font-size: 0.85em;">
+        Files: PIXEL_CHARACTERS.js | CHARACTER_SPRITES.html | CHARACTER_SYSTEM_EXAMPLES.js |
+        PIXEL_CHARACTERS_GUIDE.md
+      </p>
+    </footer>
+  </div>
+
+  <script src="./PIXEL_CHARACTERS.js"></script>
+  <script>
+    // ========================================================================
+    // DEMO 1: Basic Rendering
+    // ========================================================================
+    function initDemo1() {
+      const canvas = document.getElementById('demo1-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      const characters = ['juan', 'sofia', 'carlos'];
+      let currentIdx = 0;
+
+      function render() {
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const key = characters[currentIdx];
+        const character = PIXEL_CHARACTERS.CHARACTERS[key];
+
+        // Draw at different scales
+        PIXEL_CHARACTERS.renderCharacter(ctx, 50, 50, key, 0, 0, 1);
+        PIXEL_CHARACTERS.renderCharacter(ctx, 150, 30, key, 0, 0, 2);
+        PIXEL_CHARACTERS.renderCharacter(ctx, 320, 20, key, 0, 0, 3);
+
+        ctx.fillStyle = '#667eea';
+        ctx.font = '14px Arial';
+        ctx.fillText(`${character.name} - Scales: 1x, 2x, 3x`, 50, 180);
+      }
+
+      // Create outfit selector
+      const outfitContainer = document.getElementById('demo1-outfits');
+      const outfits = PIXEL_CHARACTERS.getOutfits(characters[0]);
+      outfits.forEach((outfit, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `outfit-btn ${idx === 0 ? 'active' : ''}`;
+        btn.textContent = outfit.name;
+        btn.onclick = () => {
+          document.querySelectorAll('#demo1-outfits .outfit-btn').forEach((b) => {
+            b.classList.remove('active');
+          });
+          btn.classList.add('active');
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          PIXEL_CHARACTERS.renderCharacter(ctx, 50, 50, characters[0], idx, 0, 1);
+          PIXEL_CHARACTERS.renderCharacter(ctx, 150, 30, characters[0], idx, 0, 2);
+          PIXEL_CHARACTERS.renderCharacter(ctx, 320, 20, characters[0], idx, 0, 3);
+
+          ctx.fillStyle = '#667eea';
+          ctx.font = '14px Arial';
+          ctx.fillText(`${outfit.name} - Scales: 1x, 2x, 3x`, 50, 180);
+        };
+        outfitContainer.appendChild(btn);
+      });
+
+      render();
+    }
+
+    // ========================================================================
+    // DEMO 2: Gallery
+    // ========================================================================
+    function initDemo2() {
+      const canvas = document.getElementById('demo2-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const characters = ['juan', 'sofia', 'carlos', 'lucia', 'marco', 'ana'];
+      let xPos = 20;
+
+      characters.forEach((key) => {
+        PIXEL_CHARACTERS.renderCharacter(ctx, xPos, 40, key, 0, 0, 2);
+
+        const character = PIXEL_CHARACTERS.CHARACTERS[key];
+        ctx.fillStyle = '#aaa';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(character.name, xPos + 16, 130);
+
+        xPos += 80;
+      });
+    }
+
+    // ========================================================================
+    // DEMO 3: Outfit Variations
+    // ========================================================================
+    function initDemo3() {
+      const characters = ['juan', 'sofia', 'carlos', 'lucia', 'marco', 'ana'];
+      const container = document.getElementById('demo3-characters');
+      const canvas = document.getElementById('demo3-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      let selectedCharacter = characters[0];
+
+      function renderOutfits() {
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const outfits = PIXEL_CHARACTERS.getOutfits(selectedCharacter);
+        let xPos = 20;
+
+        outfits.forEach((outfit, idx) => {
+          PIXEL_CHARACTERS.renderCharacter(ctx, xPos, 40, selectedCharacter, idx, 0, 2);
+
+          ctx.fillStyle = '#aaa';
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(outfit.name, xPos + 16, 130);
+
+          xPos += 150;
+        });
+      }
+
+      characters.forEach((key) => {
+        const item = document.createElement('div');
+        item.className = 'character-item active';
+        item.onclick = () => {
+          document.querySelectorAll('#demo3-characters .character-item').forEach((el) => {
+            el.classList.remove('active');
+          });
+          item.classList.add('active');
+          selectedCharacter = key;
+          renderOutfits();
+        };
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const tempCtx = canvas.getContext('2d');
+        tempCtx.imageSmoothingEnabled = false;
+        PIXEL_CHARACTERS.renderCharacter(tempCtx, 16, 16, key, 0, 0, 1.5);
+
+        const character = PIXEL_CHARACTERS.CHARACTERS[key];
+        const name = document.createElement('div');
+        name.className = 'character-item-name';
+        name.textContent = character.name;
+
+        const role = document.createElement('div');
+        role.className = 'character-item-role';
+        role.textContent = character.role;
+
+        item.appendChild(canvas);
+        item.appendChild(name);
+        item.appendChild(role);
+        container.appendChild(item);
+      });
+
+      renderOutfits();
+    }
+
+    // ========================================================================
+    // DEMO 4: Animation
+    // ========================================================================
+    let animationController = null;
+    let animationRunning = false;
+
+    function initDemo4() {
+      animationController = new PIXEL_CHARACTERS.AnimationController('sofia', 0);
+      updateDemo4();
+    }
+
+    function updateDemo4() {
+      const canvas = document.getElementById('demo4-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (animationRunning) {
+        animationController.update();
+      }
+
+      const frame = animationController.getCurrentFrame();
+      PIXEL_CHARACTERS.renderCharacter(
+        ctx,
+        200,
+        50,
+        'sofia',
+        0,
+        frame,
+        2
+      );
+
+      document.getElementById('demo4-frame').textContent = `${frame}/4`;
+      document.getElementById('demo4-status').textContent = animationRunning
+        ? 'Walking'
+        : 'Idle';
+
+      if (animationRunning) {
+        requestAnimationFrame(updateDemo4);
+      }
+    }
+
+    function startAnimation() {
+      animationRunning = true;
+      animationController.startWalking();
+      updateDemo4();
+    }
+
+    function stopAnimation() {
+      animationRunning = false;
+      animationController.stopWalking();
+      updateDemo4();
+    }
+
+    function resetAnimation() {
+      animationController.reset();
+      updateDemo4();
+    }
+
+    // ========================================================================
+    // DEMO 5: Color Customization
+    // ========================================================================
+    function initDemo5() {
+      const canvas = document.getElementById('demo5-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      const colorContainer = document.getElementById('demo5-colors');
+      const colors = PIXEL_CHARACTERS.CHARACTERS.juan.baseColors;
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      PIXEL_CHARACTERS.renderCharacter(ctx, 200, 40, 'juan', 0, 0, 2);
+
+      Object.entries(colors).forEach(([name, hex]) => {
+        const label = document.createElement('div');
+        label.style.display = 'inline-block';
+        label.style.marginRight = '15px';
+        label.style.fontSize = '0.85em';
+
+        const swatch = document.createElement('div');
+        swatch.style.width = '20px';
+        swatch.style.height = '20px';
+        swatch.style.backgroundColor = hex;
+        swatch.style.display = 'inline-block';
+        swatch.style.marginRight = '5px';
+        swatch.style.borderRadius = '3px';
+        swatch.style.border = '1px solid #667eea';
+        swatch.style.verticalAlign = 'middle';
+
+        const text = document.createElement('span');
+        text.textContent = `${name}`;
+        text.style.color = '#aaa';
+
+        label.appendChild(swatch);
+        label.appendChild(text);
+        colorContainer.appendChild(label);
+      });
+    }
+
+    // ========================================================================
+    // DEMO 6: Room Display
+    // ========================================================================
+    function initDemo6() {
+      renderRoom();
+    }
+
+    function renderRoom() {
+      const canvas = document.getElementById('demo6-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(30, 30, 440, 140);
+
+      const characters = ['juan', 'sofia', 'carlos'];
+      let xPos = 80;
+
+      characters.forEach((key) => {
+        PIXEL_CHARACTERS.renderCharacterWithLabel(ctx, xPos, 50, key, 0, 1.5);
+        xPos += 130;
+      });
+
+      ctx.fillStyle = '#667eea';
+      ctx.font = '12px Arial';
+      ctx.fillText('Brain Room - Meeting in Progress', 50, 180);
+    }
+
+    function randomizeRoom() {
+      renderRoom();
+    }
+
+    // ========================================================================
+    // DEMO 7: Character Info
+    // ========================================================================
+    function initDemo7() {
+      const characters = ['juan', 'sofia', 'carlos', 'lucia', 'marco', 'ana'];
+      const container = document.getElementById('demo7-characters');
+      const infoDiv = document.getElementById('demo7-info');
+
+      let selectedCharacter = characters[0];
+
+      function showInfo(key) {
+        const character = PIXEL_CHARACTERS.CHARACTERS[key];
+        const outfits = PIXEL_CHARACTERS.getOutfits(key);
+
+        infoDiv.innerHTML = `
+          <div><strong>Name:</strong> ${character.name}</div>
+          <div><strong>Role:</strong> ${character.role}</div>
+          <div><strong>Room:</strong> ${character.room}</div>
+          <div><strong>Personality:</strong> ${character.personality}</div>
+          <div><strong>Outfits:</strong> ${outfits.map((o) => o.name).join(', ')}</div>
+        `;
+      }
+
+      characters.forEach((key) => {
+        const item = document.createElement('div');
+        item.className = `character-item ${key === characters[0] ? 'active' : ''}`;
+        item.onclick = () => {
+          document.querySelectorAll('#demo7-characters .character-item').forEach((el) => {
+            el.classList.remove('active');
+          });
+          item.classList.add('active');
+          selectedCharacter = key;
+          showInfo(key);
+        };
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const tempCtx = canvas.getContext('2d');
+        tempCtx.imageSmoothingEnabled = false;
+        PIXEL_CHARACTERS.renderCharacter(tempCtx, 16, 16, key, 0, 0, 1.5);
+
+        const character = PIXEL_CHARACTERS.CHARACTERS[key];
+        const name = document.createElement('div');
+        name.className = 'character-item-name';
+        name.textContent = character.name;
+
+        item.appendChild(canvas);
+        item.appendChild(name);
+        container.appendChild(item);
+      });
+
+      showInfo(characters[0]);
+    }
+
+    // ========================================================================
+    // DEMO 8: Scale Comparison
+    // ========================================================================
+    function initDemo8() {
+      const canvas = document.getElementById('demo8-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Same character at different scales
+      PIXEL_CHARACTERS.renderCharacter(ctx, 20, 60, 'carlos', 0, 0, 1);
+      PIXEL_CHARACTERS.renderCharacter(ctx, 120, 40, 'carlos', 0, 0, 1.5);
+      PIXEL_CHARACTERS.renderCharacter(ctx, 250, 20, 'carlos', 0, 0, 2);
+      PIXEL_CHARACTERS.renderCharacter(ctx, 390, 10, 'carlos', 0, 0, 2.5);
+
+      ctx.fillStyle = '#667eea';
+      ctx.font = '12px Arial';
+      ctx.fillText('1x', 40, 160);
+      ctx.fillText('1.5x', 130, 160);
+      ctx.fillText('2x', 260, 160);
+      ctx.fillText('2.5x', 400, 160);
+    }
+
+    // ========================================================================
+    // DEMO 10: Statistics
+    // ========================================================================
+    function initDemo10() {
+      const palette = Object.keys(PIXEL_CHARACTERS.CHARACTERS).reduce((colors, key) => {
+        const char = PIXEL_CHARACTERS.CHARACTERS[key];
+        Object.values(char.outfits).forEach((outfit) => {
+          Object.values(outfit.colors).forEach((color) => {
+            colors.add(color);
+          });
+        });
+        return colors;
+      }, new Set());
+
+      document.getElementById('demo10-palette').textContent = palette.size;
+    }
+
+    // ========================================================================
+    // Initialize all demos on page load
+    // ========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      initDemo1();
+      initDemo2();
+      initDemo3();
+      initDemo4();
+      initDemo5();
+      initDemo6();
+      initDemo7();
+      initDemo8();
+      initDemo10();
+    });
+  </script>
+</body>
+</html>

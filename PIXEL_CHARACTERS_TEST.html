@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Characters - System Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: #333;
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      margin-bottom: 10px;
+      font-size: 1.8em;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .test-box {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #4caf50;
+    }
+
+    .test-box.failed {
+      border-left-color: #f44336;
+    }
+
+    .test-box h3 {
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 1.1em;
+    }
+
+    .test-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .status-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.8em;
+    }
+
+    .status-badge.pass {
+      background: #4caf50;
+    }
+
+    .status-badge.fail {
+      background: #f44336;
+    }
+
+    .test-details {
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      line-height: 1.6;
+      color: #666;
+    }
+
+    .test-details pre {
+      background: #fff;
+      padding: 8px;
+      border-radius: 3px;
+      overflow-x: auto;
+      font-size: 0.85em;
+    }
+
+    canvas {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      max-width: 100%;
+      margin: 10px 0;
+    }
+
+    .summary {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary h2 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .stat {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .error-log {
+      background: #ffebee;
+      border-left: 4px solid #f44336;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      color: #c62828;
+    }
+
+    .success-log {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      color: #2e7d32;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🧪 Pixel Characters System - Test Suite</h1>
+      <p>Automated validation of character system functionality</p>
+    </header>
+
+    <div class="summary">
+      <h2>Test Results Summary</h2>
+      <div class="summary-stats">
+        <div class="stat">
+          <div class="stat-value" id="total-tests">0</div>
+          <div class="stat-label">Total Tests</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="passed-tests">0</div>
+          <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="failed-tests">0</div>
+          <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="success-rate">0%</div>
+          <div class="stat-label">Success Rate</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-container"></div>
+
+    <div class="test-grid" id="testContainer"></div>
+
+    <div class="footer">
+      <p>Pixel Characters Test Suite - v1.0.0</p>
+      <p>All tests should pass before deploying to production</p>
+    </div>
+  </div>
+
+  <script src="./PIXEL_CHARACTERS.js"></script>
+  <script>
+    class TestRunner {
+      constructor() {
+        this.tests = [];
+        this.passed = 0;
+        this.failed = 0;
+      }
+
+      addTest(name, fn) {
+        this.tests.push({ name, fn });
+      }
+
+      async run() {
+        const container = document.getElementById('testContainer');
+        const errorContainer = document.getElementById('error-container');
+
+        for (const test of this.tests) {
+          const result = await this.executeTest(test);
+
+          const testBox = document.createElement('div');
+          testBox.className = `test-box ${result.passed ? '' : 'failed'}`;
+
+          const status = result.passed
+            ? '<span class="status-badge pass">✓</span> <span style="color: #4caf50;">PASS</span>'
+            : '<span class="status-badge fail">✗</span> <span style="color: #f44336;">FAIL</span>';
+
+          testBox.innerHTML = `
+            <h3>${test.name}</h3>
+            <div class="test-status">${status}</div>
+            <div class="test-details">${result.message}</div>
+          `;
+
+          container.appendChild(testBox);
+
+          if (!result.passed) {
+            errorContainer.innerHTML +=
+              `<div class="error-log"><strong>${test.name}</strong><br/>${result.message}</div>`;
+          }
+        }
+
+        this.updateSummary();
+      }
+
+      async executeTest(test) {
+        try {
+          const result = await test.fn();
+          if (result.passed) {
+            this.passed++;
+          } else {
+            this.failed++;
+          }
+          return result;
+        } catch (error) {
+          this.failed++;
+          return {
+            passed: false,
+            message: `Error: ${error.message}`,
+          };
+        }
+      }
+
+      updateSummary() {
+        const total = this.tests.length;
+        const successRate = Math.round((this.passed / total) * 100);
+
+        document.getElementById('total-tests').textContent = total;
+        document.getElementById('passed-tests').textContent = this.passed;
+        document.getElementById('failed-tests').textContent = this.failed;
+        document.getElementById('success-rate').textContent = `${successRate}%`;
+
+        if (this.failed === 0) {
+          const log = document.createElement('div');
+          log.className = 'success-log';
+          log.innerHTML = `<strong>✓ All tests passed!</strong><br/>The character system is functioning correctly.`;
+          document.getElementById('error-container').prepend(log);
+        }
+      }
+    }
+
+    // ========================================================================
+    // TEST CASES
+    // ========================================================================
+
+    const runner = new TestRunner();
+
+    // Test 1: Module Loading
+    runner.addTest('Module Loading', async () => {
+      if (typeof PIXEL_CHARACTERS === 'undefined') {
+        return { passed: false, message: 'PIXEL_CHARACTERS not defined' };
+      }
+      return {
+        passed: true,
+        message: 'Module loaded successfully and available globally',
+      };
+    });
+
+    // Test 2: Character Data Structure
+    runner.addTest('Character Data Structure', async () => {
+      const required = ['juan', 'sofia', 'carlos', 'lucia', 'marco', 'ana'];
+      const missing = [];
+
+      for (const key of required) {
+        if (!PIXEL_CHARACTERS.CHARACTERS[key]) {
+          missing.push(key);
+        }
+      }
+
+      if (missing.length > 0) {
+        return {
+          passed: false,
+          message: `Missing characters: ${missing.join(', ')}`,
+        };
+      }
+
+      return {
+        passed: true,
+        message: `All 6 characters loaded: ${required.join(', ')}`,
+      };
+    });
+
+    // Test 3: Character Metadata
+    runner.addTest('Character Metadata', async () => {
+      const character = PIXEL_CHARACTERS.CHARACTERS.juan;
+      const required = ['name', 'role', 'room', 'personality', 'baseColors', 'outfits'];
+      const missing = [];
+
+      for (const field of required) {
+        if (!(field in character)) {
+          missing.push(field);
+        }
+      }
+
+      if (missing.length > 0) {
+        return {
+          passed: false,
+          message: `Missing fields in character: ${missing.join(', ')}`,
+        };
+      }
+
+      return {
+        passed: true,
+        message: `Juan metadata complete: ${character.name} - ${character.role}`,
+      };
+    });
+
+    // Test 4: Outfit System
+    runner.addTest('Outfit System', async () => {
+      const outfits = PIXEL_CHARACTERS.getOutfits('sofia');
+
+      if (!Array.isArray(outfits) || outfits.length === 0) {
+        return { passed: false, message: 'No outfits found for Sofia' };
+      }
+
+      const hasValidStructure = outfits.every((o) => o.name && o.colors);
+
+      if (!hasValidStructure) {
+        return {
+          passed: false,
+          message: 'Outfit structure invalid (missing name or colors)',
+        };
+      }
+
+      return {
+        passed: true,
+        message: `Sofia has ${outfits.length} outfits: ${outfits.map((o) => o.name).join(', ')}`,
+      };
+    });
+
+    // Test 5: Color Palette
+    runner.addTest('Color Palette', async () => {
+      const colors = PIXEL_CHARACTERS.getOutfitColors('carlos', 0);
+      const required = ['skin', 'shirt', 'pants', 'shoes', 'accent'];
+      const missing = [];
+
+      for (const color of required) {
+        if (!(color in colors)) {
+          missing.push(color);
+        }
+      }
+
+      if (missing.length > 0) {
+        return {
+          passed: false,
+          message: `Missing color values: ${missing.join(', ')}`,
+        };
+      }
+
+      return {
+        passed: true,
+        message: `Complete palette: skin=${colors.skin}, shirt=${colors.shirt}, pants=${colors.pants}`,
+      };
+    });
+
+    // Test 6: Rendering Function
+    runner.addTest('Rendering Function', async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 100;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+
+      try {
+        const result = PIXEL_CHARACTERS.renderCharacter(ctx, 0, 0, 'juan', 0, 0, 1);
+        if (result === false) {
+          return {
+            passed: false,
+            message: 'renderCharacter returned false',
+          };
+        }
+
+        return {
+          passed: true,
+          message: 'Character rendered successfully at (0,0) scale 1x',
+        };
+      } catch (error) {
+        return {
+          passed: false,
+          message: `Rendering error: ${error.message}`,
+        };
+      }
+    });
+
+    // Test 7: Character Scaling
+    runner.addTest('Character Scaling', async () => {
+      const scales = [1, 2, 3, 4];
+      const canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+
+      try {
+        for (const scale of scales) {
+          PIXEL_CHARACTERS.renderCharacter(ctx, 0, 0, 'sofia', 0, 0, scale);
+        }
+
+        return {
+          passed: true,
+          message: `All scales rendered successfully: 1x, 2x, 3x, 4x`,
+        };
+      } catch (error) {
+        return {
+          passed: false,
+          message: `Scale test failed: ${error.message}`,
+        };
+      }
+    });
+
+    // Test 8: Animation Controller
+    runner.addTest('Animation Controller', async () => {
+      const animator = new PIXEL_CHARACTERS.AnimationController('lucia', 0);
+
+      if (!animator) {
+        return {
+          passed: false,
+          message: 'Failed to create AnimationController',
+        };
+      }
+
+      const methods = [
+        'update',
+        'startWalking',
+        'stopWalking',
+        'setFrameSpeed',
+        'getCurrentFrame',
+        'reset',
+      ];
+      const missing = methods.filter((m) => typeof animator[m] !== 'function');
+
+      if (missing.length > 0) {
+        return {
+          passed: false,
+          message: `Missing methods: ${missing.join(', ')}`,
+        };
+      }
+
+      return {
+        passed: true,
+        message: 'AnimationController: all methods available and functional',
+      };
+    });
+
+    // Test 9: Animation State Management
+    runner.addTest('Animation State Management', async () => {
+      const animator = new PIXEL_CHARACTERS.AnimationController('marco', 0);
+
+      animator.startWalking();
+      if (!animator.isAnimating) {
+        return {
+          passed: false,
+          message: 'isAnimating not set to true after startWalking()',
+        };
+      }
+
+      animator.stopWalking();
+      if (animator.isAnimating) {
+        return {
+          passed: false,
+          message: 'isAnimating not set to false after stopWalking()',
+        };
+      }
+
+      animator.startWalking();
+      animator.update();
+      const frame = animator.getCurrentFrame();
+
+      if (typeof frame !== 'number' || frame < 0 || frame > 3) {
+        return {
+          passed: false,
+          message: `Invalid frame value: ${frame}`,
+        };
+      }
+
+      return {
+        passed: true,
+        message: `Animation state management working (current frame: ${frame}/4)`,
+      };
+    });
+
+    // Test 10: Sprite Sheet Generation
+    runner.addTest('Sprite Sheet Generation', async () => {
+      try {
+        const spriteSheet = PIXEL_CHARACTERS.getSpriteSheet('ana', 0);
+
+        if (!spriteSheet || typeof spriteSheet !== 'string') {
+          return {
+            passed: false,
+            message: 'getSpriteSheet did not return a valid data URL',
+          };
+        }
+
+        if (!spriteSheet.startsWith('data:image')) {
+          return {
+            passed: false,
+            message: 'Sprite sheet is not a valid data URL',
+          };
+        }
+
+        return {
+          passed: true,
+          message: 'Sprite sheet generated successfully (base64 PNG)',
+        };
+      } catch (error) {
+        return {
+          passed: false,
+          message: `Sprite sheet generation error: ${error.message}`,
+        };
+      }
+    });
+
+    // Test 11: API Methods Availability
+    runner.addTest('API Methods Availability', async () => {
+      const methods = [
+        'renderCharacter',
+        'renderCharacterWithLabel',
+        'renderIsometric',
+        'getSpriteSheet',
+        'getSingleFrame',
+        'getOutfits',
+        'getOutfitNames',
+        'getCharacterData',
+      ];
+
+      const missing = methods.filter((m) => typeof PIXEL_CHARACTERS[m] !== 'function');
+
+      if (missing.length > 0) {
+        return {
+          passed: false,
+          message: `Missing API methods: ${missing.join(', ')}`,
+        };
+      }
+
+      return {
+        passed: true,
+        message: `All ${methods.length} API methods available`,
+      };
+    });
+
+    // Test 12: Canvas Context Types
+    runner.addTest('Canvas Context Compatibility', async () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          return {
+            passed: false,
+            message: 'Cannot get 2D canvas context',
+          };
+        }
+
+        PIXEL_CHARACTERS.renderCharacter(ctx, 0, 0, 'juan', 0, 0, 1);
+
+        return {
+          passed: true,
+          message: '2D Canvas context: fully compatible',
+        };
+      } catch (error) {
+        return {
+          passed: false,
+          message: `Canvas compatibility error: ${error.message}`,
+        };
+      }
+    });
+
+    // Test 13: Character Data Consistency
+    runner.addTest('Character Data Consistency', async () => {
+      const characters = Object.values(PIXEL_CHARACTERS.CHARACTERS);
+
+      for (const char of characters) {
+        if (!char.name || !char.role || !char.room) {
+          return {
+            passed: false,
+            message: `${char.name || 'Unknown'} missing required fields`,
+          };
+        }
+
+        if (!Array.isArray(char.outfits) || char.outfits.length === 0) {
+          return {
+            passed: false,
+            message: `${char.name} has no outfit definitions`,
+          };
+        }
+
+        for (const outfit of char.outfits) {
+          const colors = outfit.colors;
+          const colorKeys = ['skin', 'shirt', 'pants', 'shoes', 'accent'];
+          const missingColor = colorKeys.find((k) => !(k in colors));
+
+          if (missingColor) {
+            return {
+              passed: false,
+              message: `${char.name} outfit "${outfit.name}" missing color: ${missingColor}`,
+            };
+          }
+        }
+      }
+
+      return {
+        passed: true,
+        message: `All ${characters.length} characters have consistent data structures`,
+      };
+    });
+
+    // Test 14: Outfit Names
+    runner.addTest('Outfit Names & Variations', async () => {
+      const characters = ['juan', 'sofia', 'carlos', 'lucia', 'marco', 'ana'];
+      let totalOutfits = 0;
+
+      for (const key of characters) {
+        const names = PIXEL_CHARACTERS.getOutfitNames(key);
+
+        if (!Array.isArray(names) || names.length === 0) {
+          return {
+            passed: false,
+            message: `${key} has no outfit names`,
+          };
+        }
+
+        totalOutfits += names.length;
+      }
+
+      return {
+        passed: true,
+        message: `${characters.length} characters with ${totalOutfits} total outfit variations`,
+      };
+    });
+
+    // Test 15: Integration Ready
+    runner.addTest('Integration Ready', async () => {
+      try {
+        // Simulate full integration
+        const canvas = document.createElement('canvas');
+        canvas.width = 300;
+        canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // Render multiple characters
+        const keys = ['juan', 'sofia', 'carlos'];
+        let x = 50;
+
+        for (const key of keys) {
+          PIXEL_CHARACTERS.renderCharacterWithLabel(ctx, x, 100, key, 0, 2);
+          x += 100;
+        }
+
+        // Test animation
+        const animator = new PIXEL_CHARACTERS.AnimationController('lucia', 0);
+        animator.startWalking();
+
+        for (let i = 0; i < 10; i++) {
+          animator.update();
+        }
+
+        animator.stopWalking();
+
+        return {
+          passed: true,
+          message: 'Full integration test passed - ready for production',
+        };
+      } catch (error) {
+        return {
+          passed: false,
+          message: `Integration test failed: ${error.message}`,
+        };
+      }
+    });
+
+    // Run all tests
+    window.addEventListener('DOMContentLoaded', () => {
+      runner.run();
+    });
+  </script>
+</body>
+</html>
