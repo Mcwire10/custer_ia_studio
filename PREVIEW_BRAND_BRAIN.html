@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custer IA Studio - Brand Brain Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --pd: #3730C4;
+      --pm: #4A44D4;
+      --pl: #6860EE;
+      --gold: #F5A623;
+      --gl: #FFD166;
+      --app: #0D0C1E;
+      --pan: #13112A;
+      --pan2: #1A1836;
+      --f: 'Montserrat', sans-serif;
+    }
+
+    body {
+      background: var(--app);
+      font-family: var(--f);
+      color: #fff;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #F5A623, #FFD166);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 24px;
+    }
+
+    /* LEFT SIDE - FORM */
+    .form-section {
+      background: var(--pan);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .form-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      gap: 0;
+    }
+
+    .form-tab {
+      flex: 1;
+      padding: 14px 16px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: var(--f);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-bottom: 2px solid transparent;
+    }
+
+    .form-tab:hover {
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .form-tab.active {
+      color: #fff;
+      background: rgba(104, 96, 238, 0.1);
+      border-bottom-color: var(--gold);
+    }
+
+    .form-content {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .fields {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input, .textarea, .select {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-family: var(--f);
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input:focus, .textarea:focus, .select:focus {
+      border-color: var(--gold);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
+    }
+
+    .textarea {
+      min-height: 80px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .color-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .color-picker {
+      width: 50px;
+      height: 44px;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .color-text {
+      flex: 1;
+    }
+
+    .save-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, var(--gold), var(--gl));
+      color: #7A4F00;
+      font-family: var(--f);
+      font-weight: 800;
+      font-size: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .save-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+    }
+
+    /* RIGHT SIDE - PREVIEW */
+    .preview-section {
+      background: var(--pan);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      animation: slideInRight 0.5s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .preview-header {
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(104, 96, 238, 0.1), rgba(245, 166, 35, 0.05));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 14px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .colors-showcase {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .color-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .color-box:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .color-box:hover .color-swatch {
+      transform: scale(1.1);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .color-box span {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .color-box code {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .mockup {
+      margin: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .mockup-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #6860EE, #F5A623);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: white;
+    }
+
+    .mockup-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mockup-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .mockup-label {
+      font-size: 8px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .mockup-value {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 600;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .stat {
+      text-align: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .stat:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .stat-number {
+      font-size: 20px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--gold), var(--gl));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    .hint {
+      padding: 14px 20px;
+      margin: 20px;
+      background: rgba(104, 96, 238, 0.1);
+      border: 1px solid rgba(104, 96, 238, 0.2);
+      border-radius: 10px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎨 Brand Brain Redesign</h1>
+    <p>Vista previa interactiva del nuevo diseño</p>
+  </div>
+
+  <div class="container">
+    <!-- LEFT SIDE -->
+    <div class="form-section">
+      <div class="form-tabs">
+        <button class="form-tab active">🏢 Identidad</button>
+        <button class="form-tab">🎨 Visual</button>
+        <button class="form-tab">💬 Voz</button>
+      </div>
+
+      <div class="form-content">
+        <div class="section-title">🏢 Identidad de Marca</div>
+
+        <div class="fields">
+          <div class="field">
+            <label class="label">Nombre de la marca</label>
+            <input type="text" class="input" placeholder="Ej: Custer" value="Custer">
+          </div>
+
+          <div class="field">
+            <label class="label">Rubro / Industria</label>
+            <input type="text" class="input" placeholder="Ej: Marketing Digital" value="Agencia de Marketing Digital">
+          </div>
+
+          <div class="field">
+            <label class="label">Ciudad / Mercado</label>
+            <input type="text" class="input" placeholder="Ej: Villa María" value="Villa María, Córdoba">
+          </div>
+
+          <div class="field">
+            <label class="label">Propuesta de valor</label>
+            <textarea class="textarea" placeholder="¿Qué hacés?">Creamos sistemas de marca que transforman negocios en empresas escalables y confiables.</textarea>
+          </div>
+
+          <div class="field">
+            <label class="label">Público objetivo</label>
+            <textarea class="textarea" placeholder="¿A quién?">Emprendedores y pequeñas empresas en crecimiento que necesitan profesionalizar su marca.</textarea>
+          </div>
+        </div>
+
+        <button class="save-btn">
+          <span>💾</span> Guardar Brand Brain
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="preview-section">
+      <div class="preview-header">Vista Previa de tu Marca</div>
+
+      <div class="colors-showcase">
+        <div class="color-box">
+          <div class="color-swatch" style="background-color: #3730C4;"></div>
+          <span>Primario</span>
+          <code>#3730C4</code>
+        </div>
+        <div class="color-box">
+          <div class="color-swatch" style="background-color: #F5A623;"></div>
+          <span>Acento</span>
+          <code>#F5A623</code>
+        </div>
+        <div class="color-box">
+          <div class="color-swatch" style="background-color: #0D0C1E;"></div>
+          <span>Fondo</span>
+          <code>#0D0C1E</code>
+        </div>
+        <div class="color-box">
+          <div class="color-swatch" style="background-color: #FFFFFF;"></div>
+          <span>Texto</span>
+          <code>#FFFFFF</code>
+        </div>
+      </div>
+
+      <div class="mockup">
+        <div class="mockup-header">
+          <span style="background: linear-gradient(135deg, #F5A623, #FFD166); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">c</span><span>uster</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-item">
+            <div class="mockup-label">Marca</div>
+            <div class="mockup-value">Custer</div>
+          </div>
+          <div class="mockup-item">
+            <div class="mockup-label">Rubro</div>
+            <div class="mockup-value">Agencia de Marketing Digital</div>
+          </div>
+          <div class="mockup-item">
+            <div class="mockup-label">Propuesta</div>
+            <div class="mockup-value">Creamos sistemas de marca que transforman...</div>
+          </div>
+          <div class="mockup-item">
+            <div class="mockup-label">Tono</div>
+            <div class="mockup-value">Formal Conversacional</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">8</div>
+          <div class="stat-label">Keywords</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">3</div>
+          <div class="stat-label">Tonalidades</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Completitud</div>
+        </div>
+      </div>
+
+      <div class="hint">
+        💡 <strong>Pro tip:</strong> Tu Brand Brain es la base de todo. Cuanto más detallado, mejores resultados.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Interactividad para tabs
+    document.querySelectorAll('.form-tab').forEach((tab, index) => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Color pickers (si existieran)
+    document.querySelectorAll('.color-box').forEach(box => {
+      box.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-4px)';
+      });
+      box.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+      });
+    });
+  </script>
+</body>
+</html>

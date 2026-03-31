@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custer - Login 3D</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6860EE;
+      --accent: #F5A623;
+      --dark: #0D0C1E;
+      --success: #4ADE80;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.6);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      perspective: 1000px;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0D0C1E 0%, #1a1535 50%, #2d1f4a 100%);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ============= CANVAS DE FONDO 3D ============= */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ============= CONTENT ============= */
+    .login-wrapper {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .login-container {
+      max-width: 500px;
+      width: 100%;
+      animation: fadeInUp 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(60px) rotateX(20deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+      }
+    }
+
+    /* ============= HEADER ============= */
+    .login-header {
+      text-align: center;
+      margin-bottom: 60px;
+      animation: slideDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-40px) rotateX(-30deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+      }
+    }
+
+    .logo-3d {
+      font-size: 64px;
+      font-weight: 900;
+      margin-bottom: 20px;
+      position: relative;
+      display: inline-block;
+      transform-style: preserve-3d;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) rotateZ(0deg) translateZ(20px);
+      }
+      50% {
+        transform: translateY(-20px) rotateZ(3deg) translateZ(40px);
+      }
+    }
+
+    .logo-3d::before {
+      content: 'c uster';
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: -1;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: blur(8px);
+      opacity: 0.6;
+      transform: translateZ(-10px) scaleZ(1.2);
+    }
+
+    .logo-main {
+      background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.9));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(104, 96, 238, 0.5);
+      filter: drop-shadow(0 0 20px rgba(245, 166, 35, 0.3));
+    }
+
+    .login-title {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.8));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+      animation: textGlitch 0.5s ease;
+    }
+
+    @keyframes textGlitch {
+      0%, 100% {
+        text-shadow: none;
+      }
+      20% {
+        text-shadow: -3px 0 var(--primary), 3px 0 var(--accent);
+      }
+    }
+
+    .login-subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ============= FORM CARD ============= */
+    .login-card {
+      background: rgba(26, 24, 48, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 48px;
+      backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      animation: cardPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+      transform-style: preserve-3d;
+    }
+
+    @keyframes cardPop {
+      from {
+        opacity: 0;
+        transform: scale(0.8) rotateX(-30deg) rotateY(20deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotateX(0) rotateY(0);
+      }
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0.5;
+    }
+
+    .login-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(104, 96, 238, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ============= FORM FIELDS ============= */
+    .form-group {
+      margin-bottom: 28px;
+      animation: slideInLeft 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+      position: relative;
+      z-index: 2;
+    }
+
+    .form-group:nth-child(1) {
+      animation-delay: 0.3s;
+    }
+
+    .form-group:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+
+    .form-group:nth-child(3) {
+      animation-delay: 0.5s;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px) rotateY(30deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) rotateY(0);
+      }
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-label::before {
+      content: '';
+      width: 3px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.5);
+      }
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      z-index: 2;
+    }
+
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      background: rgba(104, 96, 238, 0.1);
+      box-shadow: 0 0 0 4px rgba(104, 96, 238, 0.15), inset 0 0 24px rgba(104, 96, 238, 0.05);
+      transform: translateY(-3px) translateZ(20px);
+    }
+
+    .form-input:hover:not(:focus) {
+      border-color: rgba(104, 96, 238, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ============= PIN INPUT ============= */
+    .pin-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .pin-input {
+      flex: 1;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 24px;
+      font-weight: 900;
+      text-align: center;
+      outline: none;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      z-index: 2;
+    }
+
+    .pin-input::placeholder {
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    .pin-input:focus {
+      border-color: var(--accent);
+      background: rgba(245, 166, 35, 0.1);
+      box-shadow: 0 0 0 4px rgba(245, 166, 35, 0.15);
+      transform: translateY(-3px) scale(1.05) translateZ(20px);
+    }
+
+    .pin-input:valid {
+      border-color: var(--success);
+      animation: pinPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes pinPop {
+      0% {
+        transform: scale(0.8);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* ============= BUTTON ============= */
+    .login-btn {
+      width: 100%;
+      padding: 18px 28px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      font-family: inherit;
+      font-weight: 900;
+      font-size: 14px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(104, 96, 238, 0.3);
+      z-index: 2;
+      animation: slideInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px) rotateX(30deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+      }
+    }
+
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+      }
+      100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+      }
+    }
+
+    .login-btn:hover {
+      transform: translateY(-6px) translateZ(30px);
+      box-shadow: 0 25px 50px rgba(104, 96, 238, 0.5);
+    }
+
+    .login-btn:active {
+      transform: translateY(-2px) translateZ(10px);
+    }
+
+    /* ============= DEMO CREDENTIALS ============= */
+    .demo-section {
+      margin-top: 48px;
+      padding-top: 28px;
+      border-top: 2px solid rgba(255, 255, 255, 0.1);
+      animation: fadeIn 1s ease-out 0.8s backwards;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .demo-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .demo-title::before {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .demo-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent));
+    }
+
+    .demo-credentials {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .demo-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-size: 11px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, transparent, rgba(104, 96, 238, 0.2), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.5s ease;
+    }
+
+    .demo-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(104, 96, 238, 0.3);
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    .demo-item:hover::before {
+      transform: translateX(100%);
+    }
+
+    .demo-user {
+      color: var(--accent);
+      font-weight: 800;
+      margin-bottom: 4px;
+      font-family: 'Monaco', monospace;
+    }
+
+    .demo-pass {
+      color: var(--text-secondary);
+      font-family: 'Monaco', monospace;
+      font-size: 10px;
+    }
+
+    /* ============= RESPONSIVE ============= */
+    @media (max-width: 640px) {
+      .login-card {
+        padding: 36px 24px;
+      }
+
+      .login-header {
+        margin-bottom: 40px;
+      }
+
+      .logo-3d {
+        font-size: 48px;
+      }
+
+      .login-title {
+        font-size: 24px;
+      }
+
+      .demo-credentials {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Canvas para partículas 3D -->
+  <canvas id="particles-canvas"></canvas>
+
+  <div class="login-wrapper">
+    <div class="login-container">
+      <!-- Header -->
+      <div class="login-header">
+        <div class="logo-3d">
+          <span class="logo-main">c uster</span>
+        </div>
+        <h1 class="login-title">Bienvenido</h1>
+        <p class="login-subtitle">Ingresa a tu cuenta</p>
+      </div>
+
+      <!-- Login Card -->
+      <form class="login-card" id="login-form">
+        <!-- Username -->
+        <div class="form-group">
+          <label class="form-label">Usuario / Email</label>
+          <input
+            type="text"
+            class="form-input"
+            placeholder="demo o admin"
+            id="username"
+            required
+          >
+        </div>
+
+        <!-- PIN Input -->
+        <div class="form-group">
+          <label class="form-label">PIN de Acceso (4 dígitos)</label>
+          <div class="pin-container">
+            <input type="text" class="pin-input" maxlength="1" inputmode="numeric" placeholder="0">
+            <input type="text" class="pin-input" maxlength="1" inputmode="numeric" placeholder="0">
+            <input type="text" class="pin-input" maxlength="1" inputmode="numeric" placeholder="0">
+            <input type="text" class="pin-input" maxlength="1" inputmode="numeric" placeholder="0">
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="login-btn">Acceder</button>
+
+        <!-- Demo Credentials -->
+        <div class="demo-section">
+          <div class="demo-title">Credenciales Demo</div>
+          <div class="demo-credentials">
+            <div class="demo-item" onclick="setDemo('demo', '1234')">
+              <div class="demo-user">demo</div>
+              <div class="demo-pass">PIN: 1234</div>
+            </div>
+            <div class="demo-item" onclick="setDemo('admin', '5678')">
+              <div class="demo-user">admin</div>
+              <div class="demo-pass">PIN: 5678</div>
+            </div>
+            <div class="demo-item" onclick="setDemo('user', '9999')">
+              <div class="demo-user">user</div>
+              <div class="demo-pass">PIN: 9999</div>
+            </div>
+            <div class="demo-item" onclick="setDemo('leandro', '2210')">
+              <div class="demo-user">leandro</div>
+              <div class="demo-pass">PIN: 2210</div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ============= 3D PARTICLES BACKGROUND =============
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const particleCount = 120;
+
+    class Particle3D {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.z = Math.random() * 3000;
+
+        this.vx = (Math.random() - 0.5) * 3;
+        this.vy = (Math.random() - 0.5) * 3;
+        this.vz = Math.random() * 15 - 7;
+
+        this.size = Math.random() * 4 + 1;
+        this.opacity = Math.random() * 0.6 + 0.2;
+
+        // Colores variados
+        const colors = ['#6860EE', '#F5A623', '#4ADE80', '#00D9FF'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.z += this.vz;
+
+        // Wrap around
+        if (this.x > canvas.width + 200) this.x = -200;
+        if (this.x < -200) this.x = canvas.width + 200;
+        if (this.y > canvas.height + 200) this.y = -200;
+        if (this.y < -200) this.y = canvas.height + 200;
+        if (this.z > 3000) this.z = 0;
+        if (this.z < 0) this.z = 3000;
+      }
+
+      draw() {
+        const scale = 1500 / (1500 + this.z);
+        const x = this.x;
+        const y = this.y;
+        const size = this.size * scale;
+        const alpha = this.opacity * Math.pow(scale, 1.5);
+
+        // Cambiar color según profundidad
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = alpha;
+
+        // Dibujar como círculo con glow
+        ctx.beginPath();
+        ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Glow adicional
+        ctx.strokeStyle = this.color;
+        ctx.globalAlpha = alpha * 0.3;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size / 2 + 2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle3D());
+    }
+
+    function animate() {
+      // Clear con fade
+      ctx.fillStyle = 'rgba(13, 12, 30, 0.15)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1;
+
+      // Sort by depth
+      particles.sort((a, b) => a.z - b.z);
+
+      // Update y draw
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Resize handling
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // ============= MOUSE TRACKING PARA PARALLAX =============
+    const loginCard = document.querySelector('.login-card');
+
+    document.addEventListener('mousemove', (e) => {
+      const rect = loginCard.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      loginCard.style.setProperty('--mouse-x', x + '%');
+      loginCard.style.setProperty('--mouse-y', y + '%');
+
+      // Tilt effect
+      const rotateX = ((e.clientY - rect.top) / rect.height - 0.5) * 10;
+      const rotateY = ((e.clientX - rect.left) / rect.width - 0.5) * -10;
+      loginCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    document.addEventListener('mouseleave', () => {
+      loginCard.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+    });
+
+    // ============= PIN INPUT HANDLING =============
+    const pinInputs = document.querySelectorAll('.pin-input');
+
+    pinInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (!/^\d*$/.test(e.target.value)) {
+          e.target.value = '';
+          return;
+        }
+
+        if (e.target.value.length === 1 && index < pinInputs.length - 1) {
+          pinInputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+          pinInputs[index - 1].focus();
+        }
+      });
+    });
+
+    // ============= FORM SUBMIT =============
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const pin = Array.from(pinInputs).map(input => input.value).join('');
+
+      if (pin.length === 4) {
+        console.log('Login:', username, pin);
+        alert(`✅ Bienvenido ${username}! PIN: ${pin}`);
+        // Aquí iría la llamada a la API
+      } else {
+        alert('⚠️ Por favor ingresa los 4 dígitos del PIN');
+      }
+    });
+
+    // ============= SET DEMO CREDENTIALS =============
+    function setDemo(user, pin) {
+      document.getElementById('username').value = user;
+      const digits = pin.split('');
+      pinInputs.forEach((input, index) => {
+        input.value = digits[index] || '';
+      });
+
+      // Animación de éxito
+      const btn = document.querySelector('.login-btn');
+      btn.style.animation = 'none';
+      setTimeout(() => {
+        btn.style.animation = '';
+      }, 10);
+    }
+  </script>
+</body>
+</html>

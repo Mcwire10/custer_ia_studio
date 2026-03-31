@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custer Agency - House Hub</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6860EE;
+      --accent: #F5A623;
+      --dark: #0D0C1E;
+      --panel: #1a1830;
+      --text: #ffffff;
+      --text-sec: rgba(255, 255, 255, 0.6);
+    }
+
+    html {
+      perspective: 1000px;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0D0C1E 0%, #1a1535 50%, #2d1f4a 100%);
+      color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .house-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ============= HEADER ============= */
+    .house-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      background: rgba(26, 24, 48, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      animation: slideDown 0.8s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .house-title {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), #fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .house-stats {
+      display: flex;
+      gap: 30px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-icon {
+      font-size: 24px;
+    }
+
+    .stat-value {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .stat-number {
+      font-size: 20px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ============= ROOMS GRID ============= */
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+      animation: fadeIn 0.8s ease-out 0.2s backwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .room-card {
+      background: rgba(26, 24, 48, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 24px;
+      backdrop-filter: blur(20px);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .room-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .room-card:hover {
+      border-color: rgba(104, 96, 238, 0.4);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(104, 96, 238, 0.2);
+    }
+
+    .room-card:hover::before {
+      opacity: 1;
+    }
+
+    .room-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .room-name {
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .room-subtitle {
+      font-size: 12px;
+      color: var(--text-sec);
+      margin-bottom: 20px;
+    }
+
+    .npc-display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      position: relative;
+      min-height: 100px;
+    }
+
+    .npc-avatar {
+      font-size: 64px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 4px 8px rgba(104, 96, 238, 0.3));
+      animation: bounce 3s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .npc-name {
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .npc-status {
+      font-size: 12px;
+      color: var(--text-sec);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-indicator.working {
+      background: #4ADE80;
+    }
+
+    .status-indicator.resting {
+      background: var(--accent);
+    }
+
+    .status-indicator.tired {
+      background: #FF6B6B;
+    }
+
+    /* Energy bar */
+    .energy-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .energy-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .room-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .room-btn {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .room-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(104, 96, 238, 0.3);
+    }
+
+    .room-meta {
+      font-size: 11px;
+      color: var(--text-sec);
+    }
+
+    /* ============= BOTTOM PANEL ============= */
+    .bottom-panel {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(26, 24, 48, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      animation: slideUp 0.8s ease-out 0.4s backwards;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .panel-btn {
+      flex: 1;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(104, 96, 238, 0.3), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .panel-btn:hover {
+      border-color: var(--primary);
+      background: rgba(104, 96, 238, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .panel-btn:hover::before {
+      opacity: 1;
+    }
+
+    .panel-btn:active {
+      transform: translateY(0);
+    }
+
+    .panel-btn-icon {
+      font-size: 18px;
+    }
+
+    /* ============= MODAL ============= */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, rgba(26, 24, 48, 0.9), rgba(13, 12, 30, 0.9));
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      backdrop-filter: blur(20px);
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 28px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .close-btn:hover {
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px;
+    }
+
+    .item-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .item-card:hover {
+      border-color: var(--accent);
+      background: rgba(245, 166, 35, 0.1);
+    }
+
+    .item-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .item-name {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .item-price {
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    /* ============= RESPONSIVE ============= */
+    @media (max-width: 768px) {
+      .house-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .house-stats {
+        width: 100%;
+        justify-content: space-around;
+      }
+
+      .rooms-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bottom-panel {
+        flex-direction: column;
+      }
+
+      .modal-content {
+        margin: 20px;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+
+  <div class="house-container">
+    <!-- HEADER -->
+    <div class="house-header">
+      <div class="house-title">
+        <span>🏠</span>
+        <span>Custer Agency</span>
+      </div>
+      <div class="house-stats">
+        <div class="stat-item">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value">
+            <div class="stat-label">Dinero</div>
+            <div class="stat-number">$2,450</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-value">
+            <div class="stat-label">Nivel</div>
+            <div class="stat-number">Nivel 5</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🎖️</div>
+          <div class="stat-value">
+            <div class="stat-label">Logros</div>
+            <div class="stat-number">7/12</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOMS -->
+    <div class="rooms-grid">
+      <!-- Room 1 -->
+      <div class="room-card">
+        <div class="room-icon">🧠</div>
+        <div class="room-name">Brain Room</div>
+        <div class="room-subtitle">Crear perfiles de marca</div>
+
+        <div class="npc-display">
+          <div class="npc-avatar">👨‍💼</div>
+          <div class="npc-name">Juan</div>
+          <div class="npc-status">
+            <span class="status-indicator working"></span>
+            Trabajando
+          </div>
+          <div class="energy-bar">
+            <div class="energy-fill" style="width: 75%"></div>
+          </div>
+        </div>
+
+        <div class="room-footer">
+          <div class="room-meta">Lvl 4 • 340 XP</div>
+          <button class="room-btn">Entrar</button>
+        </div>
+      </div>
+
+      <!-- Room 2 -->
+      <div class="room-card">
+        <div class="room-icon">🎨</div>
+        <div class="room-name">Generator Room</div>
+        <div class="room-subtitle">Generar carruseles</div>
+
+        <div class="npc-display">
+          <div class="npc-avatar">👩‍🎨</div>
+          <div class="npc-name">Sofia</div>
+          <div class="npc-status">
+            <span class="status-indicator resting"></span>
+            Descansando
+          </div>
+          <div class="energy-bar">
+            <div class="energy-fill" style="width: 45%"></div>
+          </div>
+        </div>
+
+        <div class="room-footer">
+          <div class="room-meta">Lvl 3 • 210 XP</div>
+          <button class="room-btn">Entrar</button>
+        </div>
+      </div>
+
+      <!-- Room 3 -->
+      <div class="room-card">
+        <div class="room-icon">✅</div>
+        <div class="room-name">Validator Room</div>
+        <div class="room-subtitle">Validar contenido</div>
+
+        <div class="npc-display">
+          <div class="npc-avatar">👨‍💻</div>
+          <div class="npc-name">Carlos</div>
+          <div class="npc-status">
+            <span class="status-indicator working"></span>
+            Trabajando
+          </div>
+          <div class="energy-bar">
+            <div class="energy-fill" style="width: 85%"></div>
+          </div>
+        </div>
+
+        <div class="room-footer">
+          <div class="room-meta">Lvl 2 • 120 XP</div>
+          <button class="room-btn">Entrar</button>
+        </div>
+      </div>
+
+      <!-- Room 4 -->
+      <div class="room-card">
+        <div class="room-icon">📝</div>
+        <div class="room-name">Copy Room</div>
+        <div class="room-subtitle">Escribir copys</div>
+
+        <div class="npc-display">
+          <div class="npc-avatar">👩‍✍️</div>
+          <div class="npc-name">Lucia</div>
+          <div class="npc-status">
+            <span class="status-indicator tired"></span>
+            Cansada
+          </div>
+          <div class="energy-bar">
+            <div class="energy-fill" style="width: 25%"></div>
+          </div>
+        </div>
+
+        <div class="room-footer">
+          <div class="room-meta">Lvl 4 • 290 XP</div>
+          <button class="room-btn">Entrar</button>
+        </div>
+      </div>
+
+      <!-- Room 5 -->
+      <div class="room-card">
+        <div class="room-icon">🔍</div>
+        <div class="room-name">Competition Room</div>
+        <div class="room-subtitle">Analizar competencia</div>
+
+        <div class="npc-display">
+          <div class="npc-avatar">🕵️</div>
+          <div class="npc-name">Marco</div>
+          <div class="npc-status">
+            <span class="status-indicator working"></span>
+            Trabajando
+          </div>
+          <div class="energy-bar">
+            <div class="energy-fill" style="width: 60%"></div>
+          </div>
+        </div>
+
+        <div class="room-footer">
+          <div class="room-meta">Lvl 3 • 150 XP</div>
+          <button class="room-btn">Entrar</button>
+        </div>
+      </div>
+
+      <!-- Room 6 -->
+      <div class="room-card">
+        <div class="room-icon">📊</div>
+        <div class="room-name">Reports Room</div>
+        <div class="room-subtitle">Generar reportes</div>
+
+        <div class="npc-display">
+          <div class="npc-avatar">👩‍🔬</div>
+          <div class="npc-name">Ana</div>
+          <div class="npc-status">
+            <span class="status-indicator working"></span>
+            Trabajando
+          </div>
+          <div class="energy-bar">
+            <div class="energy-fill" style="width: 70%"></div>
+          </div>
+        </div>
+
+        <div class="room-footer">
+          <div class="room-meta">Lvl 5 • 450 XP</div>
+          <button class="room-btn">Entrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM PANEL -->
+    <div class="bottom-panel">
+      <button class="panel-btn" onclick="openModal('shop')">
+        <span class="panel-btn-icon">🛍️</span>
+        <span>Tienda</span>
+      </button>
+      <button class="panel-btn" onclick="openModal('progress')">
+        <span class="panel-btn-icon">📈</span>
+        <span>Progreso</span>
+      </button>
+      <button class="panel-btn" onclick="openModal('npcs')">
+        <span class="panel-btn-icon">👥</span>
+        <span>Mi Equipo</span>
+      </button>
+      <button class="panel-btn" onclick="openModal('achievements')">
+        <span class="panel-btn-icon">🏅</span>
+        <span>Logros</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal" id="shop-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🛍️ Tienda</div>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <h3 style="margin-bottom: 12px;">Tu dinero: <span style="color: var(--accent); font-weight: 900;">$2,450</span></h3>
+
+        <h4 style="margin-top: 16px; margin-bottom: 12px;">👕 Ropa Disponible</h4>
+        <div class="item-grid">
+          <div class="item-card">
+            <div class="item-icon">👕</div>
+            <div class="item-name">Hoodie Morada</div>
+            <div class="item-price">$500</div>
+          </div>
+          <div class="item-card">
+            <div class="item-icon">👔</div>
+            <div class="item-name">Blazer Clásico</div>
+            <div class="item-price">$300</div>
+          </div>
+          <div class="item-card">
+            <div class="item-icon">🎩</div>
+            <div class="item-name">Gorro de Chef</div>
+            <div class="item-price">$200</div>
+          </div>
+          <div class="item-card">
+            <div class="item-icon">🕶️</div>
+            <div class="item-name">Gafas de Sol</div>
+            <div class="item-price">$150</div>
+          </div>
+          <div class="item-card">
+            <div class="item-icon">🎮</div>
+            <div class="item-name">Lentes Gamer</div>
+            <div class="item-price">$350</div>
+          </div>
+          <div class="item-card">
+            <div class="item-icon">👟</div>
+            <div class="item-name">Zapatillas Premium</div>
+            <div class="item-price">$280</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="progress-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">📈 Tu Progreso</div>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Nivel Agencia: <strong>5</strong></span>
+            <span>Siguiente: Lvl 6</span>
+          </div>
+          <div style="width: 100%; height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden;">
+            <div style="width: 65%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 6px;"></div>
+          </div>
+          <div style="font-size: 10px; color: var(--text-sec); margin-top: 4px;">650 / 1000 XP</div>
+        </div>
+
+        <h4 style="margin: 16px 0 12px 0;">💰 Estadísticas</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 10px; color: var(--text-sec); text-transform: uppercase; font-weight: 700;">Dinero Total</div>
+            <div style="font-size: 20px; font-weight: 900; color: var(--accent);">$2,450</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 10px; color: var(--text-sec); text-transform: uppercase; font-weight: 700;">Tareas Completadas</div>
+            <div style="font-size: 20px; font-weight: 900; color: var(--primary);">47</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="npcs-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">👥 Mi Equipo</div>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👨‍💼</div>
+            <div style="font-weight: 700;">Juan</div>
+            <div style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Lvl 4 • Brand Specialist</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👩‍🎨</div>
+            <div style="font-weight: 700;">Sofia</div>
+            <div style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Lvl 3 • Creative Lead</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👨‍💻</div>
+            <div style="font-weight: 700;">Carlos</div>
+            <div style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Lvl 2 • Data Analyst</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👩‍✍️</div>
+            <div style="font-weight: 700;">Lucia</div>
+            <div style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Lvl 4 • Copywriter</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🕵️</div>
+            <div style="font-weight: 700;">Marco</div>
+            <div style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Lvl 3 • Researcher</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👩‍🔬</div>
+            <div style="font-weight: 700;">Ana</div>
+            <div style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Lvl 5 • Data Scientist</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="achievements-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🏅 Logros (7/12)</div>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" style="gap: 8px;">
+        <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); padding: 12px; border-radius: 8px; display: flex; gap: 12px; align-items: center;">
+          <div style="font-size: 24px;">✅</div>
+          <div>
+            <div style="font-weight: 700;">Primer Diagnóstico</div>
+            <div style="font-size: 10px; color: var(--text-sec);">Completar 1 Brand Brain</div>
+          </div>
+        </div>
+        <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); padding: 12px; border-radius: 8px; display: flex; gap: 12px; align-items: center;">
+          <div style="font-size: 24px;">🎨</div>
+          <div>
+            <div style="font-weight: 700;">Generador Loco</div>
+            <div style="font-size: 10px; color: var(--text-sec);">Generar 10 carruseles</div>
+          </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; display: flex; gap: 12px; align-items: center; opacity: 0.5;">
+          <div style="font-size: 24px;">🔒</div>
+          <div>
+            <div style="font-weight: 700;">Copywiter Experto</div>
+            <div style="font-size: 10px; color: var(--text-sec);">Generar 100 copys (Progreso: 47/100)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 3D Particles
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        z: Math.random() * 2000,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        vz: Math.random() * 8 - 4,
+        size: Math.random() * 3 + 1,
+        color: Math.random() > 0.5 ? '#6860EE' : '#F5A623'
+      });
+    }
+
+    function animateParticles() {
+      ctx.fillStyle = 'rgba(13, 12, 30, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.z += p.vz;
+
+        if (p.x > canvas.width + 100) p.x = -100;
+        if (p.x < -100) p.x = canvas.width + 100;
+        if (p.y > canvas.height + 100) p.y = -100;
+        if (p.y < -100) p.y = canvas.height + 100;
+        if (p.z > 2000) p.z = 0;
+        if (p.z < 0) p.z = 2000;
+
+        const scale = 1000 / (1000 + p.z);
+        const size = p.size * scale;
+        const alpha = 0.5 * scale;
+
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+      });
+
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Modal functions
+    function openModal(type) {
+      document.getElementById(type + '-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    }
+
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+    });
+  </script>
+</body>
+</html>
