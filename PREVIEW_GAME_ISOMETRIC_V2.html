@@ -21,7 +21,17 @@
       --warning: #FF6B6B;
       --text: #ffffff;
       --text-sec: rgba(255, 255, 255, 0.6);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.6);
+      --text-tertiary: rgba(255, 255, 255, 0.3);
       --glass: rgba(26, 24, 48, 0.7);
+      --success-light: rgba(74, 222, 128, 0.2);
+      --warning-light: rgba(255, 107, 107, 0.2);
+      --info: #00D9FF;
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --transition-fast: 150ms;
+      --transition-normal: 300ms;
+      --transition-slow: 600ms;
     }
 
     body {
@@ -83,7 +93,7 @@
     }
 
     .hud-item {
-      background: linear-gradient(135deg, rgba(26, 24, 48, 0.9), rgba(13, 12, 30, 0.95));
+      background: linear-gradient(135deg, rgba(26, 24, 48, 0.95), rgba(13, 12, 30, 0.98));
       border: 1.5px solid rgba(104, 96, 238, 0.4);
       border-radius: 12px;
       padding: 12px 16px;
@@ -93,6 +103,13 @@
       gap: 10px;
       font-size: 13px;
       font-weight: 700;
+      box-shadow: 0 8px 24px rgba(104, 96, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      transition: all var(--transition-normal) ease;
+    }
+
+    .hud-item:hover {
+      border-color: rgba(104, 96, 238, 0.6);
+      box-shadow: 0 12px 32px rgba(104, 96, 238, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
     .hud-icon {
@@ -118,16 +135,23 @@
     }
 
     .notification {
-      background: linear-gradient(135deg, rgba(26, 24, 48, 0.95), rgba(13, 12, 30, 0.95));
+      background: linear-gradient(135deg, rgba(26, 24, 48, 0.98), rgba(13, 12, 30, 0.98));
       border: 2px solid var(--success);
       border-radius: 10px;
       padding: 12px 16px;
       font-size: 12px;
       font-weight: 700;
       color: var(--success);
-      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: popIn var(--transition-normal) var(--ease-bounce), slideOut var(--transition-slow) ease forwards 3s;
       backdrop-filter: blur(20px);
-      box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+      box-shadow: 0 8px 32px rgba(74, 222, 128, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes slideOut {
+      to {
+        opacity: 0;
+        transform: translateX(100px);
+      }
     }
 
     @keyframes popIn {
@@ -228,8 +252,18 @@
 
     .agent-card.selected {
       border-color: var(--accent);
-      background: linear-gradient(135deg, rgba(245, 166, 35, 0.2), rgba(104, 96, 238, 0.15));
-      box-shadow: 0 0 20px rgba(245, 166, 35, 0.3), inset 0 0 20px rgba(245, 166, 35, 0.05);
+      background: linear-gradient(135deg, rgba(245, 166, 35, 0.25), rgba(104, 96, 238, 0.2));
+      box-shadow: 0 0 24px rgba(245, 166, 35, 0.4), inset 0 0 24px rgba(245, 166, 35, 0.1);
+      animation: pulse-highlight 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-highlight {
+      0%, 100% {
+        box-shadow: 0 0 24px rgba(245, 166, 35, 0.4), inset 0 0 24px rgba(245, 166, 35, 0.1);
+      }
+      50% {
+        box-shadow: 0 0 32px rgba(245, 166, 35, 0.5), inset 0 0 32px rgba(245, 166, 35, 0.15);
+      }
     }
 
     .agent-header {
@@ -381,6 +415,44 @@
       .sidebar {
         border-radius: 20px 20px 0 0;
       }
+    }
+
+    /* ============= ACCESSIBILITY ============= */
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible,
+    [role="button"]:focus-visible,
+    *:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* ============= MOTION REDUCTION ============= */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      #gameCanvas, canvas {
+        opacity: 0.1;
+      }
+
+      * { animation: none !important; }
+    }
+
+    /* ============= HIGH CONTRAST MODE ============= */
+    @media (prefers-contrast: more) {
+      button {
+        border: 2px solid var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      input { border-width: 3px; }
     }
   </style>
 </head>
@@ -762,6 +834,29 @@
     }
 
     initSidebar();
+
+    // ============= KEYBOARD NAVIGATION =============
+    document.addEventListener('keydown', (e) => {
+      const cards = document.querySelectorAll('.agent-card');
+      if (cards.length === 0) return;
+
+      let currentIndex = Array.from(cards).findIndex(c => c.classList.contains('selected'));
+      let newIndex = currentIndex;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        newIndex = (currentIndex + 1) % cards.length;
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        newIndex = (currentIndex - 1 + cards.length) % cards.length;
+        e.preventDefault();
+      }
+
+      if (newIndex !== currentIndex) {
+        const agent = AGENTS.find(a => a.id === cards[newIndex].dataset.agent);
+        selectAgent(agent);
+        cards[newIndex].focus();
+      }
+    });
   </script>
 </body>
 </html>

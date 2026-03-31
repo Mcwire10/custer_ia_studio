@@ -18,6 +18,15 @@
       --success: #4ADE80;
       --text-primary: #ffffff;
       --text-secondary: rgba(255, 255, 255, 0.6);
+      --text-tertiary: rgba(255, 255, 255, 0.3);
+      --success-light: rgba(74, 222, 128, 0.2);
+      --warning: #FF6B6B;
+      --warning-light: rgba(255, 107, 107, 0.2);
+      --info: #00D9FF;
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --transition-fast: 150ms;
+      --transition-normal: 300ms;
+      --transition-slow: 600ms;
     }
 
     html {
@@ -342,20 +351,36 @@
       transform: translateY(-3px) scale(1.05) translateZ(20px);
     }
 
-    .pin-input:valid {
+    .pin-input[data-valid="true"] {
       border-color: var(--success);
-      animation: pinPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: rgba(74, 222, 128, 0.1);
+      animation: successPulse 0.6s ease-out;
+    }
+
+    @keyframes successPulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(74, 222, 128, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+      }
     }
 
     @keyframes pinPop {
       0% {
         transform: scale(0.8);
+        opacity: 0.7;
       }
       50% {
-        transform: scale(1.1);
+        transform: scale(1.15);
+        opacity: 1;
       }
       100% {
         transform: scale(1);
+        opacity: 1;
       }
     }
 
@@ -515,6 +540,69 @@
       color: var(--text-secondary);
       font-family: 'Monaco', monospace;
       font-size: 10px;
+    }
+
+    /* ============= ACCESSIBILITY ============= */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      #particles-canvas {
+        opacity: 0.1;
+      }
+
+      .logo-3d,
+      .login-card,
+      .form-group,
+      .login-btn,
+      .demo-item {
+        animation: none !important;
+      }
+    }
+
+    /* Universal focus visible */
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible,
+    [role="button"]:focus-visible,
+    *:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* Enhanced focus states */
+    .form-input:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .pin-input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .login-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: more) {
+      .form-input {
+        border-width: 3px;
+      }
+
+      .login-btn {
+        border: 2px solid var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
     }
 
     /* ============= RESPONSIVE ============= */
@@ -730,9 +818,29 @@
       loginCard.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
     });
 
-    // ============= PIN INPUT HANDLING =============
+    // ============= ACCESSIBILITY ENHANCEMENTS =============
     const pinInputs = document.querySelectorAll('.pin-input');
 
+    // Add ARIA labels to PIN inputs
+    pinInputs.forEach((input, index) => {
+      input.setAttribute('aria-label', `PIN digit ${index + 1} of 4`);
+      input.setAttribute('inputmode', 'numeric');
+      input.setAttribute('pattern', '[0-9]');
+    });
+
+    // Add ARIA to form
+    document.getElementById('login-form').setAttribute('aria-label', 'Login form with PIN authentication');
+
+    // Add live region for error messages
+    const errorRegion = document.createElement('div');
+    errorRegion.setAttribute('aria-live', 'polite');
+    errorRegion.setAttribute('aria-atomic', 'true');
+    errorRegion.setAttribute('id', 'form-messages');
+    errorRegion.style.position = 'absolute';
+    errorRegion.style.left = '-10000px';
+    document.getElementById('login-form').appendChild(errorRegion);
+
+    // ============= PIN INPUT HANDLING =============
     pinInputs.forEach((input, index) => {
       input.addEventListener('input', (e) => {
         if (!/^\d*$/.test(e.target.value)) {
@@ -740,31 +848,90 @@
           return;
         }
 
-        if (e.target.value.length === 1 && index < pinInputs.length - 1) {
-          pinInputs[index + 1].focus();
+        // Mark as valid if filled
+        if (e.target.value.length === 1) {
+          e.target.setAttribute('data-valid', 'true');
+
+          // Auto-focus next input
+          if (index < pinInputs.length - 1) {
+            pinInputs[index + 1].focus();
+          } else {
+            // All filled - focus submit button
+            document.querySelector('.login-btn').focus();
+          }
         }
       });
 
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
           pinInputs[index - 1].focus();
+          pinInputs[index - 1].setAttribute('data-valid', 'false');
+        }
+
+        // Arrow navigation
+        if (e.key === 'ArrowRight' && index < pinInputs.length - 1) {
+          pinInputs[index + 1].focus();
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          pinInputs[index - 1].focus();
         }
       });
     });
 
-    // ============= FORM SUBMIT =============
+    // ============= ENHANCED FORM SUBMISSION =============
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
 
       const username = document.getElementById('username').value;
       const pin = Array.from(pinInputs).map(input => input.value).join('');
+      const errorRegion = document.getElementById('form-messages');
 
-      if (pin.length === 4) {
-        console.log('Login:', username, pin);
+      // Validate
+      if (!username.trim()) {
+        errorRegion.textContent = 'Please enter a username';
+        errorRegion.setAttribute('role', 'alert');
+        document.getElementById('username').focus();
+        return;
+      }
+
+      if (pin.length !== 4) {
+        errorRegion.textContent = 'Please enter all 4 PIN digits';
+        errorRegion.setAttribute('role', 'alert');
+        return;
+      }
+
+      // Success
+      errorRegion.textContent = `Login successful for ${username}`;
+      errorRegion.removeAttribute('role');
+      console.log('Login:', username, pin);
+
+      // Visual feedback
+      const btn = document.querySelector('.login-btn');
+      btn.style.animation = 'none';
+      btn.textContent = '✓ Welcome!';
+      btn.disabled = true;
+
+      // Announce success
+      setTimeout(() => {
         alert(`✅ Bienvenido ${username}! PIN: ${pin}`);
-        // Aquí iría la llamada a la API
-      } else {
-        alert('⚠️ Por favor ingresa los 4 dígitos del PIN');
+      }, 500);
+    });
+
+    // ============= KEYBOARD SHORTCUT SUPPORT =============
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + Enter to submit
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        document.getElementById('login-form').dispatchEvent(new Event('submit'));
+      }
+
+      // Escape to clear form
+      if (e.key === 'Escape') {
+        pinInputs.forEach(input => {
+          input.value = '';
+          input.setAttribute('data-valid', 'false');
+        });
+        document.getElementById('username').value = '';
+        document.getElementById('username').focus();
       }
     });
 
