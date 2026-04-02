@@ -433,8 +433,8 @@
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 3px solid rgba(104, 96, 238, 0.2);
-      border-top-color: var(--primary);
+      border: 2px solid var(--border);
+      border-top-color: var(--text-primary);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -447,36 +447,39 @@
       min-height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: var(--space-16);
     }
 
     .result-card {
-      background: rgba(104, 96, 238, 0.08);
-      border: 1.5px solid rgba(104, 96, 238, 0.3);
-      border-radius: 10px;
-      padding: 22px;
-      margin-bottom: 16px;
-      transition: all 250ms ease;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 0px;
+      padding: var(--space-20);
+      margin-bottom: var(--space-16);
+      transition: border-color 150ms;
     }
 
     .result-card:hover {
-      border-color: var(--primary);
-      background: rgba(104, 96, 238, 0.12);
-      box-shadow: 0 4px 12px rgba(104, 96, 238, 0.15);
+      border-color: var(--text-secondary);
+      background: var(--bg-secondary);
+      box-shadow: none;
     }
 
     .result-card h3 {
-      margin-bottom: 12px;
-      color: var(--accent);
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      margin-bottom: var(--space-12);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
     }
 
     .result-card p {
       color: var(--text-secondary);
       line-height: 1.6;
-      margin-bottom: 8px;
+      margin-bottom: var(--space-8);
+      font-family: var(--font-body);
     }
 
     .result-card p:last-child {
@@ -489,28 +492,29 @@
       align-items: center;
       justify-content: center;
       min-height: 300px;
-      color: var(--text-tertiary);
+      color: var(--text-disabled);
       text-align: center;
     }
 
     .empty-state-icon {
       font-size: 3rem;
-      margin-bottom: 15px;
+      margin-bottom: var(--space-16);
     }
 
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(26, 24, 48, 0.95);
-      border: 1px solid var(--border-light);
-      border-radius: 6px;
-      padding: 15px 20px;
+      bottom: var(--space-32);
+      right: var(--space-32);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 0px;
+      padding: var(--space-16) var(--space-20);
       color: var(--text-primary);
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       animation: slideUp 0.3s ease-out;
       z-index: 999;
       max-width: 300px;
+      font-family: var(--font-body);
     }
 
     @keyframes slideUp {
@@ -519,11 +523,15 @@
     }
 
     .toast.success {
-      border-color: var(--success);
+      border-color: var(--color-success);
     }
 
     .toast.error {
-      border-color: #FF6B6B;
+      border-color: var(--color-error);
+    }
+
+    .toast.info {
+      border-color: var(--text-secondary);
     }
 
     .carousel {
@@ -576,23 +584,26 @@
     .tags-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
+      gap: var(--space-8);
+      margin-top: var(--space-12);
     }
 
     .tag {
-      padding: 6px 12px;
-      background: rgba(104, 96, 238, 0.2);
-      border: 1px solid var(--primary);
-      border-radius: 20px;
-      font-size: 0.85rem;
+      padding: var(--space-6) var(--space-12);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 0px;
+      font-size: 0.75rem;
       cursor: pointer;
-      transition: all 150ms ease;
+      transition: border-color 150ms, background-color 150ms;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      font-weight: 600;
     }
 
     .tag:hover, .tag.active {
-      background: var(--primary);
-      border-color: var(--accent);
+      background: var(--bg-tertiary);
+      border-color: var(--text-primary);
     }
 
     .search-box {
