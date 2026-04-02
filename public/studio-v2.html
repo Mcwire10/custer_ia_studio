@@ -312,6 +312,31 @@
       letter-spacing: 0.5px;
     }
 
+    /* Brand Brain - Multi-column layout to reduce scrolling */
+    #brain .panel {
+      columns: 2;
+      column-gap: var(--space-32);
+    }
+
+    #brain .panel > h2 {
+      column-span: all;
+      margin-bottom: var(--space-32);
+    }
+
+    #brain .panel > div {
+      column-span: all;
+    }
+
+    #brain .form-group {
+      break-inside: avoid;
+    }
+
+    @media (max-width: 1200px) {
+      #brain .panel {
+        columns: 1;
+      }
+    }
+
     .form-group {
       margin-bottom: var(--space-16);
     }
