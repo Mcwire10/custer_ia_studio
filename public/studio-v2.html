@@ -70,6 +70,30 @@
       font-family: var(--font-body);
       min-height: 100vh;
       padding: var(--space-32);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid background pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.03) 75%, rgba(255, 255, 255, 0.03) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.03) 75%, rgba(255, 255, 255, 0.03) 76%, transparent 77%, transparent);
+      background-size: 50px 50px;
+      background-position: 0 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
     }
 
     /* NOTHING DESIGN: No decorative orbs - subtract, don't add */
@@ -243,6 +267,49 @@
       .tab-content.active {
         grid-template-columns: 1fr;
       }
+    }
+
+    /* Horizontal Slider for Brand Brain sections */
+    .brain-sections-slider {
+      display: flex;
+      gap: var(--space-32);
+      overflow-x: auto;
+      padding: var(--space-16) 0;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .brain-sections-slider::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .brain-sections-slider::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .brain-sections-slider::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 0px;
+    }
+
+    .brain-section-item {
+      flex: 0 0 calc(50% - 16px);
+      min-width: 300px;
+      padding: var(--space-16);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 0px;
+    }
+
+    .brain-section-item h3 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: var(--space-16);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      letter-spacing: 0.5px;
     }
 
     .form-group {
@@ -589,21 +656,30 @@
     }
 
     .tag {
-      padding: var(--space-6) var(--space-12);
+      padding: var(--space-8) var(--space-16);
       background: transparent;
       border: 1px solid var(--border);
       border-radius: 0px;
       font-size: 0.75rem;
       cursor: pointer;
-      transition: border-color 150ms, background-color 150ms;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
+      transition: border-color 150ms, background-color 150ms, color 150ms;
+      font-family: var(--font-body);
+      text-transform: none;
       font-weight: 600;
+      color: var(--text-secondary);
     }
 
-    .tag:hover, .tag.active {
+    .tag:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
       background: var(--bg-tertiary);
+    }
+
+    .tag.active {
+      background: var(--text-primary);
       border-color: var(--text-primary);
+      color: var(--bg-primary);
+      font-weight: 700;
     }
 
     .search-box {
