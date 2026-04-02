@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custer AI Studio - Sistema Didáctico</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6860EE;
+      --accent: #F5A623;
+      --dark: #0D0C1E;
+      --panel: #1a1830;
+      --border-light: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.6);
+      --text-tertiary: rgba(255, 255, 255, 0.3);
+      --success: #4ADE80;
+      --warning: #FF6B6B;
+    }
+
+    html { perspective: 1000px; }
+
+    body {
+      background: linear-gradient(135deg, #0D0C1E 0%, #1a1535 50%, #2d1f4a 100%);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* FLOATING ORBS */
+    .orb {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 {
+      top: -100px;
+      left: -100px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      animation: float 20s infinite ease-in-out;
+    }
+    .orb-2 {
+      bottom: -150px;
+      right: -150px;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      animation: float 25s infinite ease-in-out reverse;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-100px); }
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      padding: 30px;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .title-section h1 {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .title-section p {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 15px;
+    }
+
+    .status-badge {
+      background: rgba(104, 96, 238, 0.2);
+      border: 1px solid var(--primary);
+      padding: 8px 14px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* MAIN TABS */
+    .main-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--border-light);
+      padding-bottom: 0;
+      overflow-x: auto;
+    }
+
+    .main-tab {
+      padding: 16px 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-bottom: 3px solid transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .main-tab:hover {
+      color: var(--text-primary);
+      background: rgba(104, 96, 238, 0.1);
+    }
+
+    .main-tab.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent);
+      background: rgba(104, 96, 238, 0.15);
+    }
+
+    /* CONTENT AREA */
+    .content-area {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    /* LEFT PANEL - FORM */
+    .left-panel {
+      background: rgba(26, 24, 48, 0.5);
+      border: 2px solid var(--border-light);
+      border-radius: 16px;
+      padding: 30px;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+      max-height: calc(100vh - 300px);
+      overflow-y: auto;
+    }
+
+    .left-panel:hover {
+      border-color: rgba(104, 96, 238, 0.3);
+      box-shadow: 0 20px 50px rgba(104, 96, 238, 0.1);
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .sub-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 12px;
+    }
+
+    .sub-tab {
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sub-tab:hover {
+      border-color: var(--primary);
+      background: rgba(104, 96, 238, 0.1);
+    }
+
+    .sub-tab.active {
+      background: rgba(104, 96, 238, 0.3);
+      border-color: var(--primary);
+      color: var(--text-primary);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(104, 96, 238, 0.2);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .button-primary,
+    .button-secondary {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex: 1;
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+    }
+
+    .button-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(104, 96, 238, 0.3);
+    }
+
+    .button-secondary {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--text-secondary);
+    }
+
+    .button-secondary:hover {
+      background: rgba(104, 96, 238, 0.1);
+      border-color: var(--primary);
+    }
+
+    /* RIGHT PANEL - PREVIEW */
+    .right-panel {
+      background: rgba(26, 24, 48, 0.5);
+      border: 2px solid var(--border-light);
+      border-radius: 16px;
+      padding: 30px;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+
+    .right-panel:hover {
+      border-color: rgba(104, 96, 238, 0.3);
+      box-shadow: 0 20px 50px rgba(104, 96, 238, 0.1);
+    }
+
+    .preview-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .preview-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .preview-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .preview-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      padding: 16px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .preview-item:hover {
+      background: rgba(104, 96, 238, 0.1);
+      border-color: var(--primary);
+    }
+
+    .preview-label {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .preview-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* TAB CONTENT */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* INFO BOX */
+    .info-box {
+      background: rgba(0, 217, 255, 0.1);
+      border-left: 4px solid #00D9FF;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .content-area {
+        grid-template-columns: 1fr;
+      }
+      .left-panel, .right-panel {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-tabs {
+        overflow-x: auto;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      .header-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    /* SCROLLBAR */
+    .left-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    .left-panel::-webkit-scrollbar-thumb {
+      background: rgba(245, 166, 35, 0.3);
+      border-radius: 3px;
+    }
+    .left-panel::-webkit-scrollbar-thumb:hover {
+      background: rgba(245, 166, 35, 0.6);
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, var(--success), #22c55e);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(74, 222, 128, 0.3);
+      animation: slideUp 0.3s ease, slideDown 0.3s ease 3.7s forwards;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(100px); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-left">
+        <div class="logo">🚀 Custer</div>
+        <div class="title-section">
+          <h1>AI Studio</h1>
+          <p>Sistema Didáctico para Agencias</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-badge">✓ Sistema Activo</div>
+        <div class="status-badge">🔌 API Conectada</div>
+      </div>
+    </div>
+
+    <!-- MAIN TABS -->
+    <div class="main-tabs">
+      <button class="main-tab active" onclick="switchTab('brain')">
+        <span>🧠</span> <span>Brand Brain</span>
+      </button>
+      <button class="main-tab" onclick="switchTab('generador')">
+        <span>🎨</span> <span>Generador</span>
+      </button>
+      <button class="main-tab" onclick="switchTab('validador')">
+        <span>✅</span> <span>Validador</span>
+      </button>
+      <button class="main-tab" onclick="switchTab('copy')">
+        <span>📝</span> <span>Copy</span>
+      </button>
+      <button class="main-tab" onclick="switchTab('competencia')">
+        <span>⚔️</span> <span>Competencia</span>
+      </button>
+      <button class="main-tab" onclick="switchTab('reportes')">
+        <span>📊</span> <span>Reportes</span>
+      </button>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content-area">
+      <!-- ============= TAB: BRAIN ============= -->
+      <div id="brain" class="tab-content active">
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+          <div class="panel-title">🧠 Brand Brain</div>
+          <div class="panel-description">Define los datos fundamentales de tu marca. Esta información se usa en todos los módulos.</div>
+
+          <div class="info-box">
+            💡 Completa todos los campos. Mientras escribas, verás la preview actualizada en tiempo real.
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nombre de la Marca</label>
+            <input type="text" class="form-input" id="brandName" placeholder="Ej: Custer" value="Custer">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Rubro / Industria</label>
+            <input type="text" class="form-input" id="industry" placeholder="Ej: Marketing & Branding" value="Marketing & Branding">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ciudad / Mercado</label>
+            <input type="text" class="form-input" id="market" placeholder="Ej: Argentina - Global" value="Argentina - Global">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Propuesta de Valor</label>
+            <textarea class="form-textarea" id="valueProposal" placeholder="¿Qué te hace único?">Transformamos marcas desordenadas en estrategias visuales que venden. Profesionalización como necesidad, no como lujo.</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Público Objetivo</label>
+            <textarea class="form-textarea" id="targetAudience" placeholder="¿A quién le hablas?">Emprendedores y marcas que venden pero no crecen. Quieren escalar con imagen de escala.</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tono de Voz</label>
+            <input type="text" class="form-input" id="tone" placeholder="Ej: Formal-Conversacional" value="Formal-Conversacional, Directo y Confiable">
+          </div>
+
+          <div class="button-group">
+            <button class="button-primary" onclick="saveBrand()">💾 Guardar</button>
+            <button class="button-secondary" onclick="clearBrand()">↻ Limpiar</button>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+          <div class="preview-header">
+            <div class="preview-title" id="previewBrandName">Custer</div>
+          </div>
+
+          <div class="preview-content">
+            <div class="preview-item">
+              <div class="preview-label">Rubro</div>
+              <div class="preview-value" id="previewIndustry">Marketing & Branding</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Mercado</div>
+              <div class="preview-value" id="previewMarket">Argentina - Global</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Propuesta de Valor</div>
+              <div class="preview-value" id="previewProposal">Transformamos marcas desordenadas en estrategias visuales que venden...</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Público Objetivo</div>
+              <div class="preview-value" id="previewAudience">Emprendedores y marcas que venden pero no crecen...</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Tono</div>
+              <div class="preview-value" id="previewTone">Formal-Conversacional, Directo y Confiable</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============= TAB: GENERADOR ============= -->
+      <div id="generador" class="tab-content">
+        <div class="left-panel">
+          <div class="panel-title">🎨 Generador de Slides</div>
+          <div class="panel-description">Crea 8 slides profesionales sobre cualquier tema. La IA los genera automáticamente.</div>
+
+          <div class="info-box">
+            📌 Asegúrate de tener completado el Brand Brain antes de usar este módulo.
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tema / Propósito</label>
+            <textarea class="form-textarea" placeholder="Ej: Cómo escalar tu agencia de marketing desde 0">Estrategias de crecimiento para startups en 2026</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipo de Presentación</label>
+            <select class="form-select">
+              <option>Pitch Deck</option>
+              <option>Educational</option>
+              <option>Sales Presentation</option>
+              <option>Event Presentation</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Estilo Visual</label>
+            <select class="form-select">
+              <option>Moderno Minimalista</option>
+              <option>Corporativo Profesional</option>
+              <option>Creativo Colorido</option>
+              <option>Tech & Innovation</option>
+            </select>
+          </div>
+
+          <div class="button-group">
+            <button class="button-primary">⚡ Generar Slides</button>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="preview-header">
+            <div class="preview-title">Vista Previa</div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-item">
+              <div class="preview-label">Estado</div>
+              <div class="preview-value">Esperando generación...</div>
+            </div>
+            <div class="preview-item">
+              <div class="preview-label">Slides</div>
+              <div class="preview-value">0/8 generados</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============= TAB: VALIDADOR ============= -->
+      <div id="validador" class="tab-content">
+        <div class="left-panel">
+          <div class="panel-title">✅ Validador de Mensajes</div>
+          <div class="panel-description">Valida si un mensaje es coherente con tu marca. Recibe un score y feedback.</div>
+
+          <div class="form-group">
+            <label class="form-label">Mensaje a Validar</label>
+            <textarea class="form-textarea" placeholder="Pega aquí el mensaje que quieres validar...">Somos la mejor agencia de marketing del mundo</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Contexto (Opcional)</label>
+            <select class="form-select">
+              <option>Email Marketing</option>
+              <option>Instagram Post</option>
+              <option>LinkedIn Article</option>
+              <option>Website Copy</option>
+              <option>Ad Copy</option>
+            </select>
+          </div>
+
+          <div class="button-group">
+            <button class="button-primary">🔍 Validar</button>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="preview-header">
+            <div class="preview-title">Resultado: Esperando...</div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-item">
+              <div class="preview-label">Score Coherencia</div>
+              <div class="preview-value" style="color: var(--text-tertiary);">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============= TAB: COPY ============= -->
+      <div id="copy" class="tab-content">
+        <div class="left-panel">
+          <div class="panel-title">📝 Copy Generator</div>
+          <div class="panel-description">Genera copys profesionales para diferentes plataformas. Alineados con tu marca.</div>
+
+          <div class="sub-tabs">
+            <button class="sub-tab active">Redes Sociales</button>
+            <button class="sub-tab">Email</button>
+            <button class="sub-tab">Web</button>
+            <button class="sub-tab">Ads</button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tema del Copy</label>
+            <textarea class="form-textarea" placeholder="¿De qué quieres escribir?">Promoción de nuestro nuevo servicio de branding</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Plataforma</label>
+            <select class="form-select">
+              <option>Instagram</option>
+              <option>TikTok</option>
+              <option>LinkedIn</option>
+              <option>Twitter/X</option>
+              <option>Email</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipo de Copy</label>
+            <select class="form-select">
+              <option>Promocional</option>
+              <option>Educativo</option>
+              <option>Testimonial</option>
+              <option>CTA (Call to Action)</option>
+            </select>
+          </div>
+
+          <div class="button-group">
+            <button class="button-primary">✍️ Generar Copy</button>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="preview-header">
+            <div class="preview-title">Copy Generado</div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-item">
+              <div class="preview-label">Estado</div>
+              <div class="preview-value" style="color: var(--text-tertiary);">Generador inactivo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============= TAB: COMPETENCIA ============= -->
+      <div id="competencia" class="tab-content">
+        <div class="left-panel">
+          <div class="panel-title">⚔️ Análisis de Competencia</div>
+          <div class="panel-description">Analiza a tus competidores. Identifica fortalezas, debilidades y oportunidades.</div>
+
+          <div class="form-group">
+            <label class="form-label">Nombre del Competidor</label>
+            <input type="text" class="form-input" placeholder="Ej: Competidor A">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descripción / Servicios</label>
+            <textarea class="form-textarea" placeholder="¿Qué hace? ¿Cuáles son sus servicios?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Rango de Precios</label>
+            <input type="text" class="form-input" placeholder="Ej: $5K - $15K">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fortalezas</label>
+            <textarea class="form-textarea" placeholder="¿En qué es mejor que tú?"></textarea>
+          </div>
+
+          <div class="button-group">
+            <button class="button-primary">📊 Analizar</button>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="preview-header">
+            <div class="preview-title">Análisis DAFO</div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-item">
+              <div class="preview-label">Debilidades Detectadas</div>
+              <div class="preview-value" style="color: var(--text-tertiary);">-</div>
+            </div>
+            <div class="preview-item">
+              <div class="preview-label">Oportunidades</div>
+              <div class="preview-value" style="color: var(--text-tertiary);">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============= TAB: REPORTES ============= -->
+      <div id="reportes" class="tab-content">
+        <div class="left-panel">
+          <div class="panel-title">📊 Reportes y Análisis</div>
+          <div class="panel-description">Genera reportes ejecutivos con KPIs y recomendaciones estratégicas.</div>
+
+          <div class="form-group">
+            <label class="form-label">Tipo de Reporte</label>
+            <select class="form-select">
+              <option>Análisis de Marca</option>
+              <option>Performance Marketing</option>
+              <option>Análisis Competitivo</option>
+              <option>Estrategia Recomendada</option>
+              <option>Roadmap 2026</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Período a Analizar</label>
+            <select class="form-select">
+              <option>Este Mes</option>
+              <option>Últimos 3 Meses</option>
+              <option>Últimos 6 Meses</option>
+              <option>Este Año</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Incluir</label>
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <input type="checkbox" checked> KPIs Principales
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <input type="checkbox" checked> Recomendaciones
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox"> Proyecciones
+            </label>
+          </div>
+
+          <div class="button-group">
+            <button class="button-primary">📈 Generar Reporte</button>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="preview-header">
+            <div class="preview-title">Reporte Ejecutivo</div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-item">
+              <div class="preview-label">Estado</div>
+              <div class="preview-value" style="color: var(--text-tertiary);">Esperando generación...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.main-tab').forEach(tab => tab.classList.remove('active'));
+
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+
+      showToast(`✓ Navegando a ${tabName}`);
+    }
+
+    function saveBrand() {
+      const brandData = {
+        name: document.getElementById('brandName').value,
+        industry: document.getElementById('industry').value,
+        market: document.getElementById('market').value,
+        valueProposal: document.getElementById('valueProposal').value,
+        targetAudience: document.getElementById('targetAudience').value,
+        tone: document.getElementById('tone').value
+      };
+
+      localStorage.setItem('brandBrain', JSON.stringify(brandData));
+      showToast('✓ Brand Brain guardado exitosamente');
+    }
+
+    function clearBrand() {
+      document.getElementById('brandName').value = '';
+      document.getElementById('industry').value = '';
+      document.getElementById('market').value = '';
+      document.getElementById('valueProposal').value = '';
+      document.getElementById('targetAudience').value = '';
+      document.getElementById('tone').value = '';
+    }
+
+    function updatePreview() {
+      document.getElementById('previewBrandName').textContent = document.getElementById('brandName').value || 'Tu Marca';
+      document.getElementById('previewIndustry').textContent = document.getElementById('industry').value;
+      document.getElementById('previewMarket').textContent = document.getElementById('market').value;
+      document.getElementById('previewProposal').textContent = document.getElementById('valueProposal').value.substring(0, 60) + '...';
+      document.getElementById('previewAudience').textContent = document.getElementById('targetAudience').value.substring(0, 60) + '...';
+      document.getElementById('previewTone').textContent = document.getElementById('tone').value;
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // Event listeners
+    ['brandName', 'industry', 'market', 'valueProposal', 'targetAudience', 'tone'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+    });
+
+    showToast('✓ Custer AI Studio cargado');
+  </script>
+</body>
+</html>

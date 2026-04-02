@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personajes 8-Bit</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #6860EE;
+      font-size: 2em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .character-card {
+      background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
+      border: 2px solid #6860EE;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .character-card:hover {
+      border-color: #F5A623;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(104, 96, 238, 0.3);
+    }
+
+    canvas {
+      width: 100%;
+      height: 200px;
+      background: #0f0f1e;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .character-name {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #F5A623;
+      margin-bottom: 5px;
+    }
+
+    .character-role {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎭 Los 6 Personajes</h1>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <script>
+    const characters = [
+      {
+        name: 'Juan',
+        role: 'Brand Specialist',
+        colors: { hair: '#3d2817', skin: '#c9a877', shirt: '#2c5aa0', pants: '#3d3d3d', shoes: '#1a1a1a' }
+      },
+      {
+        name: 'Sofia',
+        role: 'Creative Lead',
+        colors: { hair: '#c83e1d', skin: '#d4a574', shirt: '#e84c3d', pants: '#2c2c2c', shoes: '#1a1a1a' }
+      },
+      {
+        name: 'Carlos',
+        role: 'Data Analyst',
+        colors: { hair: '#4a4a4a', skin: '#c9a877', shirt: '#2c2c2c', pants: '#1a1a1a', shoes: '#3d3d3d' }
+      },
+      {
+        name: 'Lucia',
+        role: 'Copywriter',
+        colors: { hair: '#ffcc00', skin: '#d4a574', shirt: '#9b4d96', pants: '#2c2c2c', shoes: '#1a1a1a' }
+      },
+      {
+        name: 'Marco',
+        role: 'Researcher',
+        colors: { hair: '#4a4a4a', skin: '#c9a877', shirt: '#1a5f2d', pants: '#3d3d3d', shoes: '#1a1a1a' }
+      },
+      {
+        name: 'Ana',
+        role: 'Data Scientist',
+        colors: { hair: '#2c2c2c', skin: '#d4a574', shirt: '#1a3a52', pants: '#2c2c2c', shoes: '#1a1a1a' }
+      }
+    ];
+
+    function drawCharacter(canvas, char) {
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      // Clear background
+      ctx.fillStyle = '#0f0f1e';
+      ctx.fillRect(0, 0, 200, 200);
+
+      // Draw at center with 2x scale
+      const scale = 2;
+      const offsetX = 50;
+      const offsetY = 30;
+
+      // Head
+      ctx.fillStyle = char.colors.skin;
+      ctx.fillRect(offsetX + 8*scale, offsetY + 2*scale, 16*scale, 12*scale);
+
+      // Hair
+      ctx.fillStyle = char.colors.hair;
+      ctx.fillRect(offsetX + 6*scale, offsetY + 1*scale, 20*scale, 6*scale);
+
+      // Eyes white
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(offsetX + 10*scale, offsetY + 6*scale, 2*scale, 2*scale);
+      ctx.fillRect(offsetX + 18*scale, offsetY + 6*scale, 2*scale, 2*scale);
+
+      // Eyes black
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(offsetX + 10*scale, offsetY + 6*scale, 1*scale, 1*scale);
+      ctx.fillRect(offsetX + 18*scale, offsetY + 6*scale, 1*scale, 1*scale);
+
+      // Shirt
+      ctx.fillStyle = char.colors.shirt;
+      ctx.fillRect(offsetX + 6*scale, offsetY + 14*scale, 20*scale, 12*scale);
+
+      // Arms
+      ctx.fillStyle = char.colors.skin;
+      ctx.fillRect(offsetX + 4*scale, offsetY + 15*scale, 2*scale, 10*scale);
+      ctx.fillRect(offsetX + 26*scale, offsetY + 15*scale, 2*scale, 10*scale);
+
+      // Pants
+      ctx.fillStyle = char.colors.pants;
+      ctx.fillRect(offsetX + 8*scale, offsetY + 26*scale, 6*scale, 6*scale);
+      ctx.fillRect(offsetX + 18*scale, offsetY + 26*scale, 6*scale, 6*scale);
+
+      // Shoes
+      ctx.fillStyle = char.colors.shoes;
+      ctx.fillRect(offsetX + 7*scale, offsetY + 31*scale, 8*scale, 1*scale);
+      ctx.fillRect(offsetX + 17*scale, offsetY + 31*scale, 8*scale, 1*scale);
+    }
+
+    // Create cards
+    const grid = document.getElementById('grid');
+    characters.forEach(char => {
+      const card = document.createElement('div');
+      card.className = 'character-card';
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 200;
+      canvas.height = 200;
+
+      drawCharacter(canvas, char);
+
+      card.appendChild(canvas);
+      card.innerHTML += `
+        <div class="character-name">${char.name}</div>
+        <div class="character-role">${char.role}</div>
+      `;
+
+      grid.appendChild(card);
+    });
+  </script>
+</body>
+</html>

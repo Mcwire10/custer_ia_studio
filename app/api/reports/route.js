@@ -43,8 +43,8 @@ Incluye KPIs sugeridos, análisis de posicionamiento y recomendaciones de comuni
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 2000,
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 500,
         system,
         messages: [{ role: 'user', content: userPrompt }]
       })

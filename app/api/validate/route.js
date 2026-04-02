@@ -36,8 +36,8 @@ export async function POST(request) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 500,
         system,
         messages: [
           { role: 'user', content: `Valida este mensaje:\n\n"${message}"` }

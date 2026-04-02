@@ -1,0 +1,2793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custer AI Studio Pro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6860EE;
+      --accent: #F5A623;
+      --dark: #0D0C1E;
+      --panel: #1a1830;
+      --success: #4ADE80;
+      --border-light: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.6);
+      --text-tertiary: rgba(255, 255, 255, 0.3);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0D0C1E 0%, #1a1535 50%, #2d1f4a 100%);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .floating-orbs {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb-1 {
+      top: -100px;
+      left: -100px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      animation: float 20s infinite ease-in-out;
+    }
+
+    .orb-2 {
+      bottom: -150px;
+      right: -150px;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      animation: float 25s infinite ease-in-out reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-100px); }
+    }
+
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      font-size: 0.95rem;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-selector {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .brand-selector select,
+    .brand-selector button {
+      padding: 11px 18px;
+      background: rgba(104, 96, 238, 0.08);
+      border: 1.5px solid var(--border-light);
+      color: var(--text-primary);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 250ms ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .brand-selector select:hover,
+    .brand-selector button:hover {
+      border-color: var(--primary);
+      background: rgba(104, 96, 238, 0.15);
+      box-shadow: 0 4px 12px rgba(104, 96, 238, 0.15);
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 35px;
+      flex-wrap: wrap;
+      border-bottom: 1.5px solid var(--border-light);
+      padding-bottom: 25px;
+    }
+
+    .tab-btn {
+      padding: 12px 22px;
+      background: transparent;
+      border: 1.5px solid var(--border-light);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.3px;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-primary);
+      background: rgba(104, 96, 238, 0.08);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(104, 96, 238, 0.2), rgba(245, 166, 35, 0.1));
+      border-color: var(--primary);
+      color: var(--text-primary);
+      box-shadow: 0 4px 12px rgba(104, 96, 238, 0.2);
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      min-height: calc(100vh - 250px);
+    }
+
+    @media (max-width: 1200px) {
+      .main-content {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+    }
+
+    .panel {
+      background: rgba(26, 24, 48, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid var(--border-light);
+      border-radius: 12px;
+      padding: 32px;
+      overflow-y: auto;
+      max-height: calc(100vh - 200px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .panel h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 28px;
+      letter-spacing: -0.3px;
+      color: var(--text-primary);
+    }
+
+    .panel h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--accent);
+      letter-spacing: 0.2px;
+    }
+
+    .panel p {
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    @media (max-width: 1200px) {
+      .tab-content.active {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.3px;
+      color: var(--text-primary);
+      text-transform: none;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 13px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid var(--border-light);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      line-height: 1.5;
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder,
+    .form-group select::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .form-group input:hover,
+    .form-group textarea:hover,
+    .form-group select:hover {
+      border-color: rgba(104, 96, 238, 0.5);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(104, 96, 238, 0.08);
+      box-shadow: 0 0 0 3px rgba(104, 96, 238, 0.1);
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: 'Segoe UI', inherit;
+    }
+
+    .form-group select {
+      cursor: pointer;
+    }
+
+    .form-group select option {
+      background: var(--dark);
+      color: var(--text-primary);
+    }
+
+    .btn {
+      padding: 11px 22px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.9rem;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 12px rgba(104, 96, 238, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(104, 96, 238, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(104, 96, 238, 0.3);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .file-upload {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-upload input[type="file"] {
+      display: none;
+    }
+
+    .file-upload-label {
+      display: block;
+      padding: 20px;
+      background: rgba(104, 96, 238, 0.1);
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+
+    .file-upload-label:hover {
+      background: rgba(104, 96, 238, 0.2);
+      border-color: var(--accent);
+    }
+
+    .thinking-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(13, 12, 30, 0.8);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .thinking-modal.active {
+      display: flex;
+    }
+
+    .thinking-content {
+      background: linear-gradient(135deg, rgba(104, 96, 238, 0.15), rgba(245, 166, 35, 0.1));
+      border: 1.5px solid rgba(104, 96, 238, 0.3);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .thinking-spinner {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 24px;
+      position: relative;
+    }
+
+    .thinking-spinner svg {
+      animation: rocketFly 3s ease-in-out infinite;
+    }
+
+    @keyframes rocketFly {
+      0% { transform: translateY(0) rotate(45deg); opacity: 0.8; }
+      50% { transform: translateY(-50px) rotate(45deg); opacity: 1; }
+      100% { transform: translateY(0) rotate(45deg); opacity: 0.8; }
+    }
+
+    .thinking-text {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #6860EE;
+      margin-bottom: 12px;
+    }
+
+    .thinking-subtext {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(104, 96, 238, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .canvas-content {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .result-card {
+      background: rgba(104, 96, 238, 0.08);
+      border: 1.5px solid rgba(104, 96, 238, 0.3);
+      border-radius: 10px;
+      padding: 22px;
+      margin-bottom: 16px;
+      transition: all 250ms ease;
+    }
+
+    .result-card:hover {
+      border-color: var(--primary);
+      background: rgba(104, 96, 238, 0.12);
+      box-shadow: 0 4px 12px rgba(104, 96, 238, 0.15);
+    }
+
+    .result-card h3 {
+      margin-bottom: 12px;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .result-card p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .result-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      color: var(--text-tertiary);
+      text-align: center;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(26, 24, 48, 0.95);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 15px 20px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      animation: slideUp 0.3s ease-out;
+      z-index: 999;
+      max-width: 300px;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast.success {
+      border-color: var(--success);
+    }
+
+    .toast.error {
+      border-color: #FF6B6B;
+    }
+
+    .carousel {
+      position: relative;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+      min-height: 400px;
+    }
+
+    .carousel-item {
+      display: none;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .carousel-item.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .carousel-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+      gap: 10px;
+    }
+
+    .carousel-btn {
+      padding: 8px 16px;
+      background: var(--primary);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .carousel-indicator {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      padding: 6px 12px;
+      background: rgba(104, 96, 238, 0.2);
+      border: 1px solid var(--primary);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .tag:hover, .tag.active {
+      background: var(--primary);
+      border-color: var(--accent);
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      color: var(--text-primary);
+    }
+
+    .search-box button {
+      padding: 12px 24px;
+      background: var(--primary);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(104, 96, 238, 0.3);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(104, 96, 238, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- MODAL "ESTÁ PENSANDO" -->
+  <div class="thinking-modal" id="thinkingModal">
+    <div class="thinking-content">
+      <div class="thinking-spinner">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <!-- Cohete -->
+          <g transform="translate(30, 30)">
+            <!-- Cuerpo del cohete -->
+            <path d="M 0 -12 L -4 6 L -2 8 L 2 8 L 4 6 Z" fill="#6860EE" stroke="#6860EE" stroke-width="1"/>
+            <!-- Ventana -->
+            <circle cx="0" cy="-8" r="2" fill="#F5A623"/>
+            <!-- Llama -->
+            <path d="M -3 8 Q -4 12 -2 14 L 0 16 L 2 14 Q 4 12 3 8" fill="#FF6B6B" opacity="0.7"/>
+          </g>
+        </svg>
+      </div>
+      <div class="thinking-text">Diseñando</div>
+    </div>
+  </div>
+
+  <div class="floating-orbs orb-1"></div>
+  <div class="floating-orbs orb-2"></div>
+
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>🚀 Custer AI Studio Pro</h1>
+        <p style="color: var(--text-secondary); margin-top: 5px;">Sistema profesional de branding y contenido</p>
+      </div>
+      <div class="brand-selector" style="min-width: 350px;">
+        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; letter-spacing: 0.5px;">MARCA ACTIVA</label>
+          <select id="brandSelect" onchange="selectBrand(this.value)" style="font-size: 1rem; font-weight: 700; padding: 12px 16px;">
+            <option value="">-- Selecciona una marca --</option>
+          </select>
+        </div>
+        <button onclick="openBrandManager()" style="padding: 12px 20px; height: fit-content; align-self: flex-end;">+ Nueva</button>
+      </div>
+    </div>
+
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('brain', this)">🧠 Brand Brain</button>
+      <button class="tab-btn" onclick="switchTab('generador', this)">✨ Generador</button>
+      <button class="tab-btn" onclick="switchTab('validador', this)">🎯 Validador</button>
+      <button class="tab-btn" onclick="switchTab('copy', this)">✍️ Copy</button>
+      <button class="tab-btn" onclick="switchTab('competencia', this)">🔍 Competencia</button>
+      <button class="tab-btn" onclick="switchTab('reportes', this)">📊 Reportes</button>
+    </div>
+
+    <!-- ====== BRAND BRAIN ====== -->
+    <div id="brain" class="tab-content active">
+      <div class="panel">
+        <h2>🧠 Brand Brain</h2>
+
+        <div class="form-group">
+          <label>🔄 3 formas de cargar tu marca:</label>
+
+          <!-- TAB 1: ARCHIVO -->
+          <div style="display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--border-light); padding-bottom: 15px;">
+            <button class="tag active" data-method="archivo" onclick="switchLoadMethod('archivo', this)">📁 Archivo</button>
+            <button class="tag" data-method="texto" onclick="switchLoadMethod('texto', this)">📝 Pegar texto</button>
+            <button class="tag" data-method="manual" onclick="switchLoadMethod('manual', this)">✏️ Manual</button>
+          </div>
+
+          <!-- MÉTODO 1: ARCHIVO -->
+          <div id="method-archivo" class="method-container">
+            <div class="file-upload">
+              <input type="file" id="brandFile" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadBrandFile(event)">
+              <label class="file-upload-label" for="brandFile">
+                📁 Arrastra o selecciona un archivo<br>
+                <small style="color: var(--text-tertiary);">Se extraerán los datos automáticamente</small>
+              </label>
+            </div>
+            <div style="background: rgba(58, 180, 242, 0.1); border: 1px solid rgba(58, 180, 242, 0.3); border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.6;">
+              <strong style="color: #00D9FF;">ℹ️ Información:</strong><br>
+              ✓ Tamaño máximo: 3 MB<br>
+              ✓ Formatos: JPG, PNG, PDF
+            </div>
+          </div>
+
+          <!-- MÉTODO 2: TEXTO -->
+          <div id="method-texto" class="method-container" style="display: none;">
+            <div class="form-group">
+              <label>Pega el resumen o texto extraído del PDF (puedes pegar todo el contenido)</label>
+              <textarea id="brandText" placeholder="Haz un resumen en Acrobat (File → Export as Text) y pegalo aquí...&#10;&#10;O copia el contenido importante de tu documento. Puedes pegar textos largos sin problemas." style="min-height: 600px; resize: vertical; padding: 16px;"></textarea>
+              <button class="btn" style="width: 100%; margin-top: 15px;" onclick="procesarTextoMarca()">
+                <span id="textLoading"></span>
+                🔍 Extraer datos del texto
+              </button>
+            </div>
+          </div>
+
+          <!-- MÉTODO 3: MANUAL -->
+          <div id="method-manual" class="method-container" style="display: none;">
+            <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem;">
+              ✅ Completa directamente los campos de abajo con la información de tu marca
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; color: var(--text-tertiary); margin: 20px 0;">O completa manualmente</div>
+
+        <div class="form-group">
+          <label>Nombre de la marca</label>
+          <input type="text" id="bbNombre" placeholder="ej: Custer">
+        </div>
+
+        <div class="form-group">
+          <label>Rubro / Industria</label>
+          <input type="text" id="bbRubro" placeholder="ej: Agencia de Marketing">
+        </div>
+
+        <div class="form-group">
+          <label>Ciudad</label>
+          <input type="text" id="bbCiudad" placeholder="ej: Villa María, Córdoba">
+        </div>
+
+        <div class="form-group">
+          <label>Propuesta de valor</label>
+          <textarea id="bbPropuesta" placeholder="¿Qué prometes a tus clientes?"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Público objetivo</label>
+          <textarea id="bbPublico" placeholder="¿A quién le hablas?"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tipografía</label>
+          <input type="text" id="bbFont" placeholder="ej: Montserrat Bold">
+        </div>
+
+        <div class="form-group">
+          <label>Registro</label>
+          <select id="bbRegistro">
+            <option value="">-- Selecciona --</option>
+            <option value="formal">Formal</option>
+            <option value="conversacional">Conversacional</option>
+            <option value="disruptivo">Disruptivo</option>
+            <option value="cercano">Cercano</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Palabras clave</label>
+          <input type="text" id="bbKeywords" placeholder="ej: innovación, velocidad, transparencia">
+        </div>
+
+        <div class="form-group">
+          <label>Palabras a evitar</label>
+          <input type="text" id="bbAvoid" placeholder="ej: barato, garantizado">
+        </div>
+
+        <div class="form-group">
+          <label>Ejemplos de copy aprobado</label>
+          <textarea id="bbEjemplos" placeholder="Pega 2-3 ejemplos de textos que representen bien la marca"></textarea>
+        </div>
+
+        <!-- SECCIÓN EXPANDIDA: INFORMACIÓN ESTRATÉGICA -->
+        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">📊 Información Estratégica</h3>
+
+          <div class="form-group">
+            <label>Misión de la marca</label>
+            <textarea id="bbMision" placeholder="¿Cuál es tu propósito fundamental?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Visión de la marca</label>
+            <textarea id="bbVision" placeholder="¿Dónde quieres estar en el futuro?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Valores principales (separados por comas)</label>
+            <input type="text" id="bbValores" placeholder="ej: integridad, innovación, pasión">
+          </div>
+
+          <div class="form-group">
+            <label>Beneficios funcionales</label>
+            <textarea id="bbBeneficiosFuncionales" placeholder="¿Qué beneficios prácticos ofreces?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Beneficios emocionales</label>
+            <textarea id="bbBeneficiosEmocionales" placeholder="¿Cómo se sienten tus clientes contigo?"></textarea>
+          </div>
+        </div>
+
+        <!-- SECCIÓN EXPANDIDA: AUDIENCIA DETALLADA -->
+        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">👥 Audiencia Detallada</h3>
+
+          <div class="form-group">
+            <label>Audiencia demográfica (edad, género, ingreso)</label>
+            <textarea id="bbAudienciaDemografica" placeholder="ej: Hombres y mujeres 25-40 años, ingresos medios-altos"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Audiencia real / Psicográfica</label>
+            <textarea id="bbAudienciaReal" placeholder="Personas que valoran la innovación, desconfían del marketing exagerado, buscan transparencia..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Pain points (problemas del cliente)</label>
+            <input type="text" id="bbPainPoints" placeholder="ej: falta de tiempo, incertidumbre, costos altos">
+          </div>
+
+          <div class="form-group">
+            <label>Gains (beneficios buscados)</label>
+            <input type="text" id="bbGains" placeholder="ej: eficiencia, seguridad, reconocimiento">
+          </div>
+
+          <div class="form-group">
+            <label>Motivaciones de compra</label>
+            <textarea id="bbMotivaciones" placeholder="¿Por qué compran tus clientes?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Comportamiento digital</label>
+            <textarea id="bbComportamientoDigital" placeholder="¿Dónde y cómo se comportan en línea?"></textarea>
+          </div>
+        </div>
+
+        <!-- SECCIÓN EXPANDIDA: IDENTIDAD VISUAL -->
+        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">🎨 Identidad Visual</h3>
+
+          <div class="form-group">
+            <label>Color primario (código hex)</label>
+            <input type="text" id="bbColorPrimario" placeholder="ej: #6860EE">
+          </div>
+
+          <div class="form-group">
+            <label>Color secundario (código hex)</label>
+            <input type="text" id="bbColorSecundario" placeholder="ej: #F5A623">
+          </div>
+
+          <div class="form-group">
+            <label>Acentos de color (separados por comas)</label>
+            <input type="text" id="bbAcentos" placeholder="ej: #FF6B6B, #4ECDC4, #FFE66D">
+          </div>
+
+          <div class="form-group">
+            <label>Tipografía principal</label>
+            <input type="text" id="bbTipoPrincipal" placeholder="ej: Montserrat Bold">
+          </div>
+
+          <div class="form-group">
+            <label>Tipografía secundaria</label>
+            <input type="text" id="bbTipoSecundaria" placeholder="ej: Inter Regular">
+          </div>
+
+          <div class="form-group">
+            <label>Estilo visual</label>
+            <select id="bbEstiloVisual">
+              <option value="">-- Selecciona --</option>
+              <option value="fotografia">Fotografía</option>
+              <option value="ilustracion">Ilustración</option>
+              <option value="mixto">Mixto</option>
+              <option value="abstracto">Abstracto</option>
+              <option value="minimalista">Minimalista</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Recursos gráficos (íconos, texturas, patrones)</label>
+            <input type="text" id="bbRecursosGraficos" placeholder="ej: íconos geométricos, líneas delgadas, formas circulares">
+          </div>
+
+          <div class="form-group">
+            <label>Sistema gráfico</label>
+            <textarea id="bbSistemaGrafico" placeholder="Describe el sistema visual, patrones, consistencia..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Mood board / Referencias de inspiración</label>
+            <textarea id="bbMoodBoard" placeholder="¿Qué referentes visuales inspiran tu marca?"></textarea>
+          </div>
+        </div>
+
+        <!-- SECCIÓN EXPANDIDA: IDENTIDAD VERBAL -->
+        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">💬 Identidad Verbal</h3>
+
+          <div class="form-group">
+            <label>Voz y tono (pilares de comunicación)</label>
+            <textarea id="bbVozTono" placeholder="¿Cómo hablas? Describe tus pilares comunicacionales..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Claim / Manifiesto</label>
+            <input type="text" id="bbClaim" placeholder="ej: 'La velocidad es poder' o 'Simplificamos lo complejo'">
+          </div>
+
+          <div class="form-group">
+            <label>Narrativa de marca (storytelling)</label>
+            <textarea id="bbNarrativa" placeholder="¿Cuál es tu historia? ¿Cuál es tu punto de vista?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Territorio creativo</label>
+            <textarea id="bbTerritorioCreativo" placeholder="El espacio donde tu marca puede moverse creativamente..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Tonalidad (adjetivos de marca)</label>
+            <input type="text" id="bbTonalidad2" placeholder="ej: amigable, profesional, innovadora, cercana">
+          </div>
+        </div>
+
+        <!-- SECCIÓN EXPANDIDA: POSICIONAMIENTO -->
+        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">🎯 Posicionamiento</h3>
+
+          <div class="form-group">
+            <label>Competencia directa (separado por comas)</label>
+            <input type="text" id="bbCompetenciaDirecta" placeholder="ej: Competidor A, Competidor B, Competidor C">
+          </div>
+
+          <div class="form-group">
+            <label>Diferenciadores principales</label>
+            <input type="text" id="bbDiferenciadores" placeholder="ej: Precio competitivo, Soporte 24/7, Innovación constante">
+          </div>
+
+          <div class="form-group">
+            <label>Propuesta única (¿qué hace que seas único?)</label>
+            <textarea id="bbPropuestaUnica" placeholder="¿Qué te hace diferente en el mercado?"></textarea>
+          </div>
+        </div>
+
+        <!-- SECCIÓN EXPANDIDA: IMPLEMENTACIÓN Y CANALES -->
+        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">📱 Implementación y Canales</h3>
+
+          <div class="form-group">
+            <label>Canales principales (separado por comas)</label>
+            <input type="text" id="bbCanales" placeholder="ej: Instagram, LinkedIn, Email, Blog">
+          </div>
+
+          <div class="form-group">
+            <label>Formatos de contenido (separado por comas)</label>
+            <input type="text" id="bbFormatos" placeholder="ej: Carousel, Reels, Stories, Threads, Artículos">
+          </div>
+
+          <div class="form-group">
+            <label>Frecuencia de publicación</label>
+            <select id="bbFrecuencia">
+              <option value="">-- Selecciona --</option>
+              <option value="diaria">Diaria</option>
+              <option value="3-5-semana">3-5 veces a la semana</option>
+              <option value="2-veces">2 veces a la semana</option>
+              <option value="semanal">Semanal</option>
+              <option value="quincenal">Quincenal</option>
+              <option value="mensual">Mensual</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SECCIÓN: ANÁLISIS VISUAL DE IMÁGENES -->
+        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">📸 Análisis Visual (10-15 imágenes Instagram)</h3>
+
+          <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem;">
+            <strong style="color: #A855F7;">📝 Instrucciones:</strong><br>
+            Carga 10-15 imágenes de tu cuenta de Instagram para analizar tu identidad visual (colores, tipografía, estilos fotográficos, etc.)
+          </div>
+
+          <div class="form-group">
+            <label>Carga imágenes de Instagram</label>
+            <div class="file-upload" style="padding: 30px;">
+              <input type="file" id="visualImages" accept="image/jpeg,image/jpg,image/png" multiple onchange="handleVisualImages(event)">
+              <label class="file-upload-label" for="visualImages">
+                📸 Arrastra o selecciona 10-15 imágenes<br>
+                <small style="color: var(--text-tertiary);">Se analizarán colores, tipografías y estilos automáticamente</small>
+              </label>
+            </div>
+            <div id="visualImagesPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px;"></div>
+            <button class="btn" style="width: 100%; margin-top: 15px;" onclick="analyzeVisualIdentity()">
+              <span id="visualLoading"></span>
+              🔍 Analizar identidad visual
+            </button>
+          </div>
+
+          <!-- Resultado del análisis visual -->
+          <div id="visualAnalysisResult" style="display: none; margin-top: 20px;">
+            <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; padding: 15px;">
+              <h4 style="color: #4ADE80; margin: 0 0 10px 0;">✅ Análisis Visual Completado</h4>
+              <pre id="visualAnalysisContent" style="background: #1a1a1a; color: #4ADE80; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 30px;">
+          <button class="btn" onclick="saveBrand()">💾 Guardar/Actualizar marca</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>👁 Vista previa</h2>
+        <div id="brainPreview" class="canvas-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">🧠</div>
+            <p>Completa los datos para ver la previsualización</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== GENERADOR ====== -->
+    <div id="generador" class="tab-content">
+      <div class="panel">
+        <h2>✨ Generador de contenido</h2>
+
+        <div class="form-group">
+          <label>Tipo de formato</label>
+          <select id="genTipo">
+            <option value="carrusel">Carrusel</option>
+            <option value="stories">Stories</option>
+            <option value="post">Post único</option>
+            <option value="reels">Reels</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Cantidad de piezas</label>
+          <input type="number" id="genCant" placeholder="5" min="1" max="12">
+        </div>
+
+        <div class="form-group">
+          <label>Estilo de la pieza</label>
+          <div class="tags-container">
+            <button class="tag active" data-template="educativo" title="Enseña algo útil sobre tu marca o producto">📚 Informativo</button>
+            <button class="tag" data-template="impacto" title="Mensaje fuerte y visual para llamar atención">⚡ Impactante</button>
+            <button class="tag" data-template="lista" title="Beneficios o puntos clave en formato lista">✅ Beneficios</button>
+            <button class="tag" data-template="story" title="Diseño vertical para Instagram Stories">📱 Vertical</button>
+            <button class="tag" data-template="mockup" title="Mockup del producto en acción">🎯 Producto</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Tema / Copy base</label>
+          <textarea id="genCopy" placeholder="¿Sobre qué quieres crear? Pega el copy o describe el tema..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Objetivo</label>
+          <input type="text" id="genObj" placeholder="ej: Awareness, Lead generation, Venta directa">
+        </div>
+
+        <div class="form-group">
+          <label>Notas adicionales</label>
+          <input type="text" id="genNotas" placeholder="ej: Tono corporativo, incorporar CTA">
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="generarContenido()">
+            <span id="genLoading"></span>
+            ✨ Generar
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Contenido generado</h2>
+        <div id="genCanvas" class="canvas-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">✨</div>
+            <p>Completa el formulario y genera contenido</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== VALIDADOR ====== -->
+    <div id="validador" class="tab-content">
+      <div class="panel">
+        <h2>🎯 Validador</h2>
+
+        <div class="form-group">
+          <label>Pega el pedido o contenido a validar</label>
+          <textarea id="valCopy" placeholder="Pega todo el contenido, estructura del pedido, briefing, etc..." style="min-height: 150px;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de la campaña (opcional)</label>
+          <input type="text" id="valNombre" placeholder="ej: One Shot Branding">
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="validarContenido()">
+            <span id="valLoading"></span>
+            🎯 Analizar
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Sugerencias</h2>
+        <div id="valCanvas" class="canvas-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">🎯</div>
+            <p>Pega contenido para validar y sugerir mejoras</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== COPY ====== -->
+    <div id="copy" class="tab-content">
+      <div class="panel">
+        <h2>✍️ Generador de Copy</h2>
+
+        <div class="form-group">
+          <label>Tema / Producto</label>
+          <input type="text" id="cpyProd" placeholder="ej: Lanzamiento de One Shot Branding">
+        </div>
+
+        <div class="form-group">
+          <label>Objetivo de campaña</label>
+          <select id="cpyObj">
+            <option value="awareness">Awareness / Visibilidad</option>
+            <option value="consideracion">Consideración</option>
+            <option value="conversion">Conversión</option>
+            <option value="educacion">Educación</option>
+            <option value="engagement">Engagement</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Plataformas objetivo</label>
+          <div class="tags-container" id="cpyPlats">
+            <button class="tag active" data-plat="instagram">📷 Instagram</button>
+            <button class="tag active" data-plat="linkedin">💼 LinkedIn</button>
+            <button class="tag" data-plat="facebook">👥 Facebook</button>
+            <button class="tag" data-plat="email">📧 Email</button>
+            <button class="tag" data-plat="whatsapp">💬 WhatsApp</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mensaje central o nota</label>
+          <textarea id="cpyMsg" placeholder="La idea fuerza de la campaña o notas adicionales..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>CTA (Llamada a la acción)</label>
+          <input type="text" id="cpyCTA" placeholder="ej: Hablemos, Conoce más, Compra ahora">
+        </div>
+
+        <div class="form-group">
+          <label>Variantes</label>
+          <select id="cpyVars">
+            <option value="1">1 versión</option>
+            <option value="2" selected>2 variantes A/B</option>
+            <option value="3">3 variantes</option>
+          </select>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="generarCopy()">
+            <span id="cpyLoading"></span>
+            ✍️ Generar Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Copy generado</h2>
+        <div id="cpyCanvas" class="canvas-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">✍️</div>
+            <p>Completa el formulario y genera copy</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== COMPETENCIA ====== -->
+    <div id="competencia" class="tab-content">
+      <div class="panel">
+        <h2>🔍 Análisis de Competencia</h2>
+
+        <div class="form-group">
+          <label>Tu marca</label>
+          <input type="text" id="compMarca" placeholder="ej: Custer — agencia de marketing">
+        </div>
+
+        <div class="form-group">
+          <label>Competidores (uno por línea)</label>
+          <textarea id="compComp" placeholder="Competidor 1&#10;Competidor 2&#10;Competidor 3" style="min-height: 100px;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Información adicional</label>
+          <textarea id="compInfo" placeholder="URLs, links a redes, datos específicos de competidores..."></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="analizarCompetencia()">
+            <span id="compLoading"></span>
+            🔍 Analizar
+          </button>
+        </div>
+
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid var(--border-light);">
+
+        <h3 style="margin-bottom: 15px;">📱 Anuncios & Creatividad</h3>
+
+        <div class="search-box">
+          <input type="text" id="searchCreative" placeholder="Busca por palabra clave (ej: branding, saas...)">
+          <button onclick="searchCreativeAds()">🔍 Buscar</button>
+        </div>
+
+        <div id="adsCarousel" class="carousel">
+          <div class="carousel-item active">
+            <div class="empty-state" style="min-height: 250px;">
+              <p>Anuncios de Meta & Pinterest se cargarán aquí</p>
+            </div>
+          </div>
+          <div class="carousel-nav">
+            <button class="carousel-btn" onclick="prevAd()">← Anterior</button>
+            <span class="carousel-indicator" id="adsIndicator">0 / 0</span>
+            <button class="carousel-btn" onclick="nextAd()">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Análisis generado</h2>
+        <div id="compCanvas" class="canvas-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <p>Ingresa datos para analizar competencia</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== REPORTES ====== -->
+    <div id="reportes" class="tab-content">
+      <div class="panel">
+        <h2>📊 Reportes</h2>
+
+        <div class="form-group">
+          <label>Instagram de la marca</label>
+          <input type="text" id="repIG" placeholder="@usuario_instagram">
+        </div>
+
+        <div class="form-group">
+          <label>Período</label>
+          <select id="repPeriod">
+            <option value="semana">Última semana</option>
+            <option value="mes" selected>Último mes</option>
+            <option value="trimestre">Último trimestre</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Contexto / Notas</label>
+          <textarea id="repCtx" placeholder="Campañas lanzadas, cambios realizados, eventos especiales, etc..."></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="generarReporte()">
+            <span id="repLoading"></span>
+            📊 Generar Reporte
+          </button>
+          <button class="btn" style="background: rgba(104, 96, 238, 0.3); border: 1px solid var(--primary);" onclick="descargarReporte()">
+            📥 Descargar
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Reporte generado</h2>
+        <div id="repCanvas" class="canvas-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <p>Ingresa datos de Instagram para generar reporte</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============= ESTADO GLOBAL =============
+    let currentBrand = null
+    let allBrands = []
+    let currentAds = []
+    let currentAdIndex = 0
+    let imageStorage = {} // Almacenamiento temporal de imágenes
+
+    // ============= FUNCIONES DE MARCA =============
+    function switchLoadMethod(method, button) {
+      // Cambiar tabs
+      document.querySelectorAll('[data-method]').forEach(btn => btn.classList.remove('active'))
+      button.classList.add('active')
+
+      // Cambiar contenedores
+      document.querySelectorAll('.method-container').forEach(container => {
+        container.style.display = 'none'
+      })
+      document.getElementById(`method-${method}`).style.display = 'block'
+    }
+
+    async function procesarTextoMarca() {
+      const texto = document.getElementById('brandText').value.trim()
+      if (!texto) {
+        showToast('❌ Pega el texto primero', 'error')
+        return
+      }
+
+      showLoading('textLoading', true)
+      try {
+        const response = await fetch('/api/process-brand-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: texto })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        const brandData = data.brand
+
+        // Rellenar formulario - BÁSICO
+        if (brandData.basico?.nombre) document.getElementById('bbNombre').value = brandData.basico.nombre
+        if (brandData.basico?.rubro) document.getElementById('bbRubro').value = brandData.basico.rubro
+        if (brandData.basico?.ciudad) document.getElementById('bbCiudad').value = brandData.basico.ciudad
+        if (brandData.basico?.propuesta) document.getElementById('bbPropuesta').value = brandData.basico.propuesta
+
+        // ESTRATÉGICO
+        if (brandData.estrategico?.mision) document.getElementById('bbMision').value = brandData.estrategico.mision
+        if (brandData.estrategico?.vision) document.getElementById('bbVision').value = brandData.estrategico.vision
+        if (brandData.estrategico?.valores && brandData.estrategico.valores.length > 0) document.getElementById('bbValores').value = brandData.estrategico.valores.join(', ')
+        if (brandData.estrategico?.beneficios_funcionales) document.getElementById('bbBeneficiosFuncionales').value = brandData.estrategico.beneficios_funcionales
+        if (brandData.estrategico?.beneficios_emocionales) document.getElementById('bbBeneficiosEmocionales').value = brandData.estrategico.beneficios_emocionales
+
+        // AUDIENCIA
+        if (brandData.audiencia?.publico_objetivo) document.getElementById('bbAudienciaDemografica').value = brandData.audiencia.publico_objetivo
+        if (brandData.audiencia?.audiencia_real) document.getElementById('bbAudienciaReal').value = brandData.audiencia.audiencia_real
+        if (brandData.audiencia?.pain_points && brandData.audiencia.pain_points.length > 0) document.getElementById('bbPainPoints').value = brandData.audiencia.pain_points.join(', ')
+        if (brandData.audiencia?.gains && brandData.audiencia.gains.length > 0) document.getElementById('bbGains').value = brandData.audiencia.gains.join(', ')
+        if (brandData.audiencia?.motivaciones) document.getElementById('bbMotivaciones').value = brandData.audiencia.motivaciones
+        if (brandData.audiencia?.comportamiento_digital) document.getElementById('bbComportamientoDigital').value = brandData.audiencia.comportamiento_digital
+
+        // VISUAL
+        if (brandData.visual?.tipografia) document.getElementById('bbTipoPrincipal').value = brandData.visual.tipografia
+        if (brandData.visual?.colores?.primario) document.getElementById('bbColorPrimario').value = brandData.visual.colores.primario
+        if (brandData.visual?.colores?.secundario) document.getElementById('bbColorSecundario').value = brandData.visual.colores.secundario
+        if (brandData.visual?.colores?.acentos && brandData.visual.colores.acentos.length > 0) document.getElementById('bbAcentos').value = brandData.visual.colores.acentos.join(', ')
+        if (brandData.visual?.estilo_visual) document.getElementById('bbEstiloVisual').value = brandData.visual.estilo_visual
+        if (brandData.visual?.recursos_graficos) document.getElementById('bbRecursosGraficos').value = brandData.visual.recursos_graficos
+        if (brandData.visual?.sistema_grafico) document.getElementById('bbSistemaGrafico').value = brandData.visual.sistema_grafico
+        if (brandData.visual?.mood_board) document.getElementById('bbMoodBoard').value = brandData.visual.mood_board
+
+        // IDENTIDAD VERBAL
+        if (brandData.identidad?.voz_tono) document.getElementById('bbVozTono').value = brandData.identidad.voz_tono
+        if (brandData.identidad?.claim) document.getElementById('bbClaim').value = brandData.identidad.claim
+        if (brandData.identidad?.narrativa) document.getElementById('bbNarrativa').value = brandData.identidad.narrativa
+        if (brandData.identidad?.territorio_creativo) document.getElementById('bbTerritorioCreativo').value = brandData.identidad.territorio_creativo
+
+        // COMUNICACIÓN
+        if (brandData.comunicacion?.keywords && brandData.comunicacion.keywords.length > 0) document.getElementById('bbKeywords').value = brandData.comunicacion.keywords.join(', ')
+        if (brandData.comunicacion?.avoid && brandData.comunicacion.avoid.length > 0) document.getElementById('bbAvoid').value = brandData.comunicacion.avoid.join(', ')
+        if (brandData.comunicacion?.tonalidad && brandData.comunicacion.tonalidad.length > 0) document.getElementById('bbTonalidad2').value = brandData.comunicacion.tonalidad.join(', ')
+        if (brandData.comunicacion?.ejemplos) document.getElementById('bbEjemplos').value = brandData.comunicacion.ejemplos
+
+        // POSICIONAMIENTO
+        if (brandData.posicionamiento?.competencia && brandData.posicionamiento.competencia.length > 0) document.getElementById('bbCompetenciaDirecta').value = brandData.posicionamiento.competencia.join(', ')
+        if (brandData.posicionamiento?.diferenciadores && brandData.posicionamiento.diferenciadores.length > 0) document.getElementById('bbDiferenciadores').value = brandData.posicionamiento.diferenciadores.join(', ')
+        if (brandData.posicionamiento?.propuesta_unica) document.getElementById('bbPropuestaUnica').value = brandData.posicionamiento.propuesta_unica
+
+        // IMPLEMENTACIÓN
+        if (brandData.implementacion?.canales && brandData.implementacion.canales.length > 0) document.getElementById('bbCanales').value = brandData.implementacion.canales.join(', ')
+        if (brandData.implementacion?.formatos && brandData.implementacion.formatos.length > 0) document.getElementById('bbFormatos').value = brandData.implementacion.formatos.join(', ')
+        if (brandData.implementacion?.frecuencia) document.getElementById('bbFrecuencia').value = brandData.implementacion.frecuencia
+
+        // FALLBACK: Si no está estructurado, usar campos antiguos
+        if (brandData.nombre && !document.getElementById('bbNombre').value) document.getElementById('bbNombre').value = brandData.nombre
+        if (brandData.publico) document.getElementById('bbPublico').value = brandData.publico
+        if (brandData.tipografia) document.getElementById('bbFont').value = brandData.tipografia
+        if (brandData.registro) document.getElementById('bbRegistro').value = brandData.registro
+
+        showToast('✅ Datos extraídos del texto correctamente', 'success')
+      } catch (error) {
+        showToast(`❌ Error: ${error.message}`, 'error')
+      } finally {
+        showLoading('textLoading', false)
+      }
+    }
+
+    async function uploadBrandFile(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      // Verificar tamaño
+      const maxSize = 3 * 1024 * 1024 // 3 MB
+      if (file.size > maxSize) {
+        showToast('⚠️ Archivo muy grande. Comprimiendo...', 'info')
+
+        // Si es imagen, comprimir
+        if (file.type.startsWith('image/')) {
+          compressAndUploadImage(file)
+          return
+        } else {
+          showToast('❌ El PDF es muy grande (máx 3MB). Exporta una página como imagen JPG/PNG', 'error')
+          return
+        }
+      }
+
+      // Tamaño OK, enviar directamente
+      sendBrandFile(file)
+    }
+
+    async function compressAndUploadImage(file) {
+      try {
+        const reader = new FileReader()
+        reader.onload = async (e) => {
+          const img = new Image()
+          img.onload = async () => {
+            // Crear canvas
+            const canvas = document.createElement('canvas')
+            let width = img.width
+            let height = img.height
+
+            // Reducir tamaño si es muy grande
+            const maxDim = 1500
+            if (width > maxDim || height > maxDim) {
+              const ratio = Math.min(maxDim / width, maxDim / height)
+              width = Math.round(width * ratio)
+              height = Math.round(height * ratio)
+            }
+
+            canvas.width = width
+            canvas.height = height
+
+            // Dibujar imagen en canvas
+            const ctx = canvas.getContext('2d')
+            ctx.drawImage(img, 0, 0, width, height)
+
+            // Convertir a blob con compresión
+            canvas.toBlob(
+              async (blob) => {
+                const originalSize = (file.size / 1024 / 1024).toFixed(2)
+                const compressedSize = (blob.size / 1024 / 1024).toFixed(2)
+                showToast(`✅ Comprimido: ${originalSize}MB → ${compressedSize}MB`, 'success')
+
+                // Crear archivo comprimido
+                const compressedFile = new File([blob], file.name, { type: 'image/jpeg' })
+                sendBrandFile(compressedFile)
+              },
+              'image/jpeg',
+              0.75 // Calidad 75%
+            )
+          }
+          img.src = e.target.result
+        }
+        reader.readAsDataURL(file)
+      } catch (error) {
+        showToast(`❌ Error comprimiendo: ${error.message}`, 'error')
+      }
+    }
+
+    async function sendBrandFile(file) {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      showLoading('upLoading', true)
+      try {
+        const response = await fetch('/api/parse-brand-file', {
+          method: 'POST',
+          body: formData
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        // Rellenar formulario con datos extraídos - ESTRUCTURA NUEVA Y ANTIGUA
+        const b = data.brand
+
+        // BÁSICO
+        if (b.basico?.nombre || b.nombre) document.getElementById('bbNombre').value = b.basico?.nombre || b.nombre
+        if (b.basico?.rubro || b.rubro) document.getElementById('bbRubro').value = b.basico?.rubro || b.rubro
+        if (b.basico?.ciudad || b.ciudad) document.getElementById('bbCiudad').value = b.basico?.ciudad || b.ciudad
+        if (b.basico?.propuesta || b.propuesta) document.getElementById('bbPropuesta').value = b.basico?.propuesta || b.propuesta
+
+        // ESTRATÉGICO
+        if (b.estrategico?.mision) document.getElementById('bbMision').value = b.estrategico.mision
+        if (b.estrategico?.vision) document.getElementById('bbVision').value = b.estrategico.vision
+        if (b.estrategico?.valores && b.estrategico.valores.length > 0) document.getElementById('bbValores').value = b.estrategico.valores.join(', ')
+        if (b.estrategico?.beneficios_funcionales) document.getElementById('bbBeneficiosFuncionales').value = b.estrategico.beneficios_funcionales
+        if (b.estrategico?.beneficios_emocionales) document.getElementById('bbBeneficiosEmocionales').value = b.estrategico.beneficios_emocionales
+
+        // AUDIENCIA
+        if (b.audiencia?.publico_objetivo) document.getElementById('bbAudienciaDemografica').value = b.audiencia.publico_objetivo
+        if (b.audiencia?.audiencia_real) document.getElementById('bbAudienciaReal').value = b.audiencia.audiencia_real
+        if (b.audiencia?.pain_points && b.audiencia.pain_points.length > 0) document.getElementById('bbPainPoints').value = b.audiencia.pain_points.join(', ')
+        if (b.audiencia?.gains && b.audiencia.gains.length > 0) document.getElementById('bbGains').value = b.audiencia.gains.join(', ')
+        if (b.audiencia?.motivaciones) document.getElementById('bbMotivaciones').value = b.audiencia.motivaciones
+        if (b.audiencia?.comportamiento_digital) document.getElementById('bbComportamientoDigital').value = b.audiencia.comportamiento_digital
+
+        // VISUAL
+        if (b.visual?.tipografia || b.tipografia) document.getElementById('bbTipoPrincipal').value = b.visual?.tipografia || b.tipografia
+        if (b.visual?.colores?.primario) document.getElementById('bbColorPrimario').value = b.visual.colores.primario
+        if (b.visual?.colores?.secundario) document.getElementById('bbColorSecundario').value = b.visual.colores.secundario
+        if (b.visual?.colores?.acentos && b.visual.colores.acentos.length > 0) document.getElementById('bbAcentos').value = b.visual.colores.acentos.join(', ')
+        if (b.visual?.estilo_visual) document.getElementById('bbEstiloVisual').value = b.visual.estilo_visual
+        if (b.visual?.recursos_graficos) document.getElementById('bbRecursosGraficos').value = b.visual.recursos_graficos
+        if (b.visual?.sistema_grafico) document.getElementById('bbSistemaGrafico').value = b.visual.sistema_grafico
+        if (b.visual?.mood_board) document.getElementById('bbMoodBoard').value = b.visual.mood_board
+
+        // IDENTIDAD VERBAL
+        if (b.identidad?.voz_tono) document.getElementById('bbVozTono').value = b.identidad.voz_tono
+        if (b.identidad?.claim) document.getElementById('bbClaim').value = b.identidad.claim
+        if (b.identidad?.narrativa) document.getElementById('bbNarrativa').value = b.identidad.narrativa
+        if (b.identidad?.territorio_creativo) document.getElementById('bbTerritorioCreativo').value = b.identidad.territorio_creativo
+
+        // COMUNICACIÓN
+        if (b.comunicacion?.keywords && b.comunicacion.keywords.length > 0) document.getElementById('bbKeywords').value = b.comunicacion.keywords.join(', ')
+        else if (b.keywords && b.keywords.length > 0) document.getElementById('bbKeywords').value = b.keywords.join(', ')
+
+        if (b.comunicacion?.avoid && b.comunicacion.avoid.length > 0) document.getElementById('bbAvoid').value = b.comunicacion.avoid.join(', ')
+        else if (b.avoid && b.avoid.length > 0) document.getElementById('bbAvoid').value = b.avoid.join(', ')
+
+        if (b.comunicacion?.tonalidad && b.comunicacion.tonalidad.length > 0) document.getElementById('bbTonalidad2').value = b.comunicacion.tonalidad.join(', ')
+        if (b.comunicacion?.ejemplos || b.ejemplos) document.getElementById('bbEjemplos').value = b.comunicacion?.ejemplos || b.ejemplos
+
+        // POSICIONAMIENTO
+        if (b.posicionamiento?.competencia && b.posicionamiento.competencia.length > 0) document.getElementById('bbCompetenciaDirecta').value = b.posicionamiento.competencia.join(', ')
+        if (b.posicionamiento?.diferenciadores && b.posicionamiento.diferenciadores.length > 0) document.getElementById('bbDiferenciadores').value = b.posicionamiento.diferenciadores.join(', ')
+        if (b.posicionamiento?.propuesta_unica) document.getElementById('bbPropuestaUnica').value = b.posicionamiento.propuesta_unica
+
+        // IMPLEMENTACIÓN
+        if (b.implementacion?.canales && b.implementacion.canales.length > 0) document.getElementById('bbCanales').value = b.implementacion.canales.join(', ')
+        if (b.implementacion?.formatos && b.implementacion.formatos.length > 0) document.getElementById('bbFormatos').value = b.implementacion.formatos.join(', ')
+        if (b.implementacion?.frecuencia) document.getElementById('bbFrecuencia').value = b.implementacion.frecuencia
+
+        // FALLBACK: público
+        if (b.publico || b.audiencia?.publico_objetivo) document.getElementById('bbPublico').value = b.publico || b.audiencia?.publico_objetivo
+        if (b.registro) document.getElementById('bbRegistro').value = b.registro
+
+        showToast('✅ Datos extraídos correctamente', 'success')
+      } catch (error) {
+        showToast(`❌ Error: ${error.message}`, 'error')
+      } finally {
+        showLoading('upLoading', false)
+      }
+    }
+
+    function saveBrand() {
+      const brand = {
+        // BÁSICO
+        nombre: document.getElementById('bbNombre').value,
+        rubro: document.getElementById('bbRubro').value,
+        ciudad: document.getElementById('bbCiudad').value,
+        propuesta: document.getElementById('bbPropuesta').value,
+
+        // ESTRATÉGICO
+        mision: document.getElementById('bbMision')?.value || null,
+        vision: document.getElementById('bbVision')?.value || null,
+        valores: document.getElementById('bbValores')?.value.split(',').map(v => v.trim()).filter(v => v) || [],
+        beneficios_funcionales: document.getElementById('bbBeneficiosFuncionales')?.value || null,
+        beneficios_emocionales: document.getElementById('bbBeneficiosEmocionales')?.value || null,
+
+        // AUDIENCIA
+        publico: document.getElementById('bbPublico').value,
+        publico_objetivo_detallado: document.getElementById('bbAudienciaDemografica')?.value || null,
+        audiencia_real: document.getElementById('bbAudienciaReal')?.value || null,
+        pain_points: document.getElementById('bbPainPoints')?.value.split(',').map(p => p.trim()).filter(p => p) || [],
+        gains: document.getElementById('bbGains')?.value.split(',').map(g => g.trim()).filter(g => g) || [],
+        motivaciones: document.getElementById('bbMotivaciones')?.value || null,
+        comportamiento_digital: document.getElementById('bbComportamientoDigital')?.value || null,
+
+        // VISUAL
+        tipografia: document.getElementById('bbFont').value,
+        tipografia_principal: document.getElementById('bbTipoPrincipal')?.value || null,
+        tipografia_secundaria: document.getElementById('bbTipoSecundaria')?.value || null,
+        color_primario: document.getElementById('bbColorPrimario')?.value || null,
+        color_secundario: document.getElementById('bbColorSecundario')?.value || null,
+        acentos: document.getElementById('bbAcentos')?.value.split(',').map(a => a.trim()).filter(a => a) || [],
+        estilo_visual: document.getElementById('bbEstiloVisual')?.value || null,
+        recursos_graficos: document.getElementById('bbRecursosGraficos')?.value || null,
+        sistema_grafico: document.getElementById('bbSistemaGrafico')?.value || null,
+        mood_board: document.getElementById('bbMoodBoard')?.value || null,
+
+        // IDENTIDAD VERBAL
+        voz_tono: document.getElementById('bbVozTono')?.value || null,
+        claim: document.getElementById('bbClaim')?.value || null,
+        narrativa: document.getElementById('bbNarrativa')?.value || null,
+        territorio_creativo: document.getElementById('bbTerritorioCreativo')?.value || null,
+
+        // REGISTRO (tono de voz)
+        registro: document.getElementById('bbRegistro').value,
+
+        // POSICIONAMIENTO
+        competencia_directa: document.getElementById('bbCompetenciaDirecta')?.value.split(',').map(c => c.trim()).filter(c => c) || [],
+        diferenciadores: document.getElementById('bbDiferenciadores')?.value.split(',').map(d => d.trim()).filter(d => d) || [],
+        propuesta_unica: document.getElementById('bbPropuestaUnica')?.value || null,
+
+        // IMPLEMENTACIÓN
+        canales: document.getElementById('bbCanales')?.value.split(',').map(c => c.trim()).filter(c => c) || [],
+        formatos: document.getElementById('bbFormatos')?.value.split(',').map(f => f.trim()).filter(f => f) || [],
+        frecuencia: document.getElementById('bbFrecuencia')?.value || null,
+
+        // COMUNICACIÓN
+        keywords: document.getElementById('bbKeywords').value.split(',').map(k => k.trim()).filter(k => k),
+        avoid: document.getElementById('bbAvoid').value.split(',').map(a => a.trim()).filter(a => a),
+        tonalidad: document.getElementById('bbTonalidad2')?.value.split(',').map(t => t.trim()).filter(t => t) || [],
+        ejemplos: document.getElementById('bbEjemplos').value,
+
+        // VISUAL ASSETS (imágenes y análisis)
+        visualAssets: {
+          images: window.currentBrandImages || [],
+          analysis: window.currentVisualAnalysis || null
+        },
+
+        // METADATA
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      if (!brand.nombre) {
+        showToast('❌ El nombre de la marca es obligatorio', 'error')
+        return
+      }
+
+      // Buscar si la marca ya existe
+      const existingIndex = allBrands.findIndex(b => b.nombre.toLowerCase() === brand.nombre.toLowerCase())
+
+      if (existingIndex !== -1) {
+        // Actualizar (mantener createdAt)
+        brand.createdAt = allBrands[existingIndex].createdAt
+        allBrands[existingIndex] = { ...allBrands[existingIndex], ...brand }
+        currentBrand = allBrands[existingIndex]
+        showToast('✅ Marca actualizada', 'success')
+      } else {
+        // Crear nueva
+        brand.id = brand.nombre.toLowerCase().replace(/\s+/g, '-')
+        allBrands.push(brand)
+        currentBrand = brand
+        showToast('✅ Marca guardada', 'success')
+      }
+
+      localStorage.setItem('custer_brands', JSON.stringify(allBrands))
+      localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
+      updateBrandSelector()
+
+      // Auto-seleccionar la marca guardada
+      const brandId = currentBrand.id || currentBrand.nombre.toLowerCase().replace(/\s+/g, '-')
+      document.getElementById('brandSelect').value = brandId
+
+      updateBrainPreview()
+    }
+
+    function descargarBriefing() {
+      if (!currentBrand || !currentBrand.nombre) {
+        showToast('❌ Carga una marca primero', 'error')
+        return
+      }
+
+      const briefing = {
+        titulo: `Briefing Estratégico: ${currentBrand.nombre}`,
+        fecha: new Date().toLocaleDateString('es-AR'),
+        marca: currentBrand.nombre,
+        rubro: currentBrand.rubro,
+        ciudad: currentBrand.ciudad,
+        propuesta: currentBrand.propuesta,
+        estrategia: {
+          mision: currentBrand.mision,
+          vision: currentBrand.vision,
+          valores: currentBrand.valores,
+          beneficios_funcionales: currentBrand.beneficios_funcionales,
+          beneficios_emocionales: currentBrand.beneficios_emocionales
+        },
+        audiencia: {
+          publico_objetivo: currentBrand.publico_objetivo_detallado || currentBrand.publico,
+          audiencia_real: currentBrand.audiencia_real,
+          pain_points: currentBrand.pain_points,
+          gains: currentBrand.gains,
+          motivaciones: currentBrand.motivaciones,
+          comportamiento_digital: currentBrand.comportamiento_digital
+        },
+        identidad_visual: {
+          colores: {
+            primario: currentBrand.color_primario,
+            secundario: currentBrand.color_secundario,
+            acentos: currentBrand.acentos
+          },
+          tipografia: {
+            principal: currentBrand.tipografia_principal || currentBrand.tipografia,
+            secundaria: currentBrand.tipografia_secundaria
+          },
+          estilo_visual: currentBrand.estilo_visual,
+          recursos_graficos: currentBrand.recursos_graficos,
+          sistema_grafico: currentBrand.sistema_grafico
+        },
+        identidad_verbal: {
+          voz_tono: currentBrand.voz_tono,
+          claim: currentBrand.claim,
+          narrativa: currentBrand.narrativa,
+          territorio_creativo: currentBrand.territorio_creativo
+        },
+        posicionamiento: {
+          competencia: currentBrand.competencia_directa,
+          diferenciadores: currentBrand.diferenciadores,
+          propuesta_unica: currentBrand.propuesta_unica
+        },
+        comunicacion: {
+          keywords: currentBrand.keywords,
+          evitar: currentBrand.avoid,
+          tonalidad: currentBrand.tonalidad,
+          ejemplos: currentBrand.ejemplos
+        }
+      }
+
+      const json = JSON.stringify(briefing, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `briefing-${currentBrand.nombre.toLowerCase().replace(/\s+/g, '-')}.json`
+      a.click()
+      showToast('✅ Briefing descargado', 'success')
+    }
+
+    function updateBrandSelector() {
+      const select = document.getElementById('brandSelect')
+      select.innerHTML = '<option value="">-- Selecciona una marca --</option>'
+
+      allBrands.forEach(brand => {
+        const option = document.createElement('option')
+        option.value = brand.id || brand.nombre.toLowerCase().replace(/\s+/g, '-')
+        option.textContent = brand.nombre
+        select.appendChild(option)
+      })
+
+      if (currentBrand) {
+        select.value = currentBrand.id || currentBrand.nombre.toLowerCase().replace(/\s+/g, '-')
+      }
+    }
+
+    function selectBrand(brandId) {
+      if (!brandId) {
+        currentBrand = null
+        currentBrandImages = []
+        currentVisualAnalysis = null
+        return
+      }
+
+      currentBrand = allBrands.find(b => (b.id || b.nombre.toLowerCase().replace(/\s+/g, '-')) === brandId)
+      if (currentBrand) {
+        localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
+
+        // Restaurar imágenes y análisis visual
+        currentBrandImages = currentBrand.visualAssets?.images || []
+        currentVisualAnalysis = currentBrand.visualAssets?.analysis || null
+
+        // Actualizar vista previa de imágenes
+        const preview = document.getElementById('visualImagesPreview')
+        if (preview && currentBrandImages.length > 0) {
+          preview.innerHTML = ''
+          currentBrandImages.forEach((img, imageIndex) => {
+            const imgEl = document.createElement('img')
+            imgEl.src = img.data || img
+            imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border 0.3s;'
+            imgEl.title = img.name || `Imagen ${imageIndex + 1}`
+            imgEl.onmouseover = () => (imgEl.style.borderColor = '#6860EE')
+            imgEl.onmouseout = () => (imgEl.style.borderColor = 'transparent')
+            imgEl.onclick = () => {
+              currentBrandImages.splice(imageIndex, 1)
+              preview.removeChild(imgEl)
+              showToast('❌ Imagen removida', 'info')
+            }
+            preview.appendChild(imgEl)
+          })
+        }
+
+        updateBrainPreview()
+      }
+    }
+
+    function updateBrainPreview() {
+      const preview = document.getElementById('brainPreview')
+      if (!currentBrand || !currentBrand.nombre) {
+        preview.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 3rem; margin-bottom: 12px;">
+              <svg width="60" height="60" viewBox="0 0 60 60" style="opacity: 0.3;">
+                <circle cx="30" cy="30" r="25" stroke="currentColor" stroke-width="2" fill="none"/>
+                <path d="M 30 15 Q 35 20 35 25 Q 35 30 30 30 Q 25 30 25 25 Q 25 20 30 15" stroke="currentColor" stroke-width="2" fill="none"/>
+              </svg>
+            </div>
+            <p>Carga o completa una marca</p>
+          </div>
+        `
+        return
+      }
+
+      const b = currentBrand
+      const φ = 1.618 // Proporción áurea
+
+      // ========== PALETA DE COLORES ==========
+      let colorPalette = ''
+      const colors = [
+        { name: 'Primario', value: b.color_primario },
+        { name: 'Secundario', value: b.color_secundario },
+        ...(b.acentos && b.acentos.length > 0 ? b.acentos.map((c, i) => ({ name: `Acento ${i+1}`, value: c })) : [])
+      ].filter(c => c.value)
+
+      if (colors.length > 0) {
+        const φ_color = 1.618
+        const colorCodeSize = Math.round(14 * φ_color)
+        colorPalette = `
+          <div style="margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" style="min-width: 24px;">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="#6860EE" stroke-width="2"/>
+                <circle cx="8" cy="10" r="3" fill="#6860EE"/>
+                <circle cx="16" cy="10" r="3" fill="#6860EE"/>
+                <path d="M 10 16 Q 12 18 14 16" stroke="#6860EE" stroke-width="2" fill="none"/>
+              </svg>
+              <h3 style="margin: 0; color: #6860EE; font-size: 1.1rem; font-weight: 700;">Paleta de Colores</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+              ${colors.map(c => {
+                const cleanValue = c.value.split('(')[0].trim();
+                return `
+                  <div style="text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="width: 100%; height: 120px; background: ${cleanValue}; border-radius: 14px; margin-bottom: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.2); border: 4px solid white;"></div>
+                    <code style="font-size: ${colorCodeSize}px; color: #6860EE; font-family: 'Courier New', monospace; font-weight: 700; display: block; margin-bottom: 8px;">${cleanValue}</code>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">${c.name}</div>
+                  </div>
+                `
+              }).join('')}
+            </div>
+          </div>
+        `
+      }
+
+      // ========== TIPOGRAFÍA CON ESCALA ÁUREA ==========
+      let typographyDisplay = ''
+      const fonts = [
+        { label: 'Títulos', value: b.tipografia_principal || b.tipografia, role: 'heading' },
+        { label: 'Cuerpo de Texto', value: b.tipografia_secundaria, role: 'body' }
+      ].filter(f => f.value)
+
+      if (fonts.length > 0) {
+        const sizeBody = 14
+        const sizeSmall = Math.round(sizeBody / φ)
+        const sizeTitle = Math.round(sizeBody * φ)
+        const sizeXL = Math.round(sizeBody * φ * φ)
+
+        typographyDisplay = `
+          <div style="margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" style="min-width: 24px;">
+                <text x="12" y="16" font-size="16" font-weight="bold" text-anchor="middle" fill="#6860EE">A</text>
+                <line x1="4" y1="20" x2="20" y2="20" stroke="#6860EE" stroke-width="2"/>
+              </svg>
+              <h3 style="margin: 0; color: #6860EE; font-size: 1.1rem; font-weight: 700;">Tipografía</h3>
+            </div>
+            <div style="display: grid; gap: 16px;">
+              ${fonts.map(f => `
+                <div style="padding: 18px; background: linear-gradient(135deg, rgba(104, 96, 238, 0.08), rgba(245, 166, 35, 0.03)); border: 1px solid rgba(104, 96, 238, 0.15); border-radius: 10px; border-left: 4px solid #6860EE;">
+                  <div style="font-size: 0.75rem; font-weight: 700; color: #6860EE; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">${f.label}</div>
+
+                  <div style="margin-bottom: 12px;">
+                    <div style="font-family: '${f.value}', sans-serif; font-size: ${sizeXL}px; font-weight: 700; color: var(--text-primary); line-height: 1.2;">Título Principal</div>
+                    <div style="font-size: 0.7rem; color: var(--text-tertiary); margin-top: 4px;">${sizeXL}px • Bold</div>
+                  </div>
+
+                  <div style="margin-bottom: 12px;">
+                    <div style="font-family: '${f.value}', sans-serif; font-size: ${sizeTitle}px; font-weight: 600; color: var(--text-primary); line-height: 1.3;">Subtítulo</div>
+                    <div style="font-size: 0.7rem; color: var(--text-tertiary); margin-top: 4px;">${sizeTitle}px • Semibold</div>
+                  </div>
+
+                  <div>
+                    <div style="font-family: '${f.value}', sans-serif; font-size: ${sizeBody}px; font-weight: 400; color: var(--text-primary); line-height: 1.5;">The quick brown fox jumps over the lazy dog</div>
+                    <div style="font-size: 0.7rem; color: var(--text-tertiary); margin-top: 4px;">${sizeBody}px • Regular</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `
+      }
+
+      // ========== IDENTIDAD ESTRATÉGICA ==========
+      let strategyContent = ''
+      const strategyItems = [
+        { name: 'Marca', value: b.nombre },
+        { name: 'Rubro', value: b.rubro },
+        { name: 'Ubicación', value: b.ciudad },
+        { name: 'Propuesta', value: b.propuesta },
+        { name: 'Misión', value: b.mision },
+        { name: 'Visión', value: b.vision }
+      ].filter(item => item.value)
+
+      if (strategyItems.length > 0) {
+        strategyContent = `
+          <div style="margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" style="min-width: 24px;">
+                <circle cx="12" cy="10" r="3" fill="none" stroke="#6860EE" stroke-width="2"/>
+                <path d="M 6 20 Q 12 16 18 20" stroke="#6860EE" stroke-width="2" fill="none"/>
+              </svg>
+              <h3 style="margin: 0; color: #6860EE; font-size: 1.1rem; font-weight: 700;">Identidad Estratégica</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+              ${strategyItems.map(item => `
+                <div style="padding: 16px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(104, 96, 238, 0.2); border-radius: 10px; border-left: 4px solid #6860EE;">
+                  <div style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">${item.name}</div>
+                  <div style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.6; font-weight: 500;">${item.value}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `
+      }
+
+      // ========== ATRIBUTOS CLAVE (SOLO ESENCIALES) ==========
+      let attributesContent = ''
+      const essentialAttrs = [
+        { label: 'Valores', items: b.valores, icon: 'star' },
+        { label: 'Keywords', items: b.keywords || [], icon: 'tag' }
+      ].filter(attr => attr.items && attr.items.length > 0)
+
+      if (essentialAttrs.length > 0) {
+        attributesContent = `
+          <div style="margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" style="min-width: 24px;">
+                <polygon points="12,2 15,10 23,10 17,16 19,24 12,19 5,24 7,16 1,10 9,10" fill="none" stroke="#6860EE" stroke-width="2"/>
+              </svg>
+              <h3 style="margin: 0; color: #6860EE; font-size: 1.1rem; font-weight: 700;">Atributos Clave</h3>
+            </div>
+            <div style="display: grid; gap: 14px;">
+              ${essentialAttrs.map(attr => `
+                <div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: #6860EE; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">${attr.label}</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${attr.items.slice(0, 6).map(item => `
+                      <span style="display: inline-block; background: linear-gradient(135deg, #6860EE, #8B75FF); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">${item}</span>
+                    `).join('')}
+                    ${attr.items.length > 6 ? `<span style="font-size: 0.85rem; color: var(--text-tertiary); align-self: center;">+${attr.items.length - 6} más</span>` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `
+      }
+
+      // ========== INFORMACIÓN DE AUDIENCIA (DESCRIPTIVA) ==========
+      let audienceContent = ''
+      const audienceKey = [
+        { name: 'Público Objetivo', value: b.publico_objetivo_detallado || b.publico },
+        { name: 'Audiencia Real', value: b.audiencia_real }
+      ].filter(item => item.value)
+
+      if (audienceKey.length > 0) {
+        audienceContent = `
+          <div style="margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" style="min-width: 24px;">
+                <circle cx="8" cy="9" r="3" fill="none" stroke="#6860EE" stroke-width="2"/>
+                <circle cx="16" cy="9" r="3" fill="none" stroke="#6860EE" stroke-width="2"/>
+                <path d="M 6 18 Q 8 16 12 16 Q 16 16 18 18" stroke="#6860EE" stroke-width="2" fill="none"/>
+              </svg>
+              <h3 style="margin: 0; color: #6860EE; font-size: 1.1rem; font-weight: 700;">Audiencia para Comunicadores</h3>
+            </div>
+            <div style="display: grid; gap: 14px;">
+              ${audienceKey.map(item => `
+                <div style="padding: 16px; background: linear-gradient(135deg, rgba(104, 96, 238, 0.05), rgba(245, 166, 35, 0.03)); border: 1px solid rgba(104, 96, 238, 0.15); border-left: 4px solid #6860EE; border-radius: 8px;">
+                  <div style="font-size: 0.8rem; font-weight: 700; color: #6860EE; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">${item.name}</div>
+                  <div style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.7;">${item.value}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `
+      }
+
+      // ========== ANÁLISIS VISUAL ==========
+      let visualAssetInfo = ''
+      if (b.visualAssets && b.visualAssets.images && b.visualAssets.images.length > 0) {
+        visualAssetInfo = `
+          <div style="margin-bottom: 20px; padding: 14px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(104, 96, 238, 0.05)); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" style="min-width: 20px;">
+                <path d="M 9 16 L 12 13 L 16 17 M 20 4 H 4 Q 2 4 2 6 V 18 Q 2 20 4 20 H 20 Q 22 20 22 18 V 6 Q 22 4 20 4 M 6 8 Q 7 8 7 7 Q 7 6 6 6 Q 5 6 5 7 Q 5 8 6 8" fill="none" stroke="#4ADE80" stroke-width="2"/>
+              </svg>
+              <div>
+                <div style="font-weight: 700; color: #4ADE80; font-size: 0.95rem;">Análisis Visual Completado</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">${b.visualAssets.images.length} imágenes analizadas</div>
+              </div>
+            </div>
+          </div>
+        `
+      }
+
+      // ========== BRIEF ESTRATÉGICO COMPLETO ==========
+      const φ_brief = 1.618
+      const briefSizeSmall = Math.round(12 / φ_brief)
+      const briefSizeBody = 13
+
+      let briefContent = `
+        <div style="margin-bottom: 32px; padding: 24px; background: linear-gradient(135deg, rgba(104,96,238,0.08), rgba(245,166,35,0.05)); border-radius: 12px; border: 1px solid rgba(104,96,238,0.15);">
+          <h2 style="margin: 0 0 20px 0; color: #6860EE; font-size: 1.3rem; font-weight: 800;">Brief Estratégico</h2>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+            ${b.propuesta ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">PROPUESTA DE VALOR</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.propuesta}</div></div>` : ''}
+            ${b.mision ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">MISIÓN</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.mision}</div></div>` : ''}
+            ${b.vision ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">VISIÓN</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.vision}</div></div>` : ''}
+            ${b.voz_tono ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">VOZ Y TONO</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.voz_tono}</div></div>` : ''}
+            ${b.claim ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">CLAIM/MANIFIESTO</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.claim}</div></div>` : ''}
+            ${b.propuesta_unica ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">PROPUESTA ÚNICA</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.propuesta_unica}</div></div>` : ''}
+            ${b.beneficios_funcionales ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">BENEFICIOS FUNCIONALES</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.beneficios_funcionales}</div></div>` : ''}
+            ${b.beneficios_emocionales ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">BENEFICIOS EMOCIONALES</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.beneficios_emocionales}</div></div>` : ''}
+            ${b.publico_objetivo_detallado || b.publico ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">PÚBLICO OBJETIVO</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.publico_objetivo_detallado || b.publico}</div></div>` : ''}
+            ${b.diferenciadores && b.diferenciadores.length > 0 ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">DIFERENCIADORES</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.diferenciadores.join(', ')}</div></div>` : ''}
+            ${b.canales && b.canales.length > 0 ? `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;"><div style="font-size: ${briefSizeSmall}px; color: #F5A623; font-weight: 700; margin-bottom: 6px;">CANALES</div><div style="font-size: ${briefSizeBody}px; color: var(--text-primary);">${b.canales.join(', ')}</div></div>` : ''}
+          </div>
+        </div>
+      `
+
+      preview.innerHTML = `
+        <div class="result-card" style="padding: 24px; background: linear-gradient(135deg, rgba(104,96,238,0.02), rgba(245,166,35,0.01));">
+          <div style="margin-bottom: 28px;">
+            <h1 style="margin: 0 0 8px 0; color: #6860EE; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px;">${b.nombre || 'Sin nombre'}</h1>
+            ${b.rubro ? `<div style="font-size: 0.95rem; color: var(--text-secondary); font-weight: 500;">${b.rubro}</div>` : ''}
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 28px;">
+            <button onclick="saveBrand()" style="flex: 1; padding: 14px 20px; background: linear-gradient(135deg, #6860EE, #8B75FF); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: all 0.3s;">
+              💾 Guardar marca
+            </button>
+            <button onclick="descargarBriefing()" style="flex: 1; padding: 14px 20px; background: rgba(245, 166, 35, 0.2); color: #F5A623; border: 1.5px solid #F5A623; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: all 0.3s;">
+              📥 Descargar briefing
+            </button>
+          </div>
+
+          <div style="border-bottom: 2px solid rgba(104,96,238,0.1); margin-bottom: 28px;"></div>
+
+          ${briefContent}
+
+          ${visualAssetInfo}
+          ${colorPalette}
+          ${typographyDisplay}
+          ${strategyContent}
+          ${attributesContent}
+          ${audienceContent}
+        </div>
+      `
+    }
+
+    // ============= FUNCIONES DE ANÁLISIS VISUAL =============
+    let currentBrandImages = []
+    let currentVisualAnalysis = null
+
+    function handleVisualImages(event) {
+      const files = Array.from(event.target.files)
+
+      // Verificar que no supere 15 en total
+      if (currentBrandImages.length + files.length > 15) {
+        showToast(`❌ Máximo 15 imágenes total. Ya tienes ${currentBrandImages.length}`, 'error')
+        return
+      }
+
+      const preview = document.getElementById('visualImagesPreview')
+      // NO limpiar el preview - mantener imágenes previas
+
+      files.forEach((file) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const imageIndex = currentBrandImages.length
+          currentBrandImages.push({
+            name: file.name,
+            data: e.target.result,
+            type: file.type
+          })
+
+          const img = document.createElement('img')
+          img.src = e.target.result
+          img.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border 0.3s;'
+          img.title = file.name
+          img.onmouseover = () => (img.style.borderColor = '#6860EE')
+          img.onmouseout = () => (img.style.borderColor = 'transparent')
+          img.onclick = () => {
+            currentBrandImages.splice(imageIndex, 1)
+            preview.removeChild(img)
+            showToast('❌ Imagen removida', 'info')
+          }
+          preview.appendChild(img)
+        }
+        reader.readAsDataURL(file)
+      })
+
+      showToast(`✅ ${files.length} imagen(es) agregada(s) (${currentBrandImages.length}/15)`, 'success')
+    }
+
+    async function analyzeVisualIdentity() {
+      if (currentBrandImages.length === 0) {
+        showToast('❌ Carga al menos 1 imagen', 'error')
+        return
+      }
+
+      showLoading('visualLoading', true)
+      try {
+        const response = await fetch('/api/analyze-visual-identity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            images: currentBrandImages,
+            brandName: currentBrand?.nombre || 'Sin nombre'
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        currentVisualAnalysis = data.analysis
+
+        // Mostrar resultado
+        const resultDiv = document.getElementById('visualAnalysisResult')
+        document.getElementById('visualAnalysisContent').textContent = JSON.stringify(data.analysis, null, 2)
+        resultDiv.style.display = 'block'
+
+        // Llenar campos automáticamente si existen
+        if (data.analysis.colores && data.analysis.colores.length > 0) {
+          const primario = data.analysis.colores.find(c => c.uso === 'primario')
+          if (primario) {
+            document.getElementById('bbColorPrimario').value = primario.hex
+          }
+        }
+
+        showToast('✅ Análisis visual completado', 'success')
+      } catch (error) {
+        showToast(`❌ Error: ${error.message}`, 'error')
+      } finally {
+        showLoading('visualLoading', false)
+      }
+    }
+
+    function openBrandManager() {
+      document.getElementById('bbNombre').value = ''
+      document.getElementById('bbRubro').value = ''
+      document.getElementById('bbCiudad').value = ''
+      document.getElementById('bbPropuesta').value = ''
+      document.getElementById('bbPublico').value = ''
+      document.getElementById('bbFont').value = ''
+      document.getElementById('bbRegistro').value = ''
+      document.getElementById('bbKeywords').value = ''
+      document.getElementById('bbAvoid').value = ''
+      document.getElementById('bbEjemplos').value = ''
+      currentBrand = null
+      switchTab('brain', document.querySelector('.tab-btn'))
+    }
+
+    // ============= CHAT CONTEXTUAL Y ASISTENTE =============
+    const MODULE_CONTEXT = {
+      brain: {
+        name: 'Brand Brain',
+        icon: '<svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M 12 5 Q 14 7 14 10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M 12 5 Q 10 7 10 10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+        sources: 'Claude Vision API, PDF/Texto, Análisis Visual'
+      },
+      generador: {
+        name: 'Generador',
+        icon: '<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2L15 10L23 13L15 16L12 24L9 16L1 13L9 10L12 2Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+        sources: 'Datos de Brand, Tipografía, AI Creativo'
+      },
+      validador: {
+        name: 'Validador',
+        icon: '<svg width="20" height="20" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        sources: 'Identidad de Marca, Voz y Tono, Compliance'
+      },
+      copy: {
+        name: 'Copy',
+        icon: '<svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2V17zm4 0h-2V7h2V17zm4 0h-2v-4h2V17z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+        sources: 'Brand Copy, Audiencia, Platform Optimization'
+      },
+      competition: {
+        name: 'Competencia',
+        icon: '<svg width="20" height="20" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="20" y1="20" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        sources: 'Meta Ads, Pinterest API, Instagram Analytics'
+      },
+      reports: {
+        name: 'Reportes',
+        icon: '<svg width="20" height="20" viewBox="0 0 24 24"><rect x="3" y="13" width="3" height="8" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="8" width="3" height="13" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="17" y="4" width="3" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+        sources: 'Instagram API, Meta Insights, Analytics Engine'
+      }
+    }
+
+    async function sendContextQuestion(module) {
+      const question = document.getElementById(`chat-input-${module}`).value.trim()
+      if (!question) {
+        showToast('❌ Escribe una pregunta', 'error')
+        return
+      }
+
+      const chatBox = document.getElementById(`chat-messages-${module}`)
+      chatBox.innerHTML += `
+        <div style="background: rgba(104, 96, 238, 0.1); padding: 10px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #6860EE;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: #6860EE;">👤 Tu pregunta:</div>
+          <div style="font-size: 0.9rem; margin-top: 4px; color: var(--text-primary);">${question}</div>
+        </div>
+      `
+
+      showLoading(`chat-loading-${module}`, true)
+      document.getElementById(`chat-input-${module}`).value = ''
+
+      try {
+        const response = await fetch('/api/assistant-context', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            module: module,
+            question: question,
+            currentData: currentBrand
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        chatBox.innerHTML += `
+          <div style="background: rgba(74, 222, 128, 0.1); padding: 10px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #4ADE80;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: #4ADE80;">🤖 Respuesta del Asistente:</div>
+            <div style="font-size: 0.9rem; margin-top: 4px; line-height: 1.6; color: var(--text-primary);">${data.response.replace(/\n/g, '<br>')}</div>
+          </div>
+        `
+
+        chatBox.scrollTop = chatBox.scrollHeight
+      } catch (error) {
+        showToast(`❌ Error: ${error.message}`, 'error')
+      } finally {
+        showLoading(`chat-loading-${module}`, false)
+      }
+    }
+
+    function initializeModuleChat(moduleName) {
+      const info = MODULE_CONTEXT[moduleName]
+      if (!info) return
+
+      const moduleDiv = document.getElementById(moduleName)
+      if (!moduleDiv) return
+
+      // Crear y agregar chat si no existe
+      if (!moduleDiv.querySelector(`#chat-section-${moduleName}`)) {
+        const chatHTML = `
+          <div id="chat-section-${moduleName}" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border-light);">
+            <!-- CUADRO EXPLICATIVO -->
+            <div style="background: linear-gradient(135deg, rgba(104, 96, 238, 0.08), rgba(245, 166, 35, 0.08)); border: 1px solid rgba(104, 96, 238, 0.2); border-radius: 8px; padding: 14px; margin-bottom: 20px;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div style="min-width: 24px; color: #6860EE;">${info.icon}</div>
+                <div style="font-weight: 700; color: #6860EE;">${info.name}</div>
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+                <strong style="color: var(--text-primary);">📊 Este módulo se basa en:</strong><br>
+                ${info.sources}
+              </div>
+            </div>
+
+            <!-- CHAT CONTEXTUAL -->
+            <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-light); border-radius: 8px; padding: 15px;">
+              <h3 style="margin: 0 0 15px 0; font-size: 0.95rem; color: var(--text-secondary);">💬 Asistente Contextual</h3>
+
+              <div id="chat-messages-${moduleName}" style="background: white; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px; height: 250px; overflow-y: auto; margin-bottom: 12px; font-size: 0.9rem;"></div>
+
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="chat-input-${moduleName}" placeholder="¿Hay otra herramienta que podamos usar? ¿Qué datos usas?" style="flex: 1; padding: 10px; border: 1px solid var(--border-light); border-radius: 6px; font-size: 0.9rem;" onkeypress="if(event.key==='Enter') sendContextQuestion('${moduleName}')">
+                <button onclick="sendContextQuestion('${moduleName}')" style="padding: 10px 16px; background: linear-gradient(135deg, #6860EE, #8B75FF); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s;">
+                  <span id="chat-loading-${moduleName}"></span>
+                  💬 Enviar
+                </button>
+              </div>
+            </div>
+          </div>
+        `
+
+        // Insertar antes del cierre del panel o al final
+        const lastPanel = moduleDiv.querySelector('.panel:last-child')
+        if (lastPanel) {
+          lastPanel.insertAdjacentHTML('beforeend', chatHTML)
+        } else {
+          moduleDiv.insertAdjacentHTML('beforeend', chatHTML)
+        }
+      }
+    }
+
+    // ============= SVG ICONS Y HELPER FUNCTIONS =============
+    const SVG_ICONS = {
+      sparkles: '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L15 10L23 13L15 16L12 24L9 16L1 13L9 10L12 2Z" fill="currentColor" opacity="0.3" stroke="currentColor" stroke-width="1.5"/></svg>',
+      check: '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      alert: '<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>',
+      chart: '<svg width="24" height="24" viewBox="0 0 24 24"><rect x="3" y="13" width="3" height="8" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="8" width="3" height="13" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="17" y="4" width="3" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+      search: '<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="20" y1="20" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+      send: '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 11L21 3L15 21Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>'
+    }
+
+    function createPomelliCard(title, icon, content, bgColor = 'white') {
+      return `
+        <div style="padding: 20px; background: ${bgColor}; border: 1px solid rgba(104, 96, 238, 0.15); border-radius: 10px; margin-bottom: 16px; border-left: 4px solid #6860EE;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="min-width: 24px; color: #6860EE;">${icon}</div>
+            <h3 style="margin: 0; color: #6860EE; font-size: 1.1rem; font-weight: 700;">${title}</h3>
+          </div>
+          <div style="color: var(--text-primary); line-height: 1.7;">${content}</div>
+        </div>
+      `
+    }
+
+    function createResultsContainer(title, icon, items, bgColor = 'white') {
+      const φ = 1.618
+      const sizeTitle = Math.round(14 * φ)
+      return `
+        <div style="padding: 24px; background: linear-gradient(135deg, rgba(104,96,238,0.02), rgba(245,166,35,0.01)); border-radius: 10px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px;">
+            <div style="min-width: 32px; color: #6860EE; font-size: 1.5rem;">${icon}</div>
+            <div>
+              <h2 style="margin: 0; font-size: ${sizeTitle}px; font-weight: 800; color: #6860EE; letter-spacing: -0.3px;">${title}</h2>
+            </div>
+          </div>
+          ${items}
+          <div style="border-bottom: 2px solid rgba(104,96,238,0.1); margin-bottom: 20px;"></div>
+        </div>
+      `
+    }
+
+    // ============= FUNCIONES DE PESTAÑAS =============
+    function switchTab(tabName, button) {
+      // Inicializar chat del módulo
+      setTimeout(() => initializeModuleChat(tabName), 100)
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'))
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'))
+      document.getElementById(tabName).classList.add('active')
+      button.classList.add('active')
+    }
+
+    // ============= GENERADOR CON TIPOGRAFÍA INTELIGENTE =============
+    async function generarContenido() {
+      if (!currentBrand) {
+        showToast('❌ Selecciona una marca primero', 'error')
+        return
+      }
+
+      const topic = document.getElementById('genCopy').value.trim()
+      if (!topic) {
+        showToast('❌ Ingresa un tema o copy', 'error')
+        return
+      }
+
+      showLoading('genLoading', true)
+
+      try {
+        // Almacenar imágenes temporalmente
+        const sessionId = Date.now().toString()
+        if (window.currentBrandImages && window.currentBrandImages.length > 0) {
+          imageStorage[sessionId] = window.currentBrandImages
+        }
+
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topic,
+            format: document.getElementById('genTipo').value,
+            brain: {
+              ...currentBrand,
+              visualAssets: {
+                images: window.currentBrandImages || currentBrand?.visualAssets?.images || [],
+                analysis: window.currentVisualAnalysis || currentBrand?.visualAssets?.analysis || null
+              }
+            }
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        const canvas = document.getElementById('genCanvas')
+        const ads = data.ads || []
+
+        let adsHTML = ads.map((ad, idx) => `
+          <div style="margin-bottom: 30px; display: flex; justify-content: center;">
+            ${ad.html}
+          </div>
+        `).join('')
+
+        let html = createResultsContainer(`${data.topic || 'Anuncios generados'}`, SVG_ICONS.sparkles, `<div style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 20px;">${ads.length} mockups de anuncios creados</div>`) + adsHTML
+
+        canvas.innerHTML = html
+        showToast('✅ Anuncios visuales generados', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading('genLoading', false)
+      }
+    }
+
+    // ============= VALIDADOR RELAJADO =============
+    async function validarContenido() {
+      if (!currentBrand) {
+        showToast('❌ Selecciona una marca primero', 'error')
+        return
+      }
+
+      const copy = document.getElementById('valCopy').value.trim()
+      if (!copy) {
+        showToast('❌ Pega contenido para validar', 'error')
+        return
+      }
+
+      showLoading('valLoading', true)
+      try {
+        const response = await fetch('/api/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: copy, brain: currentBrand })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        const validation = data.validation
+        const canvas = document.getElementById('valCanvas')
+
+        const statusIcon = validation.aligned ? SVG_ICONS.check : SVG_ICONS.alert
+        const statusText = validation.aligned ? 'Alineado con marca' : 'Requiere ajustes'
+        const φ = 1.618
+        const sizeTitle = Math.round(14 * φ * φ)
+
+        let statusHTML = createPomelliCard(
+          statusText,
+          statusIcon,
+          `<div style="font-size: 0.95rem; color: var(--text-secondary);">
+            <strong style="color: var(--text-primary);">Score:</strong> <span style="font-size: ${sizeTitle}px; font-weight: 800; color: #6860EE;">${validation.score}%</span>
+          </div>
+          <div style="margin-top: 12px; font-size: 0.95rem; color: var(--text-primary); line-height: 1.7;">${validation.feedback}</div>`
+        )
+
+        let suggestionsHTML = ''
+        if (validation.suggestions && validation.suggestions.length > 0) {
+          const suggestionsContent = validation.suggestions.map(s =>
+            `<div style="padding: 12px; background: rgba(104, 96, 238, 0.05); border-radius: 6px; margin-bottom: 8px; font-size: 0.95rem; color: var(--text-primary); border-left: 3px solid #F5A623;">
+              ${s}
+            </div>`
+          ).join('')
+          suggestionsHTML = createPomelliCard('Sugerencias de mejora', '💡', suggestionsContent)
+        }
+
+        let html = createResultsContainer('Validación completada', SVG_ICONS.check, '') + statusHTML + suggestionsHTML
+        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarValidacion()">' + SVG_ICONS.send.replace('currentColor', 'white') + ' Descargar sugerencias</button>'
+
+        canvas.innerHTML = html
+        localStorage.setItem('lastValidation', copy)
+        showToast('✅ Validación completada', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading('valLoading', false)
+      }
+    }
+
+    function descargarValidacion() {
+      const content = localStorage.getItem('lastValidation')
+      const json = JSON.stringify({ validacion: content }, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'validacion.json'
+      a.click()
+      showToast('✅ Descargado', 'success')
+    }
+
+    // ============= COPY RELAJADO =============
+    async function generarCopy() {
+      if (!currentBrand) {
+        showToast('❌ Selecciona una marca primero', 'error')
+        return
+      }
+
+      const prod = document.getElementById('cpyProd').value.trim()
+      if (!prod) {
+        showToast('❌ Ingresa un producto/tema', 'error')
+        return
+      }
+
+      showLoading('cpyLoading', true)
+      try {
+        const response = await fetch('/api/copy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            theme: prod,
+            platforms: Array.from(document.querySelectorAll('#cpyPlats .tag.active')).map(t => t.dataset.plat),
+            brain: currentBrand
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        const canvas = document.getElementById('cpyCanvas')
+
+        let platformsHTML = ''
+        for (const [plat, content] of Object.entries(data.copies || {})) {
+          const copyText = content.body || content
+          platformsHTML += `
+            <div style="padding: 18px; background: white; border: 1px solid rgba(104, 96, 238, 0.15); border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #F5A623;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">${plat}</div>
+              <div style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.7; margin-bottom: 12px;">${copyText}</div>
+              <button class="btn" onclick="navigator.clipboard.writeText('${copyText.replace(/'/g, "\\'")}'); showToast('✅ Copiado al portapapeles', 'success')" style="width: 100%; padding: 8px; font-size: 0.85rem;">📋 Copiar</button>
+            </div>
+          `
+        }
+
+        let html = createResultsContainer('Copy generado', '✍️', '') + platformsHTML
+
+        canvas.innerHTML = html
+        showToast('✅ Copy generado', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading('cpyLoading', false)
+      }
+    }
+
+    // ============= COMPETENCIA AVANZADA =============
+    async function analizarCompetencia() {
+      if (!currentBrand) {
+        showToast('❌ Selecciona una marca primero', 'error')
+        return
+      }
+
+      const competidores = document.getElementById('compComp').value.split('\n').filter(c => c.trim())
+      if (competidores.length === 0) {
+        showToast('❌ Ingresa al menos un competidor', 'error')
+        return
+      }
+
+      showLoading('compLoading', true)
+      try {
+        const response = await fetch('/api/competition', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            competitors: competidores,
+            brain: currentBrand
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        const canvas = document.getElementById('compCanvas')
+        const φ = 1.618
+        const sizeScore = Math.round(14 * φ * φ)
+
+        const analysis = data.analysis || data.competitors || []
+        let competitorsHTML = analysis.map(comp => {
+          const score = comp.score || 50
+          const scoreColor = score >= 70 ? '#4ADE80' : score >= 50 ? '#F5A623' : '#FF6B6B'
+          return `
+            <div style="padding: 18px; background: white; border: 1px solid rgba(104, 96, 238, 0.15); border-radius: 10px; margin-bottom: 14px; border-left: 4px solid ${scoreColor};">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">${comp.name}</div>
+                <div style="text-align: right;">
+                  <div style="font-size: 0.75rem; font-weight: 700; color: ${scoreColor}; text-transform: uppercase; letter-spacing: 0.5px;">Score</div>
+                  <div style="font-size: ${sizeScore}px; font-weight: 800; color: ${scoreColor}; line-height: 1;">${score}</div>
+                </div>
+              </div>
+              <div style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.6;">${comp.feedback || 'Análisis completado'}</div>
+            </div>
+          `
+        }).join('')
+
+        let html = createResultsContainer('Análisis de Competencia', SVG_ICONS.search, '') + competitorsHTML
+
+        canvas.innerHTML = html
+        showToast('✅ Análisis completado', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading('compLoading', false)
+      }
+    }
+
+    function searchCreativeAds() {
+      const keyword = document.getElementById('searchCreative').value.trim()
+      if (!keyword) {
+        showToast('❌ Ingresa una palabra clave', 'error')
+        return
+      }
+
+      // Simulación - en producción buscaría en APIs reales (Meta, Pinterest)
+      currentAds = [
+        { source: 'Meta', title: 'Anuncio 1 para ' + keyword, image: '📱', description: 'Anuncio de prueba' },
+        { source: 'Pinterest', title: 'Pin creativo ' + keyword, image: '📌', description: 'Pin de inspiración' }
+      ]
+      currentAdIndex = 0
+      displayAd()
+      showToast('✅ Búsqueda completada', 'success')
+    }
+
+    function displayAd() {
+      if (currentAds.length === 0) return
+
+      const carousel = document.getElementById('adsCarousel')
+      const items = carousel.querySelectorAll('.carousel-item')
+      items.forEach(item => item.classList.remove('active'))
+
+      if (items[currentAdIndex]) {
+        items[currentAdIndex].classList.add('active')
+      }
+
+      document.getElementById('adsIndicator').textContent = `${currentAdIndex + 1} / ${currentAds.length}`
+    }
+
+    function nextAd() {
+      if (currentAdIndex < currentAds.length - 1) {
+        currentAdIndex++
+        displayAd()
+      }
+    }
+
+    function prevAd() {
+      if (currentAdIndex > 0) {
+        currentAdIndex--
+        displayAd()
+      }
+    }
+
+    // ============= REPORTES POR MARCA =============
+    async function generarReporte() {
+      if (!currentBrand) {
+        showToast('❌ Selecciona una marca primero', 'error')
+        return
+      }
+
+      const ig = document.getElementById('repIG').value.trim()
+      if (!ig) {
+        showToast('❌ Ingresa el Instagram de la marca', 'error')
+        return
+      }
+
+      showLoading('repLoading', true)
+      try {
+        // Aquí iría la integración con Instagram API o un servicio que extraiga datos
+        const canvas = document.getElementById('repCanvas')
+        const periodo = document.getElementById('repPeriod').value
+        const periodLabel = {
+          'semana': 'Última semana',
+          'mes': 'Último mes',
+          'trimestre': 'Último trimestre'
+        }[periodo] || periodo
+
+        let reportContent = `
+          <div style="padding: 18px; background: white; border: 1px solid rgba(104, 96, 238, 0.15); border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #6860EE;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+              <div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: #6860EE; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Instagram</div>
+                <div style="font-size: 0.95rem; color: var(--text-primary); font-weight: 600;">${ig}</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: #6860EE; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Período</div>
+                <div style="font-size: 0.95rem; color: var(--text-primary); font-weight: 600;">${periodLabel}</div>
+              </div>
+            </div>
+            <div style="padding-top: 14px; border-top: 1px solid rgba(104, 96, 238, 0.1);">
+              <div style="font-size: 0.75rem; font-weight: 700; color: #6860EE; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Marca</div>
+              <div style="font-size: 0.95rem; color: var(--text-primary);">${currentBrand.nombre}</div>
+            </div>
+          </div>
+
+          <div style="padding: 18px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(104, 96, 238, 0.05)); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <div style="color: #4ADE80;">✓</div>
+              <div style="font-weight: 600; color: #4ADE80;">Reporte en Proceso</div>
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">Integrando datos de Instagram... (Integración con API necesaria)</div>
+          </div>
+        `
+
+        let html = createResultsContainer('Reporte de Marca', SVG_ICONS.chart, '') + reportContent
+
+        canvas.innerHTML = html
+        showToast('✅ Reporte generado (integración necesaria)', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading('repLoading', false)
+      }
+    }
+
+    function descargarReporte() {
+      const report = {
+        marca: currentBrand?.nombre,
+        periodo: document.getElementById('repPeriod').value,
+        instagram: document.getElementById('repIG').value,
+        fecha: new Date().toISOString()
+      }
+
+      const json = JSON.stringify(report, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `reporte-${currentBrand?.nombre || 'marca'}.json`
+      a.click()
+      showToast('✅ Reporte descargado', 'success')
+    }
+
+    // ============= UTILIDADES =============
+    function showLoading(id, show) {
+      const el = document.getElementById(id)
+      if (!el) return
+      if (show) {
+        el.innerHTML = '<span class="loading"></span> '
+      } else {
+        el.innerHTML = ''
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div')
+      toast.className = `toast ${type}`
+      toast.textContent = message
+      document.body.appendChild(toast)
+      setTimeout(() => toast.remove(), 3000)
+    }
+
+    // ============= INICIALIZACIÓN =============
+    window.addEventListener('load', () => {
+      allBrands = JSON.parse(localStorage.getItem('custer_brands') || '[]')
+      currentBrand = JSON.parse(localStorage.getItem('custer_current_brand') || 'null')
+
+      // Restaurar imágenes y análisis visual de la marca actual
+      if (currentBrand && currentBrand.visualAssets) {
+        currentBrandImages = currentBrand.visualAssets.images || []
+        currentVisualAnalysis = currentBrand.visualAssets.analysis || null
+
+        // Actualizar vista previa de imágenes
+        const preview = document.getElementById('visualImagesPreview')
+        if (preview && currentBrandImages.length > 0) {
+          preview.innerHTML = ''
+          currentBrandImages.forEach((img, imageIndex) => {
+            const imgEl = document.createElement('img')
+            imgEl.src = img.data || img
+            imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border 0.3s;'
+            imgEl.title = img.name || `Imagen ${imageIndex + 1}`
+            imgEl.onmouseover = () => (imgEl.style.borderColor = '#6860EE')
+            imgEl.onmouseout = () => (imgEl.style.borderColor = 'transparent')
+            imgEl.onclick = () => {
+              currentBrandImages.splice(imageIndex, 1)
+              preview.removeChild(imgEl)
+              showToast('❌ Imagen removida', 'info')
+            }
+            preview.appendChild(imgEl)
+          })
+        }
+      }
+
+      updateBrandSelector()
+      updateBrainPreview()
+
+      // Tags interactivos
+      document.querySelectorAll('[data-template], [data-plat]').forEach(tag => {
+        tag.addEventListener('click', function(e) {
+          this.classList.toggle('active')
+        })
+      })
+    })
+  </script>
+</body>
+</html>

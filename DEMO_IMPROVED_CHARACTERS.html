@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Improved 8-Bit Characters Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      font-family: 'Arial', sans-serif;
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #6860EE;
+      font-size: 2.5em;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 40px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.1em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .character-display {
+      background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
+      border: 2px solid #6860EE;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .character-display:hover {
+      border-color: #F5A623;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(104, 96, 238, 0.3);
+    }
+
+    .character-canvas {
+      width: 100%;
+      height: 200px;
+      background: #0f0f1e;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      image-rendering: pixelated;
+    }
+
+    .character-name {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #F5A623;
+      margin-bottom: 5px;
+    }
+
+    .character-role {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9em;
+      margin-bottom: 10px;
+    }
+
+    .character-desc {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.85em;
+      line-height: 1.4;
+    }
+
+    .stats-section {
+      background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
+      border: 2px solid #6860EE;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    .stats-section h2 {
+      color: #F5A623;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-box {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(104, 96, 238, 0.3);
+      text-align: center;
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      color: #4ADE80;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .info-section {
+      background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
+      border: 2px solid #6860EE;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    .info-section h3 {
+      color: #F5A623;
+      margin-bottom: 10px;
+    }
+
+    .info-section p {
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 10px;
+    }
+
+    .color-palette {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .color-swatch {
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 0.8em;
+    }
+
+    .highlight {
+      color: #F5A623;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎭 Improved 8-Bit Characters</h1>
+    <p class="subtitle">More realistic & professional Pokémon-style team members</p>
+
+    <div class="grid" id="charactersGrid"></div>
+
+    <div class="stats-section">
+      <h2>📊 Team Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Total Members</div>
+          <div class="stat-value">6</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Avg Level</div>
+          <div class="stat-value">5</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total XP</div>
+          <div class="stat-value">8.4K</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Items</div>
+          <div class="stat-value">42</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Outfits</div>
+          <div class="stat-value">3ea</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Achievements</div>
+          <div class="stat-value">7/12</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>📝 Design Philosophy</h3>
+      <p>
+        These characters are designed in a <span class="highlight">more realistic & professional</span>
+        style compared to typical 8-bit RPG characters. They feature:
+      </p>
+      <ul style="margin-left: 20px; margin-top: 10px;">
+        <li>32x32 pixel base sprites (scalable to any size)</li>
+        <li>Professional color schemes (blues, grays, earth tones)</li>
+        <li>Distinct personalities through clothing colors</li>
+        <li>Canvas 2D rendering (no external assets)</li>
+        <li>Easy customization (change hair, shirt, pants colors)</li>
+        <li>Multiple outfit variations possible</li>
+      </ul>
+
+      <h3 style="margin-top: 20px;">🎨 Character Design</h3>
+      <p>Each character has a unique color scheme reflecting their role:</p>
+      <ul style="margin-left: 20px; margin-top: 10px;">
+        <li><span class="highlight">Juan</span> - Blue shirt (professional, brand-focused)</li>
+        <li><span class="highlight">Sofia</span> - Coral shirt (creative, energetic)</li>
+        <li><span class="highlight">Carlos</span> - Dark gray (analytical, technical)</li>
+        <li><span class="highlight">Lucia</span> - Purple shirt (artistic, expressive)</li>
+        <li><span class="highlight">Marco</span> - Dark green (focused, grounded)</li>
+        <li><span class="highlight">Ana</span> - Navy shirt (strategic, calm)</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Simple 8-bit character rendering
+    const characters = {
+      juan: {
+        name: 'Juan',
+        role: 'Brand Specialist',
+        description: 'Strategic thinker with sharp insights',
+        colors: { skin: '#c9a877', hair: '#3d2817', shirt: '#2c5aa0', pants: '#3d3d3d', shoes: '#1a1a1a' }
+      },
+      sofia: {
+        name: 'Sofia',
+        role: 'Creative Lead',
+        description: 'Artistic with vibrant ideas',
+        colors: { skin: '#d4a574', hair: '#c83e1d', shirt: '#e84c3d', pants: '#2c2c2c', shoes: '#1a1a1a' }
+      },
+      carlos: {
+        name: 'Carlos',
+        role: 'Data Analyst',
+        description: 'Organized and tech-savvy',
+        colors: { skin: '#c9a877', hair: '#4a4a4a', shirt: '#2c2c2c', pants: '#1a1a1a', shoes: '#3d3d3d' }
+      },
+      lucia: {
+        name: 'Lucia',
+        role: 'Copywriter',
+        description: 'Creative wordsmith and storyteller',
+        colors: { skin: '#d4a574', hair: '#ffcc00', shirt: '#9b4d96', pants: '#2c2c2c', shoes: '#1a1a1a' }
+      },
+      marco: {
+        name: 'Marco',
+        role: 'Researcher',
+        description: 'Detail-oriented investigator',
+        colors: { skin: '#c9a877', hair: '#4a4a4a', shirt: '#1a5f2d', pants: '#3d3d3d', shoes: '#1a1a1a' }
+      },
+      ana: {
+        name: 'Ana',
+        role: 'Data Scientist',
+        description: 'Numbers expert with cool demeanor',
+        colors: { skin: '#d4a574', hair: '#2c2c2c', shirt: '#1a3a52', pants: '#2c2c2c', shoes: '#1a1a1a' }
+      }
+    };
+
+    function drawCharacter(ctx, char, scale = 2) {
+      const c = char.colors;
+
+      // Head
+      ctx.fillStyle = c.skin;
+      ctx.fillRect(8 * scale, 2 * scale, 16 * scale, 12 * scale);
+
+      // Hair
+      ctx.fillStyle = c.hair;
+      ctx.fillRect(6 * scale, 1 * scale, 20 * scale, 6 * scale);
+
+      // Eyes
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(10 * scale, 6 * scale, 2 * scale, 2 * scale);
+      ctx.fillRect(18 * scale, 6 * scale, 2 * scale, 2 * scale);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(10 * scale, 6 * scale, 1 * scale, 1 * scale);
+      ctx.fillRect(18 * scale, 6 * scale, 1 * scale, 1 * scale);
+
+      // Shirt
+      ctx.fillStyle = c.shirt;
+      ctx.fillRect(6 * scale, 14 * scale, 20 * scale, 12 * scale);
+
+      // Arms
+      ctx.fillStyle = c.skin;
+      ctx.fillRect(4 * scale, 15 * scale, 2 * scale, 10 * scale);
+      ctx.fillRect(26 * scale, 15 * scale, 2 * scale, 10 * scale);
+
+      // Pants
+      ctx.fillStyle = c.pants;
+      ctx.fillRect(8 * scale, 26 * scale, 6 * scale, 6 * scale);
+      ctx.fillRect(18 * scale, 26 * scale, 6 * scale, 6 * scale);
+
+      // Shoes
+      ctx.fillStyle = c.shoes;
+      ctx.fillRect(7 * scale, 31 * scale, 8 * scale, 1 * scale);
+      ctx.fillRect(17 * scale, 31 * scale, 8 * scale, 1 * scale);
+    }
+
+    // Render all characters
+    const grid = document.getElementById('charactersGrid');
+    Object.entries(characters).forEach(([key, char]) => {
+      const div = document.createElement('div');
+      div.className = 'character-display';
+
+      const canvas = document.createElement('canvas');
+      canvas.className = 'character-canvas';
+      canvas.width = 200;
+      canvas.height = 200;
+
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = '#0f0f1e';
+      ctx.fillRect(0, 0, 200, 200);
+      ctx.save();
+      ctx.translate(50, 30);
+      drawCharacter(ctx, char, 2);
+      ctx.restore();
+
+      div.appendChild(canvas);
+      div.innerHTML += `
+        <div class="character-name">${char.name}</div>
+        <div class="character-role">${char.role}</div>
+        <div class="character-desc">${char.description}</div>
+      `;
+
+      grid.appendChild(div);
+    });
+  </script>
+</body>
+</html>
