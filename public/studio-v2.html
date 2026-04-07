@@ -1863,12 +1863,122 @@
             </div>
           </div>
 
+          <!-- SLIDE 11: HISTORIAL, MÉTRICAS Y VIDEO -->
+          <div class="brain-slide">
+            <h3>1️⃣1️⃣ Historial y Métricas</h3>
+            <p class="slide-description">Documenta campañas pasadas, métricas y optimizaciones para reels.</p>
+
+            <!-- SECCIÓN 1: MÉTRICAS DE REDES SOCIALES -->
+            <div style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+              <h4 style="font-size: 0.9rem; color: var(--text-primary); margin: 0 0 12px 0;">📊 Métricas de Redes Sociales</h4>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label>Seguidores Instagram</label>
+                  <input type="number" id="bbInstagramSeguidores" placeholder="ej: 5000">
+                </div>
+                <div class="form-group">
+                  <label>Engagement Rate (%)</label>
+                  <input type="number" id="bbInstagramEngagement" placeholder="ej: 3.5" step="0.1">
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>Mejor horario de publicación</label>
+                  <input type="text" id="bbMejorHorario" placeholder="ej: 19:00-21:00">
+                </div>
+                <div class="form-group">
+                  <label>Seguidores LinkedIn</label>
+                  <input type="number" id="bbLinkedinSeguidores" placeholder="ej: 2000">
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 2: CAMPAÑAS EXITOSAS -->
+            <div style="background: rgba(74, 222, 128, 0.05); padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #4ADE80;">
+              <h4 style="font-size: 0.9rem; color: #4ADE80; margin: 0 0 12px 0;">✅ Campaña más exitosa</h4>
+
+              <div class="form-group">
+                <label>Nombre de la campaña</label>
+                <input type="text" id="bbCampañaExitosaNombre" placeholder="ej: Awareness - Lanzamiento nuevo servicio">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>Canal/Formato</label>
+                  <input type="text" id="bbCampañaExitosaCanal" placeholder="ej: Instagram Reels / Facebook Ads">
+                </div>
+                <div class="form-group">
+                  <label>Resultado (CTR, CPC, etc)</label>
+                  <input type="text" id="bbCampañaExitosaResultado" placeholder="ej: 45% CTR, 2.5% CPC">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>¿Qué funcionó?</label>
+                <textarea id="bbCampañaExitosaQue" placeholder="ej: Testimonios de clientes, video corto, hook emocional"></textarea>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 3: MÉTRICAS GENERALES -->
+            <div style="background: rgba(245, 166, 35, 0.05); padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #F5A623;">
+              <h4 style="font-size: 0.9rem; color: #F5A623; margin: 0 0 12px 0;">📈 Métricas de negocio</h4>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>ROI promedio</label>
+                  <input type="text" id="bbROIPromedio" placeholder="ej: 3.5:1">
+                </div>
+                <div class="form-group">
+                  <label>CAC (Costo por cliente)</label>
+                  <input type="text" id="bbCAC" placeholder="ej: $45">
+                </div>
+                <div class="form-group">
+                  <label>LTV (Valor de vida)</label>
+                  <input type="text" id="bbLTV" placeholder="ej: $800">
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 4: VIDEO & REELS OPTIMIZATION -->
+            <div style="background: rgba(104, 96, 238, 0.05); padding: 16px; border-radius: 8px; border-left: 4px solid #6860EE;">
+              <h4 style="font-size: 0.9rem; color: #6860EE; margin: 0 0 12px 0;">🎬 Video & Reels Optimization</h4>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label>Duración óptima (segundos)</label>
+                  <input type="text" id="bbDuracionOptima" placeholder="ej: 15-30">
+                </div>
+                <div class="form-group">
+                  <label>Hook style (primeros 2 seg)</label>
+                  <input type="text" id="bbHookStyle" placeholder="ej: Pregunta / Shock / Intriga">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Audio/Música favorita (trending)</label>
+                <textarea id="bbAudioFavorito" placeholder="Lista de audios trending que funcionan bien (uno por línea)"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Pacing y transiciones preferidas</label>
+                <input type="text" id="bbPacingTransiciones" placeholder="ej: Rápido, Corte + Zoom, Fade">
+              </div>
+
+              <div class="form-group">
+                <label>Estilo de captions</label>
+                <input type="text" id="bbCaptionsStyle" placeholder="ej: Emojis + texto blanco grande 40px">
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Navigation and Save Button -->
         <div class="brain-nav">
           <button class="brain-nav-btn" id="brainPrevBtn" onclick="navigateBrainSlider(-1)">← Anterior</button>
-          <div class="brain-slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">10</span></div>
+          <div class="brain-slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">11</span></div>
           <button class="brain-nav-btn" id="brainNextBtn" onclick="navigateBrainSlider(1)">Siguiente →</button>
         </div>
 
@@ -2967,6 +3077,35 @@
         visualAssets: {
           images: window.currentBrandImages || [],
           analysis: window.currentVisualAnalysis || null
+        },
+
+        // HISTORIAL Y MÉTRICAS (NUEVO - SLIDE 11)
+        metricas_redes: {
+          instagram_seguidores: parseInt(document.getElementById('bbInstagramSeguidores')?.value || 0),
+          instagram_engagement: parseFloat(document.getElementById('bbInstagramEngagement')?.value || 0),
+          mejor_horario: document.getElementById('bbMejorHorario')?.value || null,
+          linkedin_seguidores: parseInt(document.getElementById('bbLinkedinSeguidores')?.value || 0)
+        },
+
+        campana_exitosa: {
+          nombre: document.getElementById('bbCampañaExitosaNombre')?.value || null,
+          canal: document.getElementById('bbCampañaExitosaCanal')?.value || null,
+          resultado: document.getElementById('bbCampañaExitosaResultado')?.value || null,
+          que_funciono: document.getElementById('bbCampañaExitosaQue')?.value || null
+        },
+
+        metricas_negocio: {
+          roi_promedio: document.getElementById('bbROIPromedio')?.value || null,
+          cac: document.getElementById('bbCAC')?.value || null,
+          ltv: document.getElementById('bbLTV')?.value || null
+        },
+
+        video_reels: {
+          duracion_optima: document.getElementById('bbDuracionOptima')?.value || null,
+          hook_style: document.getElementById('bbHookStyle')?.value || null,
+          audio_favorito: document.getElementById('bbAudioFavorito')?.value.split('\n').map(a => a.trim()).filter(a => a) || [],
+          pacing_transiciones: document.getElementById('bbPacingTransiciones')?.value || null,
+          captions_style: document.getElementById('bbCaptionsStyle')?.value || null
         },
 
         // METADATA
