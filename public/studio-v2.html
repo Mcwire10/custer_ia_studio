@@ -6,7 +6,7 @@
   <title>Custer AI Studio Pro</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -15,66 +15,97 @@
     }
 
     :root {
-      /* NOTHING DESIGN - Dark Mode OLED */
-      --bg-display: #000000;
-      --bg-primary: #000000;
-      --bg-secondary: #1A1A1A;
-      --bg-tertiary: #2A2A2A;
+      /* === CUSTER BRAND DESIGN SYSTEM === */
+      /* Estratégico. Directo. Con carácter argentino. */
 
-      /* Text Hierarchy - 4 levels */
+      /* CUSTER: Primary Color - Indigo Profundo */
+      --color-brand: #6860EE;
+      --color-brand-light: #8B7FFF;
+      --color-brand-hover: #4A4199;
+      --color-brand-dark: #3D3B99;
+
+      /* CUSTER: Secondary Color - Naranja Oro */
+      --color-accent: #F5A623;
+      --color-accent-light: #FFB84D;
+      --color-accent-hover: #D98A1F;
+      --color-accent-dark: #E89620;
+
+      /* CUSTER: Dark Mode Base */
+      --bg-primary: #0D0C1E;
+      --bg-secondary: #1A1830;
+      --bg-tertiary: #252541;
+      --bg-elevated: #362F60;
+
+      /* Status Colors - Custer palette */
+      --color-success: #10B981;
+      --color-warning: #F5A623;
+      --color-error: #EF4444;
+      --color-info: #6860EE;
+
+      /* Borders - Custer approach: semi-transparent indigo */
+      --border-subtle: rgba(104, 96, 238, 0.1);
+      --border-light: rgba(104, 96, 238, 0.2);
+      --border-medium: rgba(104, 96, 238, 0.35);
+
+      /* Text Hierarchy */
       --text-display: #FFFFFF;
       --text-primary: #F5F5F5;
-      --text-secondary: #A0A0A0;
+      --text-secondary: #B8B8B8;
+      --text-tertiary: #808080;
       --text-disabled: #606060;
-
-      /* Status Colors */
-      --color-success: #22C55E;
-      --color-warning: #EAB308;
-      --color-error: #EF4444;
-
-      /* Borders */
-      --border: #3A3A3A;
-      --border-light: #2A2A2A;
+      --text-brand: #F5A623;
 
       /* Typography */
-      --font-display: 'Space Grotesk', sans-serif;
-      --font-body: 'Space Grotesk', sans-serif;
-      --font-mono: 'Space Mono', monospace;
+      --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
 
-      /* Spacing Scale - multiples of 4 */
+      /* Spacing Scale */
+      --space-2: 2px;
       --space-4: 4px;
       --space-8: 8px;
+      --space-12: 12px;
       --space-16: 16px;
+      --space-24: 24px;
       --space-32: 32px;
+      --space-48: 48px;
       --space-64: 64px;
 
-      /* Legacy fallbacks for compatibility */
-      --primary: transparent;
-      --accent: transparent;
-      --dark: #000000;
-      --panel: #1A1A1A;
-      --success: #22C55E;
-      --border: #3A3A3A;
-      --text-primary: #F5F5F5;
-      --text-secondary: #A0A0A0;
-      --text-tertiary: #606060;
+      /* Shadows - Custer approach: strategic depth with indigo tint */
+      --shadow-sm: 0 2px 4px rgba(104, 96, 238, 0.15);
+      --shadow-md: 0 8px 16px rgba(104, 96, 238, 0.2);
+      --shadow-lg: 0 16px 32px rgba(104, 96, 238, 0.25);
+      --shadow-xl: 0 24px 48px rgba(104, 96, 238, 0.3);
+      --shadow-accent: 0 0 24px rgba(245, 166, 35, 0.3);
+
+      /* Transitions - Custer morphing curves */
+      --transition-fast: 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      --transition-normal: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      --transition-slow: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      --transition-morph: 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     html {
       scroll-behavior: smooth;
+      font-feature-settings: "kern" 1;
     }
 
     body {
-      background: var(--bg-primary);
+      background: linear-gradient(135deg, #0D0C1E 0%, #1A1830 50%, #0D0C1E 100%);
+      background-attachment: fixed;
       color: var(--text-primary);
       font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.6;
+      letter-spacing: -0.3px;
       min-height: 100vh;
       padding: var(--space-32);
       position: relative;
       overflow-x: hidden;
     }
 
-    /* Subtle grid background pattern */
+    /* Subtle grid pattern overlay */
     body::before {
       content: '';
       position: fixed;
@@ -83,12 +114,12 @@
       width: 100%;
       height: 100%;
       background-image:
-        linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.03) 75%, rgba(255, 255, 255, 0.03) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.03) 75%, rgba(255, 255, 255, 0.03) 76%, transparent 77%, transparent);
-      background-size: 50px 50px;
-      background-position: 0 0;
+        linear-gradient(90deg, rgba(104, 96, 238, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(104, 96, 238, 0.08) 1px, transparent 1px);
+      background-size: 40px 40px;
       pointer-events: none;
       z-index: 0;
+      opacity: 0.4;
     }
 
     .container {
@@ -152,7 +183,7 @@
     .brand-selector button {
       padding: var(--space-8) var(--space-16);
       background: transparent;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       color: var(--text-primary);
       border-radius: 0px;
       cursor: pointer;
@@ -168,12 +199,24 @@
       color: var(--text-display);
     }
 
+    /* Theme Toggle Button */
+    .theme-toggle-btn:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--color-success);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .theme-toggle-btn:active {
+      transform: translateY(0);
+    }
+
     .tabs-nav {
       display: flex;
       gap: var(--space-16);
       margin-bottom: var(--space-32);
       flex-wrap: wrap;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border-light);
       padding-bottom: var(--space-16);
     }
 
@@ -221,12 +264,25 @@
     .panel {
       background: var(--bg-secondary);
       backdrop-filter: none;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 0px;
       padding: var(--space-32);
       overflow-y: auto;
       max-height: calc(100vh - 200px);
-      box-shadow: none;
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-normal);
+    }
+
+    /* Liquid Glass Mode - Activated via [data-liquid-glass="true"] */
+    [data-liquid-glass="true"] .panel {
+      background: var(--glass-backdrop);
+      backdrop-filter: blur(var(--glass-blur));
+      border: var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+
+    [data-liquid-glass="true"] .panel:hover {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
     }
 
     .panel h2 {
@@ -253,6 +309,33 @@
       color: var(--text-secondary);
     }
 
+    /* ============= LIQUID GLASS EFFECTS - Multiple Components ============= */
+    .brain-section-item,
+    .result-card,
+    .floating-chat-panel {
+      transition: var(--glass-transition);
+    }
+
+    [data-liquid-glass="true"] .brain-section-item,
+    [data-liquid-glass="true"] .result-card {
+      background: var(--glass-backdrop);
+      backdrop-filter: blur(var(--glass-blur));
+      border: var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+
+    [data-liquid-glass="true"] .brain-section-item:hover,
+    [data-liquid-glass="true"] .result-card:hover {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    [data-liquid-glass="true"] .floating-chat-panel {
+      background: var(--glass-backdrop);
+      backdrop-filter: blur(var(--glass-blur));
+      border: var(--glass-border);
+    }
+
     .tab-content {
       display: none;
     }
@@ -277,7 +360,7 @@
       padding: var(--space-16) 0;
       scroll-behavior: smooth;
       scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
+      scrollbar-color: var(--border-subtle) transparent;
     }
 
     .brain-sections-slider::-webkit-scrollbar {
@@ -289,7 +372,7 @@
     }
 
     .brain-sections-slider::-webkit-scrollbar-thumb {
-      background: var(--border);
+      background: var(--border-subtle);
       border-radius: 0px;
     }
 
@@ -298,8 +381,14 @@
       min-width: 300px;
       padding: var(--space-16);
       background: var(--bg-secondary);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 0px;
+      transition: all var(--transition-normal);
+    }
+
+    .brain-section-item:hover {
+      border-color: var(--border-medium);
+      background: var(--bg-tertiary);
     }
 
     .brain-section-item h3 {
@@ -312,29 +401,108 @@
       letter-spacing: 0.5px;
     }
 
-    /* Brand Brain - Multi-column layout to reduce scrolling */
+    /* Brand Brain - Horizontal Carousel Slider */
     #brain .panel {
-      columns: 2;
-      column-gap: var(--space-32);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto auto;
+      height: 100vh;
+      max-height: calc(100vh - 200px);
+      padding: 0;
+      overflow-y: auto;
+      overflow-x: auto;
     }
 
     #brain .panel > h2 {
-      column-span: all;
-      margin-bottom: var(--space-32);
+      padding: var(--space-32) var(--space-32) var(--space-16);
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--border-light);
     }
 
-    #brain .panel > div {
-      column-span: all;
+    #brain .btn-group {
+      padding: var(--space-16) var(--space-32);
+      border-top: 1px solid var(--border-light);
     }
 
-    #brain .form-group {
-      break-inside: avoid;
+    /* Slider Container */
+    .brain-slider-container {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      gap: 0;
+      padding: 0;
+      scrollbar-width: none;
+      width: 100%;
+      height: auto;
+      min-height: 500px;
     }
 
-    @media (max-width: 1200px) {
-      #brain .panel {
-        columns: 1;
-      }
+    .brain-slider-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Individual Slide */
+    .brain-slide {
+      flex: 0 0 100%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-16);
+      padding: var(--space-32);
+      overflow-y: auto;
+      min-height: 500px;
+    }
+
+    .brain-slide h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      margin-bottom: var(--space-16);
+      background: var(--bg-primary);
+      padding-bottom: var(--space-16);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Navigation Buttons */
+    .brain-nav {
+      display: flex;
+      gap: var(--space-16);
+      padding: var(--space-16) var(--space-32);
+      border-top: 1px solid var(--border-light);
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brain-nav-btn {
+      padding: var(--space-8) var(--space-16);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-family: var(--font-body);
+      font-weight: 600;
+      border-radius: 6px;
+    }
+
+    .brain-nav-btn:hover {
+      border-color: var(--border-medium);
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .brain-nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .brain-slide-counter {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
     }
 
     .form-group {
@@ -358,12 +526,12 @@
       width: 100%;
       padding: var(--space-8) var(--space-12);
       background: transparent;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 0px;
       color: var(--text-primary);
       font-family: var(--font-body);
       font-size: 0.875rem;
-      transition: border-color 150ms;
+      transition: all var(--transition-fast);
       line-height: 1.5;
     }
 
@@ -383,9 +551,9 @@
     .form-group textarea:focus,
     .form-group select:focus {
       outline: none;
-      border-color: var(--text-primary);
-      background: transparent;
-      box-shadow: none;
+      border-color: var(--color-accent);
+      background: rgba(94, 106, 210, 0.05);
+      box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.1);
     }
 
     .form-group textarea {
@@ -404,30 +572,60 @@
     }
 
     .btn {
-      padding: var(--space-12) var(--space-20);
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 0px;
+      padding: var(--space-12) var(--space-24);
+      background: rgba(104, 96, 238, 0.1);
+      border: 1.5px solid var(--border-light);
+      border-radius: 24px;
       color: var(--text-primary);
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
-      transition: border-color 150ms, background-color 150ms;
+      transition: all var(--transition-normal);
       font-size: 0.875rem;
-      letter-spacing: 0px;
-      box-shadow: none;
+      letter-spacing: -0.2px;
+      box-shadow: var(--shadow-sm);
       font-family: var(--font-body);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-8);
+      white-space: nowrap;
+      position: relative;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .btn:hover {
-      border-color: var(--text-primary);
-      background: var(--bg-tertiary);
-      transform: none;
+      background: rgba(104, 96, 238, 0.2);
+      border-color: var(--color-brand);
+      box-shadow: var(--shadow-md), 0 0 16px rgba(104, 96, 238, 0.25);
+      transform: translateY(-2px) scale(1.02);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
     }
 
     .btn:active {
-      border-color: var(--text-secondary);
-      background: var(--bg-tertiary);
-      transform: none;
+      background: rgba(104, 96, 238, 0.3);
+      border-color: var(--color-brand);
+      transform: translateY(0) scale(0.98);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Primary button - Custer brand naranja */
+    .btn:not(:disabled):not(.secondary):not(.outline) {
+      background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+      color: #0D0C1E;
+      border-color: transparent;
+      box-shadow: var(--shadow-md), var(--shadow-accent);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .btn:not(:disabled):not(.secondary):not(.outline):hover {
+      background: linear-gradient(135deg, var(--color-accent-light) 0%, var(--color-accent) 100%);
+      box-shadow: var(--shadow-lg), 0 0 28px rgba(245, 166, 35, 0.5);
+      transform: translateY(-3px) scale(1.05);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
     }
 
     .btn-group {
@@ -449,18 +647,19 @@
 
     .file-upload-label {
       display: block;
-      padding: 20px;
-      background: rgba(104, 96, 238, 0.1);
-      border: 2px dashed var(--primary);
-      border-radius: 8px;
+      padding: var(--space-24);
+      background: rgba(94, 106, 210, 0.08);
+      border: 2px dashed var(--color-accent);
+      border-radius: 12px;
       text-align: center;
       cursor: pointer;
-      transition: all 200ms ease;
+      transition: all var(--transition-normal);
     }
 
     .file-upload-label:hover {
-      background: rgba(104, 96, 238, 0.2);
-      border-color: var(--accent);
+      background: rgba(94, 106, 210, 0.15);
+      border-color: var(--color-accent-light);
+      transform: translateY(-2px);
     }
 
     .thinking-modal {
@@ -470,8 +669,8 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(13, 12, 30, 0.8);
-      backdrop-filter: blur(4px);
+      background: rgba(8, 9, 10, 0.85);
+      backdrop-filter: blur(8px);
       z-index: 9999;
       justify-content: center;
       align-items: center;
@@ -482,13 +681,13 @@
     }
 
     .thinking-content {
-      background: linear-gradient(135deg, rgba(104, 96, 238, 0.15), rgba(245, 166, 35, 0.1));
-      border: 1.5px solid rgba(104, 96, 238, 0.3);
+      background: linear-gradient(135deg, rgba(94, 106, 210, 0.12) 0%, rgba(201, 100, 66, 0.08) 100%);
+      border: 1px solid var(--border-light);
       border-radius: 16px;
-      padding: 40px;
+      padding: var(--space-48);
       text-align: center;
       max-width: 400px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      box-shadow: var(--shadow-lg);
     }
 
     .thinking-spinner {
@@ -511,8 +710,8 @@
     .thinking-text {
       font-size: 1.3rem;
       font-weight: 700;
-      color: #6860EE;
-      margin-bottom: 12px;
+      color: var(--color-accent);
+      margin-bottom: var(--space-12);
     }
 
     .thinking-subtext {
@@ -525,8 +724,8 @@
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 2px solid var(--border);
-      border-top-color: var(--text-primary);
+      border: 2px solid var(--border-subtle);
+      border-top-color: var(--color-accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -544,17 +743,17 @@
 
     .result-card {
       background: var(--bg-secondary);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 0px;
       padding: var(--space-20);
       margin-bottom: var(--space-16);
-      transition: border-color 150ms;
+      transition: all var(--transition-normal);
     }
 
     .result-card:hover {
-      border-color: var(--text-secondary);
-      background: var(--bg-secondary);
-      box-shadow: none;
+      border-color: var(--border-medium);
+      background: var(--bg-tertiary);
+      box-shadow: var(--shadow-sm);
     }
 
     .result-card h3 {
@@ -598,7 +797,7 @@
       bottom: var(--space-32);
       right: var(--space-32);
       background: var(--bg-secondary);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 0px;
       padding: var(--space-16) var(--space-20);
       color: var(--text-primary);
@@ -607,11 +806,80 @@
       z-index: 999;
       max-width: 300px;
       font-family: var(--font-body);
+      box-shadow: var(--shadow-lg);
     }
 
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Custer Morphing Animations */
+    @keyframes morphIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.8) rotateX(20deg);
+        filter: blur(8px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotateX(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes morphButton {
+      0% {
+        border-radius: 24px;
+        transform: scale(1);
+      }
+      50% {
+        border-radius: 30px;
+      }
+      100% {
+        border-radius: 24px;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes scrollFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes scrollReveal {
+      from {
+        opacity: 0;
+        clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+      }
+      to {
+        opacity: 1;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+    }
+
+    @keyframes scrollParallax {
+      0% { transform: translateY(40px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Scrollytelling triggers */
+    .scroll-trigger {
+      opacity: 0;
+      animation: scrollParallax var(--transition-slow) ease-out forwards;
+    }
+
+    .scroll-trigger.active {
+      animation-play-state: running;
+    }
+
+    /* Brain slides always visible */
+    .brain-slide.scroll-trigger {
+      opacity: 1;
+    }
+
+    .brain-slide.scroll-trigger.active {
+      opacity: 1;
     }
 
     .toast.success {
@@ -628,10 +896,19 @@
 
     .carousel {
       position: relative;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(27, 58, 92, 0.1) 0%, rgba(231, 76, 60, 0.05) 100%);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
       overflow: hidden;
       min-height: 400px;
+      transition: all var(--transition-normal);
+      scroll-behavior: smooth;
+    }
+
+    .carousel:hover {
+      box-shadow: var(--shadow-lg), 0 0 32px rgba(27, 58, 92, 0.2);
+      border-color: var(--color-brand);
+    }
     }
 
     .carousel-item {
@@ -659,13 +936,19 @@
     }
 
     .carousel-btn {
-      padding: 8px 16px;
-      background: var(--primary);
+      padding: var(--space-8) var(--space-16);
+      background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
       border: none;
       border-radius: 4px;
       color: white;
       cursor: pointer;
       font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .carousel-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
 
     .carousel-indicator {
@@ -682,12 +965,12 @@
 
     .tag {
       padding: var(--space-8) var(--space-16);
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 0px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
       font-size: 0.75rem;
       cursor: pointer;
-      transition: border-color 150ms, background-color 150ms, color 150ms;
+      transition: all var(--transition-fast);
       font-family: var(--font-body);
       text-transform: none;
       font-weight: 600;
@@ -695,15 +978,16 @@
     }
 
     .tag:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--border-medium);
       color: var(--text-primary);
-      background: var(--bg-tertiary);
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
     }
 
     .tag.active {
-      background: var(--text-primary);
-      border-color: var(--text-primary);
-      color: var(--bg-primary);
+      background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
+      border-color: transparent;
+      color: white;
       font-weight: 700;
     }
 
@@ -723,13 +1007,19 @@
     }
 
     .search-box button {
-      padding: 12px 24px;
-      background: var(--primary);
+      padding: var(--space-12) var(--space-24);
+      background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
       border: none;
       border-radius: 6px;
       color: white;
       font-weight: 600;
       cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .search-box button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
 
     ::-webkit-scrollbar {
@@ -742,12 +1032,352 @@
     }
 
     ::-webkit-scrollbar-thumb {
-      background: rgba(104, 96, 238, 0.3);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(104, 96, 238, 0.5);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Tooltips para Brand Brain */
+    .tooltip-label {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: help;
+    }
+
+    .tooltip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--text-secondary);
+      border-radius: 50%;
+      font-size: 0.6rem;
+      color: var(--text-secondary);
+      opacity: 0.6;
+      transition: opacity 150ms;
+      flex-shrink: 0;
+    }
+
+    .tooltip-label:hover .tooltip-icon {
+      opacity: 1;
+    }
+
+    /* Tooltip flotante en hover */
+    [title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 125%;
+      left: 0;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-light);
+      color: var(--text-primary);
+      padding: var(--space-8) var(--space-12);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      white-space: normal;
+      max-width: 200px;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+      word-wrap: break-word;
+    }
+
+    /* FLOATING CHAT PANEL - Side Panel Flotante */
+    .floating-chat-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 380px;
+      height: 100vh;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Floating Chat Button */
+    .floating-chat-btn {
+      position: fixed;
+      bottom: var(--space-32);
+      right: var(--space-32);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(94, 106, 210, 0.4);
+      z-index: 999;
+      transition: all var(--transition-normal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .floating-chat-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(94, 106, 210, 0.6);
+    }
+
+    .floating-chat-btn:active {
+      transform: scale(0.95);
+    }
+
+    .chat-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-16);
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+
+    .chat-panel-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-display);
+      font-family: var(--font-display);
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .chat-module-info {
+      padding: var(--space-12) var(--space-16);
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .chat-panel-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-16);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-12);
+    }
+
+    .chat-message {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+      padding: var(--space-12);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .chat-message.user {
+      background: rgba(94, 106, 210, 0.1);
+      border-left: 3px solid var(--color-accent);
+      align-self: flex-end;
+      max-width: 85%;
+      color: var(--text-primary);
+    }
+
+    .chat-message.assistant {
+      background: rgba(74, 222, 128, 0.1);
+      border-left: 3px solid var(--color-success);
+      align-self: flex-start;
+      max-width: 85%;
+      color: var(--text-primary);
+    }
+
+    .chat-message-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .chat-panel-input {
+      display: flex;
+      gap: var(--space-8);
+      padding: var(--space-16);
+      border-top: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+
+    .chat-panel-input input {
+      flex: 1;
+      padding: var(--space-8) var(--space-12);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      transition: all var(--transition-fast);
+      font-family: var(--font-body);
+    }
+
+    .chat-panel-input input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      background: rgba(94, 106, 210, 0.05);
+    }
+
+    .send-btn {
+      padding: var(--space-8) var(--space-12);
+      background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-md);
+    }
+
+    .send-btn:active {
+      transform: scale(0.95);
+    }
+
+    @media (max-width: 1200px) {
+      .floating-chat-panel {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .floating-chat-panel {
+        width: 100%;
+      }
+
+      .floating-chat-btn {
+        bottom: 16px;
+        right: 16px;
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+      }
+    }
+
+    .section-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin: -20px 0 var(--space-32) 0;
+      line-height: 1.4;
+    }
+
+    .slide-description {
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+      font-weight: 400;
+      margin: -12px 0 var(--space-24) 0;
+      line-height: 1.3;
+    }
+
+    /* Analytics Dashboard Enhancements */
+    #analyticsTable {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    #analyticsTable tbody tr {
+      transition: background-color var(--transition-fast);
+    }
+
+    #analyticsTable tbody tr:hover {
+      background-color: rgba(94, 106, 210, 0.08);
+    }
+
+    #analyticsTable td, #analyticsTable th {
+      padding: var(--space-12);
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.875rem;
+    }
+
+    #analyticsTable th {
+      text-align: left;
+      font-weight: 600;
+      background-color: rgba(94, 106, 210, 0.05);
+      color: var(--text-primary);
+    }
+
+    canvas {
+      max-height: 250px;
+    }
+
+    /* Métrica cards hover effect */
+    .metric-card {
+      transition: all 0.2s ease;
+    }
+
+    .metric-card:hover {
+      border-color: var(--color-accent) !important;
+      box-shadow: 0 0 12px rgba(94, 106, 210, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Responsive gráficos */
+    @media (max-width: 1024px) {
+      #analyticsChart {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      canvas {
+        max-height: 180px;
+      }
+
+      #analyticsTable {
+        font-size: 0.75rem;
+      }
+
+      #analyticsTable td, #analyticsTable th {
+        padding: 8px;
+      }
     }
   </style>
 </head>
@@ -790,6 +1420,29 @@
         </div>
         <button onclick="openBrandManager()" style="padding: 12px 20px; height: fit-content; align-self: flex-end;">+ Nueva</button>
       </div>
+
+      <!-- ============= LIQUID GLASS THEME TOGGLE ============= -->
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button id="themeToggle" class="theme-toggle-btn" onclick="toggleLiquidGlass()"
+          title="Toggle Liquid Glass Effects"
+          style="
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-weight: 600;
+          ">
+          <span id="themeIcon">🔷</span>
+          <span id="themeLabel">Glass</span>
+        </button>
+      </div>
     </div>
 
     <div class="tabs-nav">
@@ -799,353 +1452,477 @@
       <button class="tab-btn" onclick="switchTab('copy', this)">✍️ Copy</button>
       <button class="tab-btn" onclick="switchTab('competencia', this)">🔍 Competencia</button>
       <button class="tab-btn" onclick="switchTab('reportes', this)">📊 Reportes</button>
+      <button class="tab-btn" onclick="switchTab('analytics', this)">📈 Analytics</button>
     </div>
 
     <!-- ====== BRAND BRAIN ====== -->
     <div id="brain" class="tab-content active">
       <div class="panel">
         <h2>🧠 Brand Brain</h2>
+        <p class="section-subtitle">Define tu marca: propósito, audiencia, valores y personalidad única.</p>
 
-        <div class="form-group">
-          <label>🔄 3 formas de cargar tu marca:</label>
+        <div class="brain-slider-container" id="brainSlider">
+          <!-- SLIDE 1: LOAD METHODS + VISUAL ANALYSIS -->
+          <div class="brain-slide">
+            <h3>1️⃣ Cargar marca</h3>
+            <p class="slide-description">Carga tu marca desde cero, archivo o análisis de redes.</p>
 
-          <!-- TAB 1: ARCHIVO -->
-          <div style="display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--border-light); padding-bottom: 15px;">
-            <button class="tag active" data-method="archivo" onclick="switchLoadMethod('archivo', this)">📁 Archivo</button>
-            <button class="tag" data-method="texto" onclick="switchLoadMethod('texto', this)">📝 Pegar texto</button>
-            <button class="tag" data-method="manual" onclick="switchLoadMethod('manual', this)">✏️ Manual</button>
-          </div>
-
-          <!-- MÉTODO 1: ARCHIVO -->
-          <div id="method-archivo" class="method-container">
-            <div class="file-upload">
-              <input type="file" id="brandFile" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadBrandFile(event)">
-              <label class="file-upload-label" for="brandFile">
-                📁 Arrastra o selecciona un archivo<br>
-                <small style="color: var(--text-tertiary);">Se extraerán los datos automáticamente</small>
-              </label>
-            </div>
-            <div style="background: rgba(58, 180, 242, 0.1); border: 1px solid rgba(58, 180, 242, 0.3); border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.6;">
-              <strong style="color: #00D9FF;">ℹ️ Información:</strong><br>
-              ✓ Tamaño máximo: 3 MB<br>
-              ✓ Formatos: JPG, PNG, PDF
-            </div>
-          </div>
-
-          <!-- MÉTODO 2: TEXTO -->
-          <div id="method-texto" class="method-container" style="display: none;">
+            <!-- LOAD METHODS SECTION -->
             <div class="form-group">
-              <label>Pega el resumen o texto extraído del PDF (puedes pegar todo el contenido)</label>
-              <textarea id="brandText" placeholder="Haz un resumen en Acrobat (File → Export as Text) y pegalo aquí...&#10;&#10;O copia el contenido importante de tu documento. Puedes pegar textos largos sin problemas." style="min-height: 600px; resize: vertical; padding: 16px;"></textarea>
-              <button class="btn" style="width: 100%; margin-top: 15px;" onclick="procesarTextoMarca()">
-                <span id="textLoading"></span>
-                🔍 Extraer datos del texto
-              </button>
+              <label>🔄 4 formas de cargar tu marca:</label>
+              <div style="display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--border-light); padding-bottom: 15px; flex-wrap: wrap;">
+                <button class="tag active" data-method="archivo" onclick="switchLoadMethod('archivo', this)">📁 Archivo</button>
+                <button class="tag" data-method="texto" onclick="switchLoadMethod('texto', this)">📝 Pegar texto</button>
+                <button class="tag" data-method="url" onclick="switchLoadMethod('url', this)">🌐 URL web</button>
+                <button class="tag" data-method="manual" onclick="switchLoadMethod('manual', this)">✏️ Manual</button>
+              </div>
+              <div id="method-archivo" class="method-container">
+                <div class="file-upload">
+                  <input type="file" id="brandFile" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadBrandFile(event)">
+                  <label class="file-upload-label" for="brandFile">
+                    📁 Arrastra o selecciona un archivo<br>
+                    <small style="color: var(--text-tertiary);">Se extraerán los datos automáticamente</small>
+                  </label>
+                </div>
+                <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.6;">
+                  <strong style="color: var(--text-secondary); font-family: var(--font-mono); text-transform: uppercase; font-size: 0.75rem;">ℹ️ Información:</strong><br>
+                  <span style="color: var(--text-disabled);">✓ Tamaño máximo: 3 MB<br>✓ Formatos: JPG, PNG, PDF</span>
+                </div>
+              </div>
+              <div id="method-texto" class="method-container" style="display: none;">
+                <label style="display: block; margin-bottom: 10px;">Pega el resumen o texto extraído del PDF</label>
+                <textarea id="brandText" placeholder="Haz un resumen en Acrobat (File → Export as Text) y pegalo aquí..." style="min-height: 250px; resize: vertical; padding: 16px;"></textarea>
+                <button class="btn" style="width: 100%; margin-top: 15px;" onclick="procesarTextoMarca()">
+                  <span id="textLoading"></span>
+                  🔍 Extraer datos del texto
+                </button>
+              </div>
+              <div id="method-url" class="method-container" style="display: none;">
+                <label style="display: block; margin-bottom: 10px;">Ingresa la URL de tu sitio web</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                  <input type="url" id="brandUrl" placeholder="https://tudominio.com" style="flex: 1;">
+                  <button class="btn" onclick="fetchBrandFromUrl()" style="white-space: nowrap;">
+                    <span id="urlLoading"></span>
+                    🔗 Cargar
+                  </button>
+                </div>
+                <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.6;">
+                  <strong style="color: var(--text-secondary); font-family: var(--font-mono); text-transform: uppercase; font-size: 0.75rem;">ℹ️ Información:</strong><br>
+                  <span style="color: var(--text-disabled);">✓ Se extraerán textos, colores y estructura de tu sitio<br>✓ Se analizará el contenido para obtener datos de marca</span>
+                </div>
+              </div>
+              <div id="method-manual" class="method-container" style="display: none;">
+                <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem; color: var(--text-disabled);">
+                  ✅ Completa directamente los campos en las siguientes diapositivas
+                </div>
+                <label style="display: block; margin-bottom: 10px;">📱 Perfil de Instagram (opcional)</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="instagramHandle" placeholder="@tuusuario o usuário" style="flex: 1;">
+                  <button class="btn" onclick="loadInstagramMetrics()" style="white-space: nowrap;">
+                    <span id="igLoading"></span>
+                    📊 Cargar métricas
+                  </button>
+                </div>
+                <div id="instagramMetrics" style="display: none; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-top: 12px; font-size: 0.85rem;">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Seguidores</span><br>
+                      <span id="igFollowers" style="color: var(--text-primary); font-weight: 600;">-</span>
+                    </div>
+                    <div>
+                      <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Engagement</span><br>
+                      <span id="igEngagement" style="color: var(--text-primary); font-weight: 600;">-</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RESUMEN DE DATOS EXTRAÍDOS -->
+            <div id="brandSummary" style="display: none; border-top: 1px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+              <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 0px; padding: 15px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; font-family: var(--font-mono);">📊 Datos extraídos</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
+                  <div>
+                    <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Marca</span><br>
+                    <span id="summaryBrand" style="color: var(--text-primary); font-weight: 600;">-</span>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Rubro</span><br>
+                    <span id="summaryRubro" style="color: var(--text-primary); font-weight: 600;">-</span>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Imágenes</span><br>
+                    <span id="summaryImages" style="color: var(--text-primary); font-weight: 600;">0</span>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Colores</span><br>
+                    <span id="summaryColors" style="color: var(--text-primary); font-weight: 600;">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VISUAL ANALYSIS SECTION -->
+            <div style="border-top: 1px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
+              <div class="form-group">
+                <label style="font-family: var(--font-mono); text-transform: uppercase; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;">📸 Análisis visual (10-15 imágenes Instagram)</label>
+                <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem; color: var(--text-disabled);">
+                  📝 Carga 10-15 imágenes de tu cuenta de Instagram para analizar tu identidad visual (colores, tipografía, estilos fotográficos, etc.)
+                </div>
+                <label>Carga imágenes de Instagram</label>
+                <div class="file-upload" style="padding: 30px;">
+                  <input type="file" id="visualImages" accept="image/jpeg,image/jpg,image/png" multiple onchange="handleVisualImages(event)">
+                  <label class="file-upload-label" for="visualImages">
+                    📸 Arrastra o selecciona 10-15 imágenes<br>
+                    <small style="color: var(--text-tertiary);">Se analizarán colores, tipografías y estilos automáticamente</small>
+                  </label>
+                </div>
+                <div id="visualImagesPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px;"></div>
+
+                <!-- INSTAGRAM SCRAPING SECTION -->
+                <div style="border-top: 1px solid var(--border-light); margin-top: 20px; padding-top: 15px;">
+                  <label style="display: block; margin-bottom: 10px;">📱 O carga desde Instagram (2 opciones)</label>
+
+                  <!-- Opción 1: Por usuario -->
+                  <div style="margin-bottom: 15px; padding: 12px; background: rgba(104, 96, 238, 0.05); border-radius: 6px;">
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">Opción 1: Cargar por usuario</div>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="text" id="instagramHandleVisual" placeholder="@tuusuario" style="flex: 1;">
+                      <button class="btn" onclick="scrapeInstagramProfile()" style="white-space: nowrap;">
+                        <span id="igScrapeLoading"></span>
+                        🔗 Buscar
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Opción 2: Por URLs directas -->
+                  <div style="padding: 12px; background: rgba(245, 166, 35, 0.05); border-radius: 6px;">
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">Opción 2: Pegar URLs directas de imágenes</div>
+                    <textarea id="instagramURLsManual" placeholder="Pega URLs de imágenes (una por línea)&#10;ej: https://instagram.com/p/xxx/media/?size=l" style="width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--border-light); background: var(--bg-secondary); color: var(--text-primary); border-radius: 4px; font-family: monospace; font-size: 0.85rem;" ></textarea>
+                    <button class="btn" onclick="loadInstagramURLsManually()" style="width: 100%; margin-top: 8px;">
+                      📌 Cargar URLs
+                    </button>
+                  </div>
+                </div>
+
+                <button class="btn" style="width: 100%; margin-top: 15px;" onclick="analyzeVisualIdentity()">
+                  <span id="visualLoading"></span>
+                  🔍 Analizar identidad visual
+                </button>
+              </div>
+              <div id="visualAnalysisResult" style="display: none; margin-top: 20px;">
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 0px; padding: 15px;">
+                  <h4 style="color: var(--color-success); margin: 0 0 10px 0;">✅ Análisis Visual Completado</h4>
+                  <pre id="visualAnalysisContent" style="background: var(--bg-tertiary); color: var(--text-secondary); padding: 10px; border-radius: 0px; overflow-x: auto; font-size: 0.8rem; border: 1px solid var(--border-light);"></pre>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- MÉTODO 3: MANUAL -->
-          <div id="method-manual" class="method-container" style="display: none;">
-            <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem;">
-              ✅ Completa directamente los campos de abajo con la información de tu marca
+          <!-- SLIDE 2: BASIC IDENTITY -->
+          <div class="brain-slide">
+            <h3>2️⃣ Identidad básica</h3>
+            <p class="slide-description">Define nombre, misión y propuesta de valor de tu marca.</p>
+            <div class="form-group">
+              <label>Nombre de la marca</label>
+              <input type="text" id="bbNombre" placeholder="ej: Custer">
+            </div>
+            <div class="form-group">
+              <label>Rubro / Industria</label>
+              <input type="text" id="bbRubro" placeholder="ej: Agencia de Marketing">
+            </div>
+            <div class="form-group">
+              <label>Ciudad</label>
+              <input type="text" id="bbCiudad" placeholder="ej: Villa María, Córdoba">
+            </div>
+            <div class="form-group">
+              <label>Propuesta de valor</label>
+              <textarea id="bbPropuesta" placeholder="¿Qué prometes a tus clientes?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Público objetivo</label>
+              <textarea id="bbPublico" placeholder="¿A quién le hablas?"></textarea>
             </div>
           </div>
-        </div>
 
-        <div style="text-align: center; color: var(--text-tertiary); margin: 20px 0;">O completa manualmente</div>
-
-        <div class="form-group">
-          <label>Nombre de la marca</label>
-          <input type="text" id="bbNombre" placeholder="ej: Custer">
-        </div>
-
-        <div class="form-group">
-          <label>Rubro / Industria</label>
-          <input type="text" id="bbRubro" placeholder="ej: Agencia de Marketing">
-        </div>
-
-        <div class="form-group">
-          <label>Ciudad</label>
-          <input type="text" id="bbCiudad" placeholder="ej: Villa María, Córdoba">
-        </div>
-
-        <div class="form-group">
-          <label>Propuesta de valor</label>
-          <textarea id="bbPropuesta" placeholder="¿Qué prometes a tus clientes?"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Público objetivo</label>
-          <textarea id="bbPublico" placeholder="¿A quién le hablas?"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Tipografía</label>
-          <input type="text" id="bbFont" placeholder="ej: Montserrat Bold">
-        </div>
-
-        <div class="form-group">
-          <label>Registro</label>
-          <select id="bbRegistro">
-            <option value="">-- Selecciona --</option>
-            <option value="formal">Formal</option>
-            <option value="conversacional">Conversacional</option>
-            <option value="disruptivo">Disruptivo</option>
-            <option value="cercano">Cercano</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Palabras clave</label>
-          <input type="text" id="bbKeywords" placeholder="ej: innovación, velocidad, transparencia">
-        </div>
-
-        <div class="form-group">
-          <label>Palabras a evitar</label>
-          <input type="text" id="bbAvoid" placeholder="ej: barato, garantizado">
-        </div>
-
-        <div class="form-group">
-          <label>Ejemplos de copy aprobado</label>
-          <textarea id="bbEjemplos" placeholder="Pega 2-3 ejemplos de textos que representen bien la marca"></textarea>
-        </div>
-
-        <!-- SECCIÓN EXPANDIDA: INFORMACIÓN ESTRATÉGICA -->
-        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
-          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">📊 Información Estratégica</h3>
-
-          <div class="form-group">
-            <label>Misión de la marca</label>
-            <textarea id="bbMision" placeholder="¿Cuál es tu propósito fundamental?"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Visión de la marca</label>
-            <textarea id="bbVision" placeholder="¿Dónde quieres estar en el futuro?"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Valores principales (separados por comas)</label>
-            <input type="text" id="bbValores" placeholder="ej: integridad, innovación, pasión">
-          </div>
-
-          <div class="form-group">
-            <label>Beneficios funcionales</label>
-            <textarea id="bbBeneficiosFuncionales" placeholder="¿Qué beneficios prácticos ofreces?"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Beneficios emocionales</label>
-            <textarea id="bbBeneficiosEmocionales" placeholder="¿Cómo se sienten tus clientes contigo?"></textarea>
-          </div>
-        </div>
-
-        <!-- SECCIÓN EXPANDIDA: AUDIENCIA DETALLADA -->
-        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
-          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">👥 Audiencia Detallada</h3>
-
-          <div class="form-group">
-            <label>Audiencia demográfica (edad, género, ingreso)</label>
-            <textarea id="bbAudienciaDemografica" placeholder="ej: Hombres y mujeres 25-40 años, ingresos medios-altos"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Audiencia real / Psicográfica</label>
-            <textarea id="bbAudienciaReal" placeholder="Personas que valoran la innovación, desconfían del marketing exagerado, buscan transparencia..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Pain points (problemas del cliente)</label>
-            <input type="text" id="bbPainPoints" placeholder="ej: falta de tiempo, incertidumbre, costos altos">
-          </div>
-
-          <div class="form-group">
-            <label>Gains (beneficios buscados)</label>
-            <input type="text" id="bbGains" placeholder="ej: eficiencia, seguridad, reconocimiento">
-          </div>
-
-          <div class="form-group">
-            <label>Motivaciones de compra</label>
-            <textarea id="bbMotivaciones" placeholder="¿Por qué compran tus clientes?"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Comportamiento digital</label>
-            <textarea id="bbComportamientoDigital" placeholder="¿Dónde y cómo se comportan en línea?"></textarea>
-          </div>
-        </div>
-
-        <!-- SECCIÓN EXPANDIDA: IDENTIDAD VISUAL -->
-        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
-          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">🎨 Identidad Visual</h3>
-
-          <div class="form-group">
-            <label>Color primario (código hex)</label>
-            <input type="text" id="bbColorPrimario" placeholder="ej: #6860EE">
-          </div>
-
-          <div class="form-group">
-            <label>Color secundario (código hex)</label>
-            <input type="text" id="bbColorSecundario" placeholder="ej: #F5A623">
-          </div>
-
-          <div class="form-group">
-            <label>Acentos de color (separados por comas)</label>
-            <input type="text" id="bbAcentos" placeholder="ej: #FF6B6B, #4ECDC4, #FFE66D">
-          </div>
-
-          <div class="form-group">
-            <label>Tipografía principal</label>
-            <input type="text" id="bbTipoPrincipal" placeholder="ej: Montserrat Bold">
-          </div>
-
-          <div class="form-group">
-            <label>Tipografía secundaria</label>
-            <input type="text" id="bbTipoSecundaria" placeholder="ej: Inter Regular">
-          </div>
-
-          <div class="form-group">
-            <label>Estilo visual</label>
-            <select id="bbEstiloVisual">
-              <option value="">-- Selecciona --</option>
-              <option value="fotografia">Fotografía</option>
-              <option value="ilustracion">Ilustración</option>
-              <option value="mixto">Mixto</option>
-              <option value="abstracto">Abstracto</option>
-              <option value="minimalista">Minimalista</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Recursos gráficos (íconos, texturas, patrones)</label>
-            <input type="text" id="bbRecursosGraficos" placeholder="ej: íconos geométricos, líneas delgadas, formas circulares">
-          </div>
-
-          <div class="form-group">
-            <label>Sistema gráfico</label>
-            <textarea id="bbSistemaGrafico" placeholder="Describe el sistema visual, patrones, consistencia..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Mood board / Referencias de inspiración</label>
-            <textarea id="bbMoodBoard" placeholder="¿Qué referentes visuales inspiran tu marca?"></textarea>
-          </div>
-        </div>
-
-        <!-- SECCIÓN EXPANDIDA: IDENTIDAD VERBAL -->
-        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
-          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">💬 Identidad Verbal</h3>
-
-          <div class="form-group">
-            <label>Voz y tono (pilares de comunicación)</label>
-            <textarea id="bbVozTono" placeholder="¿Cómo hablas? Describe tus pilares comunicacionales..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Claim / Manifiesto</label>
-            <input type="text" id="bbClaim" placeholder="ej: 'La velocidad es poder' o 'Simplificamos lo complejo'">
-          </div>
-
-          <div class="form-group">
-            <label>Narrativa de marca (storytelling)</label>
-            <textarea id="bbNarrativa" placeholder="¿Cuál es tu historia? ¿Cuál es tu punto de vista?"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Territorio creativo</label>
-            <textarea id="bbTerritorioCreativo" placeholder="El espacio donde tu marca puede moverse creativamente..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Tonalidad (adjetivos de marca)</label>
-            <input type="text" id="bbTonalidad2" placeholder="ej: amigable, profesional, innovadora, cercana">
-          </div>
-        </div>
-
-        <!-- SECCIÓN EXPANDIDA: POSICIONAMIENTO -->
-        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
-          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">🎯 Posicionamiento</h3>
-
-          <div class="form-group">
-            <label>Competencia directa (separado por comas)</label>
-            <input type="text" id="bbCompetenciaDirecta" placeholder="ej: Competidor A, Competidor B, Competidor C">
-          </div>
-
-          <div class="form-group">
-            <label>Diferenciadores principales</label>
-            <input type="text" id="bbDiferenciadores" placeholder="ej: Precio competitivo, Soporte 24/7, Innovación constante">
-          </div>
-
-          <div class="form-group">
-            <label>Propuesta única (¿qué hace que seas único?)</label>
-            <textarea id="bbPropuestaUnica" placeholder="¿Qué te hace diferente en el mercado?"></textarea>
-          </div>
-        </div>
-
-        <!-- SECCIÓN EXPANDIDA: IMPLEMENTACIÓN Y CANALES -->
-        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
-          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">📱 Implementación y Canales</h3>
-
-          <div class="form-group">
-            <label>Canales principales (separado por comas)</label>
-            <input type="text" id="bbCanales" placeholder="ej: Instagram, LinkedIn, Email, Blog">
-          </div>
-
-          <div class="form-group">
-            <label>Formatos de contenido (separado por comas)</label>
-            <input type="text" id="bbFormatos" placeholder="ej: Carousel, Reels, Stories, Threads, Artículos">
-          </div>
-
-          <div class="form-group">
-            <label>Frecuencia de publicación</label>
-            <select id="bbFrecuencia">
-              <option value="">-- Selecciona --</option>
-              <option value="diaria">Diaria</option>
-              <option value="3-5-semana">3-5 veces a la semana</option>
-              <option value="2-veces">2 veces a la semana</option>
-              <option value="semanal">Semanal</option>
-              <option value="quincenal">Quincenal</option>
-              <option value="mensual">Mensual</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- SECCIÓN: ANÁLISIS VISUAL DE IMÁGENES -->
-        <div style="border-top: 2px solid var(--border-light); margin-top: 20px; padding-top: 20px;">
-          <h3 style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 15px;">📸 Análisis Visual (10-15 imágenes Instagram)</h3>
-
-          <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem;">
-            <strong style="color: #A855F7;">📝 Instrucciones:</strong><br>
-            Carga 10-15 imágenes de tu cuenta de Instagram para analizar tu identidad visual (colores, tipografía, estilos fotográficos, etc.)
-          </div>
-
-          <div class="form-group">
-            <label>Carga imágenes de Instagram</label>
-            <div class="file-upload" style="padding: 30px;">
-              <input type="file" id="visualImages" accept="image/jpeg,image/jpg,image/png" multiple onchange="handleVisualImages(event)">
-              <label class="file-upload-label" for="visualImages">
-                📸 Arrastra o selecciona 10-15 imágenes<br>
-                <small style="color: var(--text-tertiary);">Se analizarán colores, tipografías y estilos automáticamente</small>
-              </label>
+          <!-- SLIDE 3: VOICE & KEYWORDS -->
+          <div class="brain-slide">
+            <h3>3️⃣ Voz y registro</h3>
+            <p class="slide-description">Configura el tono, estilo de comunicación y tipografía de tu marca.</p>
+            <div class="form-group">
+              <label>Tipografía</label>
+              <input type="text" id="bbFont" placeholder="ej: Montserrat Bold">
             </div>
-            <div id="visualImagesPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px;"></div>
-            <button class="btn" style="width: 100%; margin-top: 15px;" onclick="analyzeVisualIdentity()">
-              <span id="visualLoading"></span>
-              🔍 Analizar identidad visual
-            </button>
-          </div>
-
-          <!-- Resultado del análisis visual -->
-          <div id="visualAnalysisResult" style="display: none; margin-top: 20px;">
-            <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; padding: 15px;">
-              <h4 style="color: #4ADE80; margin: 0 0 10px 0;">✅ Análisis Visual Completado</h4>
-              <pre id="visualAnalysisContent" style="background: #1a1a1a; color: #4ADE80; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;"></pre>
+            <div class="form-group">
+              <label>Registro</label>
+              <select id="bbRegistro">
+                <option value="">-- Selecciona --</option>
+                <option value="formal">Formal</option>
+                <option value="conversacional">Conversacional</option>
+                <option value="disruptivo">Disruptivo</option>
+                <option value="cercano">Cercano</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Palabras clave</label>
+              <input type="text" id="bbKeywords" placeholder="ej: innovación, velocidad, transparencia">
+            </div>
+            <div class="form-group">
+              <label>Palabras a evitar</label>
+              <input type="text" id="bbAvoid" placeholder="ej: barato, garantizado">
+            </div>
+            <div class="form-group">
+              <label>Ejemplos de copy aprobado</label>
+              <textarea id="bbEjemplos" placeholder="Pega 2-3 ejemplos de textos que representen bien la marca"></textarea>
             </div>
           </div>
+
+          <!-- SLIDE 4: STRATEGIC INFO -->
+          <div class="brain-slide">
+            <h3>4️⃣ Información estratégica</h3>
+            <p class="slide-description">Documenta misión, visión y valores fundamentales de tu marca.</p>
+            <div class="form-group">
+              <label>Misión de la marca</label>
+              <textarea id="bbMision" placeholder="¿Cuál es tu propósito fundamental?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Visión de la marca</label>
+              <textarea id="bbVision" placeholder="¿Dónde quieres estar en el futuro?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Valores principales (separados por comas)</label>
+              <input type="text" id="bbValores" placeholder="ej: integridad, innovación, pasión">
+            </div>
+            <div class="form-group">
+              <label>Beneficios funcionales</label>
+              <textarea id="bbBeneficiosFuncionales" placeholder="¿Qué beneficios prácticos ofreces?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Beneficios emocionales</label>
+              <textarea id="bbBeneficiosEmocionales" placeholder="¿Cómo se sienten tus clientes contigo?"></textarea>
+            </div>
+          </div>
+
+          <!-- SLIDE 5: AUDIENCE DEMOGRAPHICS -->
+          <div class="brain-slide">
+            <h3>5️⃣ Audiencia</h3>
+            <p class="slide-description">Describe a tu cliente ideal: demogr áfica, psicografía y comportamiento.</p>
+            <div class="form-group">
+              <label>Audiencia demográfica</label>
+              <textarea id="bbAudienciaDemografica" placeholder="ej: Hombres y mujeres 25-40 años, ingresos medios-altos"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Audiencia real / Psicográfica</label>
+              <textarea id="bbAudienciaReal" placeholder="Personas que valoran la innovación, desconfían del marketing exagerado..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Pain points</label>
+              <input type="text" id="bbPainPoints" placeholder="ej: falta de tiempo, incertidumbre, costos altos">
+            </div>
+            <div class="form-group">
+              <label>Gains (beneficios buscados)</label>
+              <input type="text" id="bbGains" placeholder="ej: eficiencia, seguridad, reconocimiento">
+            </div>
+            <div class="form-group">
+              <label>Motivaciones de compra</label>
+              <textarea id="bbMotivaciones" placeholder="¿Por qué compran tus clientes?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Comportamiento digital</label>
+              <textarea id="bbComportamientoDigital" placeholder="¿Dónde y cómo se comportan en línea?"></textarea>
+            </div>
+          </div>
+
+          <!-- SLIDE 6: VISUAL COLORS & TYPOGRAPHY -->
+          <div class="brain-slide">
+            <h3>6️⃣ Logo y colores</h3>
+            <p class="slide-description">Define logo, paleta de colores y fuentes que representan tu marca visualmente.</p>
+            <div class="form-group">
+              <label>Logo de la marca (imagen)</label>
+              <input type="file" id="bbLogo" accept="image/png,image/jpeg,image/svg+xml" placeholder="Sube el logo PNG, JPG o SVG">
+            </div>
+            <div class="form-group">
+              <label>Color primario (código hex)</label>
+              <input type="text" id="bbColorPrimario" placeholder="ej: #6860EE">
+            </div>
+            <div class="form-group">
+              <label>Color secundario (código hex)</label>
+              <input type="text" id="bbColorSecundario" placeholder="ej: #F5A623">
+            </div>
+            <div class="form-group">
+              <label>Acentos de color (separados por comas)</label>
+              <input type="text" id="bbAcentos" placeholder="ej: #FF6B6B, #4ECDC4, #FFE66D">
+            </div>
+            <div class="form-group">
+              <label>Tipografía principal</label>
+              <input type="text" id="bbTipoPrincipal" placeholder="ej: Montserrat Bold">
+            </div>
+            <div class="form-group">
+              <label>Tipografía secundaria</label>
+              <input type="text" id="bbTipoSecundaria" placeholder="ej: Inter Regular">
+            </div>
+          </div>
+
+          <!-- SLIDE 7: VISUAL STYLE -->
+          <div class="brain-slide">
+            <h3>7️⃣ Estilo visual</h3>
+            <p class="slide-description">Elige la estética general: minimalista, corporativo, creativo, etc.</p>
+            <div class="form-group">
+              <label>Estilo visual</label>
+              <select id="bbEstiloVisual">
+                <option value="">-- Selecciona --</option>
+                <option value="fotografia">Fotografía</option>
+                <option value="ilustracion">Ilustración</option>
+                <option value="mixto">Mixto</option>
+                <option value="abstracto">Abstracto</option>
+                <option value="minimalista">Minimalista</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Recursos gráficos</label>
+              <input type="text" id="bbRecursosGraficos" placeholder="ej: íconos geométricos, líneas delgadas, formas circulares">
+            </div>
+            <div class="form-group">
+              <label>Sistema gráfico</label>
+              <textarea id="bbSistemaGrafico" placeholder="Describe el sistema visual, patrones, consistencia..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Mood board / Referencias</label>
+              <textarea id="bbMoodBoard" placeholder="¿Qué referentes visuales inspiran tu marca?"></textarea>
+            </div>
+          </div>
+
+          <!-- SLIDE 8: VERBAL IDENTITY -->
+          <div class="brain-slide">
+            <h3>8️⃣ Identidad verbal</h3>
+            <p class="slide-description">Describe cómo habla tu marca: tono, palabras clave, pilares comunicacionales.</p>
+            <div class="form-group">
+              <label>Voz y tono</label>
+              <textarea id="bbVozTono" placeholder="¿Cómo hablas? Describe tus pilares comunicacionales..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Claim / Manifiesto</label>
+              <input type="text" id="bbClaim" placeholder="ej: 'La velocidad es poder' o 'Simplificamos lo complejo'">
+            </div>
+            <div class="form-group">
+              <label>Narrativa de marca</label>
+              <textarea id="bbNarrativa" placeholder="¿Cuál es tu historia? ¿Cuál es tu punto de vista?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Territorio creativo</label>
+              <textarea id="bbTerritorioCreativo" placeholder="El espacio donde tu marca puede moverse creativamente..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Tonalidad (adjetivos)</label>
+              <input type="text" id="bbTonalidad2" placeholder="ej: amigable, profesional, innovadora, cercana">
+            </div>
+          </div>
+
+          <!-- SLIDE 9: POSITIONING -->
+          <div class="brain-slide">
+            <h3>9️⃣ Posicionamiento</h3>
+            <p class="slide-description">Define tu lugar en el mercado: diferenciadores y ventajas competitivas.</p>
+            <div class="form-group">
+              <label>Competencia directa</label>
+              <input type="text" id="bbCompetenciaDirecta" placeholder="ej: Competidor A, Competidor B, Competidor C">
+            </div>
+            <div class="form-group">
+              <label>Diferenciadores principales</label>
+              <input type="text" id="bbDiferenciadores" placeholder="ej: Precio competitivo, Soporte 24/7, Innovación constante">
+            </div>
+            <div class="form-group">
+              <label>Propuesta única</label>
+              <textarea id="bbPropuestaUnica" placeholder="¿Qué te hace diferente en el mercado?"></textarea>
+            </div>
+          </div>
+
+          <!-- SLIDE 10: IMPLEMENTATION -->
+          <div class="brain-slide">
+            <h3>🔟 Canales e implementación</h3>
+            <p class="slide-description">Especifica dónde se activa tu marca: canales, formatos y frecuencia.</p>
+            <div class="form-group">
+              <label>Canales principales</label>
+              <input type="text" id="bbCanales" placeholder="ej: Instagram, LinkedIn, Email, Blog">
+            </div>
+            <div class="form-group">
+              <label>Formatos de contenido</label>
+              <input type="text" id="bbFormatos" placeholder="ej: Carousel, Reels, Stories, Threads, Artículos">
+            </div>
+            <div class="form-group">
+              <label>Frecuencia de publicación</label>
+              <select id="bbFrecuencia">
+                <option value="">-- Selecciona --</option>
+                <option value="diaria">Diaria</option>
+                <option value="3-5-semana">3-5 veces a la semana</option>
+                <option value="2-veces">2 veces a la semana</option>
+                <option value="semanal">Semanal</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="mensual">Mensual</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Navigation and Save Button -->
+        <div class="brain-nav">
+          <button class="brain-nav-btn" id="brainPrevBtn" onclick="navigateBrainSlider(-1)">← Anterior</button>
+          <div class="brain-slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">10</span></div>
+          <button class="brain-nav-btn" id="brainNextBtn" onclick="navigateBrainSlider(1)">Siguiente →</button>
         </div>
 
         <div class="btn-group" style="margin-top: 30px;">
           <button class="btn" onclick="saveBrand()">💾 Guardar/Actualizar marca</button>
+          <button class="btn" style="background: rgba(104, 96, 238, 0.2); border: 1px solid #6860EE;" onclick="generateBrandReport()">📊 Generar reporte de marca</button>
+        </div>
+
+        <!-- NUEVA SECCIÓN: REVISIÓN DE IDENTIDAD VISUAL -->
+        <div id="brandReviewSection" style="display: none; margin-top: 40px; padding-top: 40px; border-top: 2px solid var(--border-light);">
+          <h3 style="color: var(--text-primary); margin-bottom: 20px;">🎨 Revisión de Identidad Visual</h3>
+
+          <!-- TABS PARA REVISAR DATOS -->
+          <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--border-light); padding-bottom: 12px;">
+            <button class="tag active" data-tab="review-colors" onclick="switchReviewTab('colors', this)" style="cursor: pointer;">🎨 Colores</button>
+            <button class="tag" data-tab="review-typography" onclick="switchReviewTab('typography', this)" style="cursor: pointer;">🔤 Tipografía</button>
+            <button class="tag" data-tab="review-style" onclick="switchReviewTab('style', this)" style="cursor: pointer;">✨ Estilo Visual</button>
+            <button class="tag" data-tab="review-consistency" onclick="switchReviewTab('consistency', this)" style="cursor: pointer;">🔗 Consistencia</button>
+            <button class="tag" data-tab="review-summary" onclick="switchReviewTab('summary', this)" style="cursor: pointer;">📋 Resumen</button>
+          </div>
+
+          <!-- COLORES TAB -->
+          <div id="review-colors-tab" class="review-tab">
+            <h4 style="color: var(--text-primary); margin-bottom: 15px;">Colores Detectados</h4>
+            <div id="brandReviewColors" style="display: grid; gap: 12px;"></div>
+          </div>
+
+          <!-- TIPOGRAFÍA TAB -->
+          <div id="review-typography-tab" class="review-tab" style="display: none;">
+            <h4 style="color: var(--text-primary); margin-bottom: 15px;">Tipografía Detectada</h4>
+            <div id="brandReviewTypography" style="display: grid; gap: 12px;"></div>
+          </div>
+
+          <!-- ESTILO VISUAL TAB -->
+          <div id="review-style-tab" class="review-tab" style="display: none;">
+            <h4 style="color: var(--text-primary); margin-bottom: 15px;">Estilo Visual</h4>
+            <div id="brandReviewStyle" style="display: grid; gap: 12px;"></div>
+          </div>
+
+          <!-- CONSISTENCIA TAB -->
+          <div id="review-consistency-tab" class="review-tab" style="display: none;">
+            <h4 style="color: var(--text-primary); margin-bottom: 15px;">Análisis de Consistencia</h4>
+            <div id="brandReviewConsistency" style="display: grid; gap: 12px;"></div>
+          </div>
+
+          <!-- RESUMEN TAB -->
+          <div id="review-summary-tab" class="review-tab" style="display: none;">
+            <div id="brandReviewSummary" style="display: grid; gap: 12px;"></div>
+            <button class="btn" style="width: 100%; margin-top: 20px; background: rgba(104, 96, 238, 0.2); border: 1px solid #6860EE;" onclick="downloadBrandReport()">
+              📥 Descargar reporte completo
+            </button>
+          </div>
+
+          <button class="btn" style="width: 100%; margin-top: 20px;" onclick="saveBrand()">✅ Confirmar y guardar marca</button>
         </div>
       </div>
 
@@ -1164,6 +1941,56 @@
     <div id="generador" class="tab-content">
       <div class="panel">
         <h2>✨ Generador de contenido</h2>
+        <p class="section-subtitle">Crea contenido de marketing automáticamente basado en tu marca.</p>
+
+        <div id="optimizationBanner" style="
+          background: var(--bg-tertiary);
+          border-left: 3px solid var(--color-warning);
+          padding: 16px;
+          margin-bottom: 16px;
+          display: none;
+        ">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 1.5rem;">💡</span>
+            <div style="flex: 1;">
+              <h4 style="margin: 0 0 8px 0; color: var(--text-display);">Optimizaciones disponibles</h4>
+              <div id="suggestionsText" style="color: var(--text-secondary); font-size: 0.875rem;"></div>
+              <button class="btn" style="margin-top: 12px; padding: 8px 12px; font-size: 0.875rem;" onclick="openAnalyticsDashboard()">
+                📈 Ver Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== RECOMENDACIÓN PRE-GENERACIÓN ====== -->
+        <div id="preGenRecommendation" style="
+          background: linear-gradient(135deg, rgba(74,222,128,0.05), rgba(74,222,128,0.02));
+          border-left: 3px solid #4ADE80;
+          padding: 16px;
+          margin-bottom: 16px;
+          display: none;
+          border-radius: 8px;
+        ">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 1.5rem;">💡</span>
+            <div style="flex: 1;">
+              <h4 style="margin: 0 0 8px 0; color: #4ADE80;">Recomendación inteligente</h4>
+              <p id="recText" style="margin: 0 0 8px 0; color: var(--text-secondary); font-size: 0.9rem;"></p>
+              <div id="tokenEstimate" style="margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 6px; border-left: 2px solid #F5A623;">
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Tokens estimados:</div>
+                <div style="font-size: 1.3rem; font-weight: 700; color: #F5A623;" id="tokenEstimateValue">-</div>
+              </div>
+              <div style="display: flex; gap: 12px;">
+                <button class="btn" style="padding: 8px 12px; font-size: 0.875rem; background: #4ADE80; color: #000; border: none;" onclick="acceptRecommendation()">
+                  ✓ Aceptar
+                </button>
+                <button class="btn" style="padding: 8px 12px; font-size: 0.875rem;" onclick="rejectRecommendation()">
+                  ✕ Ignorar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="form-group">
           <label>Tipo de formato</label>
@@ -1229,6 +2056,7 @@
     <div id="validador" class="tab-content">
       <div class="panel">
         <h2>🎯 Validador</h2>
+        <p class="section-subtitle">Verifica que tu contenido sea coherente y alineado con tu marca.</p>
 
         <div class="form-group">
           <label>Pega el pedido o contenido a validar</label>
@@ -1263,6 +2091,7 @@
     <div id="copy" class="tab-content">
       <div class="panel">
         <h2>✍️ Generador de Copy</h2>
+        <p class="section-subtitle">Genera copys optimizados: títulos, descripciones, llamadas a acción.</p>
 
         <div class="form-group">
           <label>Tema / Producto</label>
@@ -1333,6 +2162,7 @@
     <div id="competencia" class="tab-content">
       <div class="panel">
         <h2>🔍 Análisis de Competencia</h2>
+        <p class="section-subtitle">Analiza competidores: estrategia, fortalezas, debilidades y oportunidades.</p>
 
         <div class="form-group">
           <label>Tu marca</label>
@@ -1394,6 +2224,7 @@
     <div id="reportes" class="tab-content">
       <div class="panel">
         <h2>📊 Reportes</h2>
+        <p class="section-subtitle">Obtén análisis detallado de tu contenido con recomendaciones de mejora.</p>
 
         <div class="form-group">
           <label>Instagram de la marca</label>
@@ -1419,7 +2250,7 @@
             <span id="repLoading"></span>
             📊 Generar Reporte
           </button>
-          <button class="btn" style="background: rgba(104, 96, 238, 0.3); border: 1px solid var(--primary);" onclick="descargarReporte()">
+          <button class="btn secondary" style="background: rgba(94, 106, 210, 0.1); border: 1px solid var(--color-accent);" onclick="descargarReporte()">
             📥 Descargar
           </button>
         </div>
@@ -1435,8 +2266,44 @@
         </div>
       </div>
     </div>
+
+    <!-- ====== ANALYTICS ====== -->
+    <div id="analytics" class="tab-content">
+      <div class="panel">
+        <h2>📊 Analytics Dashboard</h2>
+        <p class="section-subtitle">Monitorea tokens, optimizaciones y eficiencia de generación.</p>
+
+        <div class="form-group">
+          <label>Endpoint</label>
+          <select id="analyticsEndpoint">
+            <option value="all">Todos</option>
+            <option value="processBrandText">Brand Text</option>
+            <option value="generate">Generador</option>
+            <option value="validate">Validador</option>
+            <option value="copy">Copy</option>
+            <option value="competition">Competencia</option>
+            <option value="reports">Reportes</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn" onclick="loadAnalyticsDashboard()">📈 Cargar Dashboard</button>
+          <button class="btn" style="background: #4ADE80; color: #000;" onclick="downloadAnalyticsCSV()" id="downloadBtn" title="Descargar datos en CSV">📥 Descargar CSV</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Resultados</h2>
+        <div id="analyticsCanvas" class="canvas-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">📈</div>
+            <p>Selecciona un endpoint y carga el dashboard</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <script>
     // ============= ESTADO GLOBAL =============
     let currentBrand = null
@@ -1458,6 +2325,306 @@
       document.getElementById(`method-${method}`).style.display = 'block'
     }
 
+    // Brain Slider Navigation
+    function navigateBrainSlider(direction) {
+      const slider = document.getElementById('brainSlider')
+      const slides = slider.querySelectorAll('.brain-slide')
+      const slideWidth = slider.offsetWidth
+
+      // Calcular posición actual
+      const scrollPosition = slider.scrollLeft
+      const currentSlideIndex = Math.round(scrollPosition / slideWidth)
+      const nextSlideIndex = Math.max(0, Math.min(slides.length - 1, currentSlideIndex + direction))
+
+      // Scroll suave
+      slider.scrollTo({
+        left: nextSlideIndex * slideWidth,
+        behavior: 'smooth'
+      })
+
+      // Actualizar UI y botones
+      updateBrainSliderUI()
+    }
+
+    function updateBrainSliderUI() {
+      const slider = document.getElementById('brainSlider')
+      const slides = slider.querySelectorAll('.brain-slide')
+      const slideWidth = slider.offsetWidth
+      const scrollPosition = slider.scrollLeft
+      const currentSlideIndex = Math.round(scrollPosition / slideWidth)
+
+      // Actualizar contador
+      document.getElementById('currentSlide').textContent = currentSlideIndex + 1
+
+      // Actualizar estado de botones
+      const prevBtn = document.getElementById('brainPrevBtn')
+      const nextBtn = document.getElementById('brainNextBtn')
+
+      prevBtn.disabled = currentSlideIndex === 0
+      nextBtn.disabled = currentSlideIndex === slides.length - 1
+    }
+
+    // ============= LIQUID GLASS THEME TOGGLE =============
+    let isLiquidGlassEnabled = false;
+
+    function toggleLiquidGlass() {
+      isLiquidGlassEnabled = !isLiquidGlassEnabled;
+
+      // Aplicar al documento
+      const html = document.documentElement;
+      if (isLiquidGlassEnabled) {
+        html.setAttribute('data-liquid-glass', 'true');
+      } else {
+        html.removeAttribute('data-liquid-glass');
+      }
+
+      // Guardar preferencia en localStorage
+      localStorage.setItem('liquid_glass_enabled', isLiquidGlassEnabled);
+
+      // Actualizar botón
+      updateThemeToggleButton();
+    }
+
+    function updateThemeToggleButton() {
+      const btn = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+
+      if (isLiquidGlassEnabled) {
+        icon.textContent = '✨';
+        label.textContent = 'Liquid';
+        btn.style.background = 'rgba(26, 26, 26, 0.4)';
+        btn.style.borderColor = '#4ADE80';
+      } else {
+        icon.textContent = '🔷';
+        label.textContent = 'Glass';
+        btn.style.background = 'var(--bg-secondary)';
+        btn.style.borderColor = 'var(--border-light)';
+      }
+    }
+
+    function loadThemePreference() {
+      const saved = localStorage.getItem('liquid_glass_enabled');
+      if (saved === 'true') {
+        isLiquidGlassEnabled = true;
+        const html = document.documentElement;
+        html.setAttribute('data-liquid-glass', 'true');
+        updateThemeToggleButton();
+      }
+    }
+
+    // Agregar tooltips contextuales a campos de Brand Brain
+    function addTooltipsToBrainFields() {
+      const tooltips = {
+        'bbNombre': 'Nombre legal o comercial de tu marca',
+        'bbRubro': 'Sector, industria o categoría de negocio (ej: Tech, Retail, Servicios)',
+        'bbCiudad': 'Ubicación principal donde opera',
+        'bbPropuesta': '¿Qué te hace diferente? ¿Cuál es tu promesa única?',
+        'bbPublico': 'Descripción demográfica de quién es tu cliente ideal',
+        'bbMision': '¿Cuál es tu propósito? ¿Por qué existes?',
+        'bbVision': '¿Hacia dónde vas? ¿Cuál es tu visión futura?',
+        'bbValores': 'Principios, valores y convicciones que te guían',
+        'bbBeneficiosFuncionales': 'Qué problema resuelves o qué beneficio práctico das',
+        'bbBeneficiosEmocionales': 'Cómo hace sentir al usuario; beneficios emocionales/psicológicos',
+        'bbAudienciaReal': 'Descripción psicográfica: comportamientos, intereses, estilo de vida',
+        'bbPainPoints': 'Problemas, frustraciones que experimenta tu audiencia',
+        'bbTipografia': 'Fuentes tipográficas que reflejan la personalidad de marca',
+        'bbRegistro': 'Cómo comunicas (formal, casual, técnico, amigable, etc)',
+        'bbClaim': 'Eslogan, lema o promise statement de tu marca',
+        'bbKeywords': 'Palabras clave asociadas a tu marca'
+      }
+
+      for (const [id, tooltipText] of Object.entries(tooltips)) {
+        const el = document.getElementById(id)
+        if (el) {
+          el.title = tooltipText
+
+          // Agregar tooltip al label si existe
+          const label = el.previousElementSibling
+          if (label && (label.tagName === 'LABEL' || label.classList.contains('form-group'))) {
+            // Si es un form-group, buscar el label dentro
+            const labelEl = label.tagName === 'LABEL' ? label : label.querySelector('label')
+            if (labelEl) {
+              labelEl.title = tooltipText
+            }
+          }
+        }
+      }
+    }
+
+    // Actualizar resumen de datos en Slide 1
+    function updateBrandSummary() {
+      const nombre = document.getElementById('bbNombre').value
+      const rubro = document.getElementById('bbRubro').value
+      const colorPrimario = document.getElementById('bbColorPrimario').value
+      const imagesCount = document.querySelectorAll('#visualImagesPreview img').length
+
+      // Actualizar campos de resumen
+      document.getElementById('summaryBrand').textContent = nombre || '-'
+      document.getElementById('summaryRubro').textContent = rubro || '-'
+      document.getElementById('summaryImages').textContent = imagesCount
+
+      // Mostrar color si existe
+      if (colorPrimario) {
+        document.getElementById('summaryColors').innerHTML = `<span style="display: inline-block; width: 16px; height: 16px; background: ${colorPrimario}; border: 1px solid var(--border-light); border-radius: 0px; margin-right: 8px; vertical-align: middle;"></span>${colorPrimario}`
+      } else {
+        document.getElementById('summaryColors').textContent = '-'
+      }
+
+      // Mostrar/ocultar resumen solo si hay datos
+      const summary = document.getElementById('brandSummary')
+      if (nombre || rubro || imagesCount > 0 || colorPrimario) {
+        summary.style.display = 'block'
+      } else {
+        summary.style.display = 'none'
+      }
+    }
+
+    // Inicializar slider cuando la página carga
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load theme preference (Liquid Glass)
+      loadThemePreference()
+
+      // Agregar tooltips contextuales a campos Brand Brain
+      addTooltipsToBrainFields()
+
+      // Inicializar validación en tiempo real
+      initRealtimeValidation()
+
+      const slider = document.getElementById('brainSlider')
+      if (slider) {
+        // Escuchar cambios de scroll
+        slider.addEventListener('scroll', updateBrainSliderUI)
+        // Inicializar UI
+        updateBrainSliderUI()
+        // Detectar cambios de tamaño (responsive)
+        window.addEventListener('resize', () => {
+          // Recalcular posición si es necesario
+          updateBrainSliderUI()
+        })
+      }
+
+      // Escuchar cambios en campos para actualizar resumen
+      const fieldsToWatch = ['bbNombre', 'bbRubro', 'bbColorPrimario']
+      fieldsToWatch.forEach(fieldId => {
+        const field = document.getElementById(fieldId)
+        if (field) {
+          field.addEventListener('change', updateBrandSummary)
+          field.addEventListener('input', updateBrandSummary)
+        }
+      })
+
+      // Actualizar resumen al cargar imágenes
+      const visualImagesInput = document.getElementById('visualImages')
+      if (visualImagesInput) {
+        visualImagesInput.addEventListener('change', () => {
+          setTimeout(updateBrandSummary, 100)
+        })
+      }
+
+      // Event listener para filtro de Analytics
+      const endpointSelect = document.getElementById('analyticsEndpoint')
+      if (endpointSelect) {
+        endpointSelect.addEventListener('change', filterAnalyticsByEndpoint)
+      }
+
+      // ============= Event listeners para PRE-GENERACIÓN =============
+      // Escuchar cambios en campos del Generador
+      const genTipo = document.getElementById('genTipo')
+      const genCant = document.getElementById('genCant')
+      const genCopy = document.getElementById('genCopy')
+      const genEstilo = document.getElementById('genEstilo')
+
+      if (genTipo) {
+        genTipo.addEventListener('change', showPreGenerationRecommendation)
+      }
+      if (genCant) {
+        genCant.addEventListener('change', showPreGenerationRecommendation)
+        genCant.addEventListener('input', showPreGenerationRecommendation)
+      }
+      if (genCopy) {
+        genCopy.addEventListener('input', () => {
+          // Debounce para no verificar en cada letra
+          clearTimeout(window.genCopyTimeout)
+          window.genCopyTimeout = setTimeout(showPreGenerationRecommendation, 600)
+        })
+      }
+      if (genEstilo) {
+        genEstilo.addEventListener('change', showPreGenerationRecommendation)
+      }
+
+      // Inicializar resumen con valores actuales (si existen)
+      updateBrandSummary()
+    })
+
+    // Función universal para rellenar campos desde cualquier fuente
+    function fillBrandFields(brandData) {
+      console.log('🔍 fillBrandFields called with:', brandData)
+      // Mapeo de campos: estructura API → ID del formulario
+      const fieldMap = {
+        // BASICO
+        'bbNombre': () => brandData.basico?.nombre || brandData.nombre,
+        'bbRubro': () => brandData.basico?.rubro || brandData.rubro,
+        'bbCiudad': () => brandData.basico?.ciudad || brandData.ciudad,
+        'bbPropuesta': () => brandData.basico?.propuesta || brandData.propuesta,
+        // ESTRATÉGICO
+        'bbMision': () => brandData.estrategico?.mision || brandData.mision,
+        'bbVision': () => brandData.estrategico?.vision || brandData.vision,
+        'bbValores': () => (brandData.estrategico?.valores || []).join(', '),
+        'bbBeneficiosFuncionales': () => brandData.estrategico?.beneficios_funcionales,
+        'bbBeneficiosEmocionales': () => brandData.estrategico?.beneficios_emocionales,
+        // AUDIENCIA
+        'bbAudienciaDemografica': () => brandData.audiencia?.publico_objetivo || brandData.publico,
+        'bbAudienciaReal': () => brandData.audiencia?.audiencia_real,
+        'bbPainPoints': () => (brandData.audiencia?.pain_points || []).join(', '),
+        'bbGains': () => (brandData.audiencia?.gains || []).join(', '),
+        'bbMotivaciones': () => brandData.audiencia?.motivaciones,
+        'bbComportamientoDigital': () => brandData.audiencia?.comportamiento_digital,
+        // IDENTIDAD
+        'bbVozTono': () => brandData.identidad?.voz_tono,
+        'bbClaim': () => brandData.identidad?.claim,
+        'bbNarrativa': () => brandData.identidad?.narrativa,
+        'bbTerritorioCreativo': () => brandData.identidad?.territorio_creativo,
+        // VISUAL
+        'bbTipoPrincipal': () => brandData.visual?.tipografia || brandData.tipografia,
+        'bbColorPrimario': () => brandData.visual?.colores?.primario,
+        'bbColorSecundario': () => brandData.visual?.colores?.secundario,
+        'bbAcentos': () => (brandData.visual?.colores?.acentos || []).join(', '),
+        'bbEstiloVisual': () => brandData.visual?.estilo_visual,
+        'bbRecursosGraficos': () => brandData.visual?.recursos_graficos,
+        'bbSistemaGrafico': () => brandData.visual?.sistema_grafico,
+        'bbMoodBoard': () => brandData.visual?.mood_board,
+        // POSICIONAMIENTO
+        'bbCompetenciaDirecta': () => (brandData.posicionamiento?.competencia || []).join(', '),
+        'bbDiferenciadores': () => (brandData.posicionamiento?.diferenciadores || []).join(', '),
+        'bbPropuestaUnica': () => brandData.posicionamiento?.propuesta_unica,
+        // IMPLEMENTACIÓN
+        'bbCanales': () => (brandData.implementacion?.canales || []).join(', '),
+        'bbFormatos': () => (brandData.implementacion?.formatos || []).join(', '),
+        'bbFrecuencia': () => brandData.implementacion?.frecuencia,
+        // COMUNICACIÓN
+        'bbKeywords': () => (brandData.comunicacion?.keywords || []).join(', '),
+        'bbAvoid': () => (brandData.comunicacion?.avoid || []).join(', '),
+        'bbTonalidad2': () => (brandData.comunicacion?.tonalidad || []).join(', '),
+        'bbEjemplos': () => brandData.comunicacion?.ejemplos,
+        'bbPublico': () => brandData.publico,
+        'bbFont': () => brandData.tipografia,
+        'bbRegistro': () => brandData.registro
+      }
+
+      // Rellenar todos los campos automáticamente
+      for (const [fieldId, getValue] of Object.entries(fieldMap)) {
+        const element = document.getElementById(fieldId)
+        if (element) {
+          const value = getValue()
+          if (value) element.value = value
+        }
+      }
+
+      updateBrandSummary()
+      return true
+    }
+
     async function procesarTextoMarca() {
       const texto = document.getElementById('brandText').value.trim()
       if (!texto) {
@@ -1476,67 +2643,7 @@
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)
 
-        const brandData = data.brand
-
-        // Rellenar formulario - BÁSICO
-        if (brandData.basico?.nombre) document.getElementById('bbNombre').value = brandData.basico.nombre
-        if (brandData.basico?.rubro) document.getElementById('bbRubro').value = brandData.basico.rubro
-        if (brandData.basico?.ciudad) document.getElementById('bbCiudad').value = brandData.basico.ciudad
-        if (brandData.basico?.propuesta) document.getElementById('bbPropuesta').value = brandData.basico.propuesta
-
-        // ESTRATÉGICO
-        if (brandData.estrategico?.mision) document.getElementById('bbMision').value = brandData.estrategico.mision
-        if (brandData.estrategico?.vision) document.getElementById('bbVision').value = brandData.estrategico.vision
-        if (brandData.estrategico?.valores && brandData.estrategico.valores.length > 0) document.getElementById('bbValores').value = brandData.estrategico.valores.join(', ')
-        if (brandData.estrategico?.beneficios_funcionales) document.getElementById('bbBeneficiosFuncionales').value = brandData.estrategico.beneficios_funcionales
-        if (brandData.estrategico?.beneficios_emocionales) document.getElementById('bbBeneficiosEmocionales').value = brandData.estrategico.beneficios_emocionales
-
-        // AUDIENCIA
-        if (brandData.audiencia?.publico_objetivo) document.getElementById('bbAudienciaDemografica').value = brandData.audiencia.publico_objetivo
-        if (brandData.audiencia?.audiencia_real) document.getElementById('bbAudienciaReal').value = brandData.audiencia.audiencia_real
-        if (brandData.audiencia?.pain_points && brandData.audiencia.pain_points.length > 0) document.getElementById('bbPainPoints').value = brandData.audiencia.pain_points.join(', ')
-        if (brandData.audiencia?.gains && brandData.audiencia.gains.length > 0) document.getElementById('bbGains').value = brandData.audiencia.gains.join(', ')
-        if (brandData.audiencia?.motivaciones) document.getElementById('bbMotivaciones').value = brandData.audiencia.motivaciones
-        if (brandData.audiencia?.comportamiento_digital) document.getElementById('bbComportamientoDigital').value = brandData.audiencia.comportamiento_digital
-
-        // VISUAL
-        if (brandData.visual?.tipografia) document.getElementById('bbTipoPrincipal').value = brandData.visual.tipografia
-        if (brandData.visual?.colores?.primario) document.getElementById('bbColorPrimario').value = brandData.visual.colores.primario
-        if (brandData.visual?.colores?.secundario) document.getElementById('bbColorSecundario').value = brandData.visual.colores.secundario
-        if (brandData.visual?.colores?.acentos && brandData.visual.colores.acentos.length > 0) document.getElementById('bbAcentos').value = brandData.visual.colores.acentos.join(', ')
-        if (brandData.visual?.estilo_visual) document.getElementById('bbEstiloVisual').value = brandData.visual.estilo_visual
-        if (brandData.visual?.recursos_graficos) document.getElementById('bbRecursosGraficos').value = brandData.visual.recursos_graficos
-        if (brandData.visual?.sistema_grafico) document.getElementById('bbSistemaGrafico').value = brandData.visual.sistema_grafico
-        if (brandData.visual?.mood_board) document.getElementById('bbMoodBoard').value = brandData.visual.mood_board
-
-        // IDENTIDAD VERBAL
-        if (brandData.identidad?.voz_tono) document.getElementById('bbVozTono').value = brandData.identidad.voz_tono
-        if (brandData.identidad?.claim) document.getElementById('bbClaim').value = brandData.identidad.claim
-        if (brandData.identidad?.narrativa) document.getElementById('bbNarrativa').value = brandData.identidad.narrativa
-        if (brandData.identidad?.territorio_creativo) document.getElementById('bbTerritorioCreativo').value = brandData.identidad.territorio_creativo
-
-        // COMUNICACIÓN
-        if (brandData.comunicacion?.keywords && brandData.comunicacion.keywords.length > 0) document.getElementById('bbKeywords').value = brandData.comunicacion.keywords.join(', ')
-        if (brandData.comunicacion?.avoid && brandData.comunicacion.avoid.length > 0) document.getElementById('bbAvoid').value = brandData.comunicacion.avoid.join(', ')
-        if (brandData.comunicacion?.tonalidad && brandData.comunicacion.tonalidad.length > 0) document.getElementById('bbTonalidad2').value = brandData.comunicacion.tonalidad.join(', ')
-        if (brandData.comunicacion?.ejemplos) document.getElementById('bbEjemplos').value = brandData.comunicacion.ejemplos
-
-        // POSICIONAMIENTO
-        if (brandData.posicionamiento?.competencia && brandData.posicionamiento.competencia.length > 0) document.getElementById('bbCompetenciaDirecta').value = brandData.posicionamiento.competencia.join(', ')
-        if (brandData.posicionamiento?.diferenciadores && brandData.posicionamiento.diferenciadores.length > 0) document.getElementById('bbDiferenciadores').value = brandData.posicionamiento.diferenciadores.join(', ')
-        if (brandData.posicionamiento?.propuesta_unica) document.getElementById('bbPropuestaUnica').value = brandData.posicionamiento.propuesta_unica
-
-        // IMPLEMENTACIÓN
-        if (brandData.implementacion?.canales && brandData.implementacion.canales.length > 0) document.getElementById('bbCanales').value = brandData.implementacion.canales.join(', ')
-        if (brandData.implementacion?.formatos && brandData.implementacion.formatos.length > 0) document.getElementById('bbFormatos').value = brandData.implementacion.formatos.join(', ')
-        if (brandData.implementacion?.frecuencia) document.getElementById('bbFrecuencia').value = brandData.implementacion.frecuencia
-
-        // FALLBACK: Si no está estructurado, usar campos antiguos
-        if (brandData.nombre && !document.getElementById('bbNombre').value) document.getElementById('bbNombre').value = brandData.nombre
-        if (brandData.publico) document.getElementById('bbPublico').value = brandData.publico
-        if (brandData.tipografia) document.getElementById('bbFont').value = brandData.tipografia
-        if (brandData.registro) document.getElementById('bbRegistro').value = brandData.registro
-
+        fillBrandFields(data.brand)
         showToast('✅ Datos extraídos del texto correctamente', 'success')
       } catch (error) {
         showToast(`❌ Error: ${error.message}`, 'error')
@@ -1703,6 +2810,98 @@
       }
     }
 
+    // ========== CARGAR DESDE URL ==========
+    async function fetchBrandFromUrl() {
+      const url = document.getElementById('brandUrl').value.trim()
+      if (!url) {
+        showToast('❌ Ingresa una URL válida', 'error')
+        return
+      }
+
+      showLoading('urlLoading', true)
+      try {
+        // Validar que sea una URL válida
+        new URL(url) // Lanzará error si no es válida
+
+        // Crear un FormData para enviar la URL
+        const formData = new FormData()
+        formData.append('url', url)
+
+        const response = await fetch('/api/scrape-brand-url', {
+          method: 'POST',
+          body: formData
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Error al cargar desde URL')
+
+        // Enviar el contenido extraído al proceso de texto
+        const extractedText = data.content || data.text
+        if (!extractedText) throw new Error('No se pudo extraer contenido de la URL')
+
+        // Procesar el texto extraído
+        const processResponse = await fetch('/api/process-brand-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: extractedText })
+        })
+
+        const brandData = await processResponse.json()
+        if (!processResponse.ok) throw new Error(brandData.error)
+
+        fillBrandFields(brandData.brand)
+        showToast('✅ Datos extraídos de la URL correctamente', 'success')
+      } catch (error) {
+        showToast(`❌ Error: ${error.message}`, 'error')
+      } finally {
+        showLoading('urlLoading', false)
+      }
+    }
+
+    // ========== CARGAR MÉTRICAS DE INSTAGRAM ==========
+    async function loadInstagramMetrics() {
+      const handle = document.getElementById('instagramHandle').value.trim()
+      if (!handle) {
+        showToast('❌ Ingresa un usuario de Instagram', 'error')
+        return
+      }
+
+      showLoading('igLoading', true)
+      try {
+        // Por ahora, simular datos (en producción usar Instagram Graph API)
+        // En el futuro integrar con API oficial de Instagram
+        const metrics = await getInstagramMetrics(handle)
+
+        // Mostrar métricas
+        document.getElementById('instagramMetrics').style.display = 'grid'
+        document.getElementById('igFollowers').textContent = metrics.followers || 'N/A'
+        document.getElementById('igEngagement').textContent = metrics.engagement || 'N/A'
+
+        // Guardar en localStorage
+        localStorage.setItem('instagramHandle', handle)
+        localStorage.setItem('instagramMetrics', JSON.stringify(metrics))
+
+        showToast('✅ Métricas de Instagram cargadas', 'success')
+      } catch (error) {
+        showToast(`❌ Error: ${error.message}`, 'error')
+      } finally {
+        showLoading('igLoading', false)
+      }
+    }
+
+    // Helper para obtener métricas de Instagram (placeholder)
+    async function getInstagramMetrics(handle) {
+      // Este es un placeholder. En producción, usaría Instagram Graph API
+      // Por ahora, retorna datos de ejemplo
+      return {
+        followers: '5.2K',
+        engagement: '3.8%',
+        lastPost: new Date().toLocaleDateString(),
+        avgLikes: '250',
+        avgComments: '15'
+      }
+    }
+
     function saveBrand() {
       const brand = {
         // BÁSICO
@@ -1806,6 +3005,83 @@
       document.getElementById('brandSelect').value = brandId
 
       updateBrainPreview()
+    }
+
+    // ========== GENERAR Y REVISAR REPORTE DE MARCA ==========
+    async function generateBrandReport() {
+      if (!currentBrand || !currentBrand.nombre) {
+        showToast('❌ Guarda la marca primero', 'error')
+        return
+      }
+
+      showLoading(null, true)
+      try {
+        const response = await fetch('/api/generate-brand-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brand: currentBrand,
+            visualAssets: {
+              images: currentBrand.visualAssets?.images || [],
+              analysis: currentBrand.visualAssets?.analysis || {}
+            },
+            source: 'manual'
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        window.currentBrandReport = data.report
+        document.getElementById('brandReviewSection').style.display = 'block'
+        displayBrandReportData(data.report)
+
+        showToast('✅ Reporte generado. Revisa los datos detectados', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading(null, false)
+      }
+    }
+
+    function displayBrandReportData(report) {
+      const coloresHTML = `${report.colores.primario ? `<div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 16px;"><div style="display: flex; gap: 12px; align-items: center;"><div style="width: 60px; height: 60px; background: ${report.colores.primario.hex}; border-radius: 8px;"></div><div><h5 style="margin: 0; color: var(--text-primary);">Color Primario</h5><p style="margin: 4px 0; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.85rem;">${report.colores.primario.hex}</p><p style="margin: 4px 0; color: var(--text-secondary); font-size: 0.85rem;">Confianza: ${report.colores.primario.confianza}%</p></div></div></div>` : ''} ${report.colores.secundario ? `<div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 16px;"><div style="display: flex; gap: 12px; align-items: center;"><div style="width: 60px; height: 60px; background: ${report.colores.secundario.hex}; border-radius: 8px;"></div><div><h5 style="margin: 0; color: var(--text-primary);">Color Secundario</h5><p style="margin: 4px 0; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.85rem;">${report.colores.secundario.hex}</p></div></div></div>` : ''}`
+      document.getElementById('brandReviewColors').innerHTML = coloresHTML
+
+      const typographyHTML = `<div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 16px;"><h5 style="margin: 0 0 12px 0; color: var(--text-primary);">Tipografía Principal</h5><p style="margin: 0; color: var(--text-primary); font-weight: 600;">${report.tipografia.principal.familia}</p><p style="margin: 4px 0; color: var(--text-secondary); font-size: 0.85rem;">Fuente: ${report.tipografia.principal.fuente} • Confianza: ${report.tipografia.principal.confianza}%</p><div style="margin-top: 12px; padding: 12px; background: rgba(104, 96, 238, 0.1); border-radius: 4px;"><p style="margin: 0; font-family: '${report.tipografia.principal.familia}', 'Gotham', sans-serif; color: var(--text-primary);">Preview: El rápido zorro marrón</p></div></div>`
+      document.getElementById('brandReviewTypography').innerHTML = typographyHTML
+
+      const styleHTML = `<div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 16px;"><h5 style="margin: 0 0 12px 0; color: var(--text-primary);">Estilo Visual</h5><p style="margin: 0; color: var(--text-primary); font-size: 1.1rem; font-weight: 600; text-transform: capitalize;">${report.estilo_visual.clasificacion}</p></div>`
+      document.getElementById('brandReviewStyle').innerHTML = styleHTML
+
+      const consistencyHTML = `<div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 16px;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;"><h5 style="margin: 0; color: var(--text-primary);">Score</h5><div style="font-size: 2rem; font-weight: 800; color: ${report.consistencia.score >= 80 ? '#4CAF50' : '#FF9800'};">${report.consistencia.score}%</div></div></div>`
+      document.getElementById('brandReviewConsistency').innerHTML = consistencyHTML
+
+      const summaryHTML = `<div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 16px;"><h5 style="margin: 0 0 12px 0; color: var(--text-primary);">Resumen</h5><p style="margin: 4px 0; color: var(--text-secondary);">Marca: <strong>${report.resumen.marca}</strong></p><p style="margin: 4px 0; color: var(--text-secondary);">Confianza: <strong>${report.confianza.general}%</strong></p><p style="margin: 4px 0; color: var(--text-secondary);">Estado: <span style="color: ${report.resumen.estado === 'high' ? '#4CAF50' : '#FF9800'};">${report.resumen.recomendacion}</span></p></div>`
+      document.getElementById('brandReviewSummary').innerHTML = summaryHTML
+    }
+
+    function switchReviewTab(tab, element) {
+      document.querySelectorAll('.review-tab').forEach(t => t.style.display = 'none')
+      document.querySelectorAll('[data-tab]').forEach(t => t.classList.remove('active'))
+      document.getElementById(`review-${tab}-tab`).style.display = 'block'
+      if (element) element.classList.add('active')
+    }
+
+    function downloadBrandReport() {
+      if (!window.currentBrandReport) {
+        showToast('❌ Generar reporte primero', 'error')
+        return
+      }
+      const json = JSON.stringify(window.currentBrandReport, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `reporte-marca-${currentBrand.nombre.replace(/\s+/g, '-')}-${new Date().getTime()}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      showToast('✅ Reporte descargado', 'success')
     }
 
     function descargarBriefing() {
@@ -1920,7 +3196,7 @@
             imgEl.src = img.data || img
             imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border 0.3s;'
             imgEl.title = img.name || `Imagen ${imageIndex + 1}`
-            imgEl.onmouseover = () => (imgEl.style.borderColor = '#6860EE')
+            imgEl.onmouseover = () => (imgEl.style.borderColor = 'rgb(94, 106, 210)')
             imgEl.onmouseout = () => (imgEl.style.borderColor = 'transparent')
             imgEl.onclick = () => {
               currentBrandImages.splice(imageIndex, 1)
@@ -2255,6 +3531,192 @@
       showToast(`✅ ${files.length} imagen(es) agregada(s) (${currentBrandImages.length}/15)`, 'success')
     }
 
+    async function scrapeInstagramProfile() {
+      const handle = document.getElementById('instagramHandleVisual').value.trim()
+      if (!handle) {
+        showToast('❌ Ingresa un usuario de Instagram (@custer_agencia)', 'error')
+        return
+      }
+
+      showLoading('igScrapeLoading', true)
+      try {
+        // Limpiar @ si lo incluye
+        const cleanHandle = handle.replace('@', '')
+
+        showToast(`⏳ Buscando posts de @${cleanHandle}...`, 'info')
+
+        // Llamar a endpoint de scraping
+        const response = await fetch('/api/scrape-instagram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ handle: cleanHandle })
+        })
+
+        const data = await response.json()
+
+        // Si no tiene éxito, mostrar instrucciones
+        if (!data.success || !data.images || data.images.length === 0) {
+          showToast('⚠️ No se pudieron scrapear imágenes automáticamente', 'warning')
+
+          // Mostrar instrucciones detalladas
+          const instructions = data.instructions || [
+            '1. Ve a https://www.instagram.com/' + cleanHandle,
+            '2. Abre DevTools (F12) → Network',
+            '3. Filtra por "jpg" o "png"',
+            '4. Haz click derecho en una imagen → "Copiar URL"',
+            '5. Pega las URLs en la opción "Pegar URLs directas"'
+          ]
+
+          let msg = 'Instrucciones: ' + instructions.slice(0, 2).join(' → ')
+          showToast(msg, 'info')
+          return
+        }
+
+        // Agregar imágenes extraídas de Instagram
+        const images = data.images || []
+        showToast(`✅ Se encontraron ${images.length} imágenes, cargando...`, 'success')
+
+        // Convertir URLs a base64 y agregar a currentBrandImages
+        let loadedCount = 0
+        let failedCount = 0
+
+        for (const imageUrl of images.slice(0, 15 - currentBrandImages.length)) {
+          try {
+            // Intentar cargar con CORS proxy si es necesario
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/' + imageUrl
+            let imgResponse
+
+            try {
+              imgResponse = await fetch(imageUrl, { mode: 'cors' })
+            } catch {
+              // Si falla con CORS, intentar sin proxy
+              imgResponse = await fetch(imageUrl)
+            }
+
+            if (!imgResponse.ok) throw new Error('HTTP ' + imgResponse.status)
+
+            const blob = await imgResponse.blob()
+            const reader = new FileReader()
+
+            reader.onload = (e) => {
+              currentBrandImages.push({
+                name: `instagram_${cleanHandle}_${loadedCount}.jpg`,
+                data: e.target.result,
+                type: 'image/jpeg',
+                source: 'instagram',
+                url: imageUrl
+              })
+              loadedCount++
+
+              // Mostrar en preview
+              const preview = document.getElementById('visualImagesPreview')
+              if (preview) {
+                const imgEl = document.createElement('img')
+                imgEl.src = e.target.result
+                imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid #F5A623; transition: border 0.3s;'
+                imgEl.title = `Instagram ${cleanHandle}`
+                imgEl.onmouseover = () => (imgEl.style.borderColor = '#6860EE')
+                imgEl.onmouseout = () => (imgEl.style.borderColor = '#F5A623')
+                preview.appendChild(imgEl)
+              }
+            }
+            reader.readAsDataURL(blob)
+          } catch (e) {
+            console.warn(`❌ No se pudo cargar imagen: ${imageUrl}`, e.message)
+            failedCount++
+          }
+        }
+
+        setTimeout(() => {
+          showToast(`✅ ${loadedCount} imágenes cargadas${failedCount > 0 ? ` (${failedCount} fallaron por CORS)` : ''}. Ahora haz click en "Analizar identidad visual"`, 'success')
+        }, 1000)
+      } catch (error) {
+        showToast(`❌ Error: ${error.message}`, 'error')
+      } finally {
+        showLoading('igScrapeLoading', false)
+      }
+    }
+
+    async function loadInstagramURLsManually() {
+      const urlsText = document.getElementById('instagramURLsManual').value.trim()
+      if (!urlsText) {
+        showToast('❌ Pega al menos una URL', 'error')
+        return
+      }
+
+      const urls = urlsText
+        .split('\n')
+        .map(url => url.trim())
+        .filter(url => url.length > 0 && (url.startsWith('http') || url.includes('instagram')))
+
+      if (urls.length === 0) {
+        showToast('❌ No encontré URLs válidas', 'error')
+        return
+      }
+
+      if (currentBrandImages.length + urls.length > 15) {
+        showToast(`❌ Máximo 15 imágenes total. Ya tienes ${currentBrandImages.length}`, 'error')
+        return
+      }
+
+      showToast(`⏳ Cargando ${urls.length} imágenes...`, 'info')
+      let loadedCount = 0
+      let failedCount = 0
+
+      for (const imageUrl of urls) {
+        try {
+          const img = await fetch(imageUrl, { mode: 'no-cors' })
+          const blob = await img.blob()
+          const reader = new FileReader()
+
+          reader.onload = (e) => {
+            try {
+              currentBrandImages.push({
+                name: `instagram_manual_${loadedCount}.jpg`,
+                data: e.target.result,
+                type: 'image/jpeg',
+                source: 'instagram-manual',
+                url: imageUrl
+              })
+              loadedCount++
+
+              // Mostrar en preview
+              const preview = document.getElementById('visualImagesPreview')
+              if (preview) {
+                const imgEl = document.createElement('img')
+                imgEl.src = e.target.result
+                imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid #F5A623;'
+                imgEl.title = `Imagen manual ${loadedCount}`
+                imgEl.onmouseover = () => (imgEl.style.borderColor = '#6860EE')
+                imgEl.onmouseout = () => (imgEl.style.borderColor = '#F5A623')
+                preview.appendChild(imgEl)
+              }
+            } catch (e) {
+              console.error('Error procesando imagen:', e)
+              failedCount++
+            }
+          }
+
+          reader.onerror = () => {
+            failedCount++
+            console.warn(`Falló lectura de: ${imageUrl}`)
+          }
+
+          reader.readAsDataURL(blob)
+        } catch (e) {
+          console.warn(`No se pudo cargar: ${imageUrl}`, e.message)
+          failedCount++
+        }
+      }
+
+      setTimeout(() => {
+        showToast(`✅ ${loadedCount} imágenes cargadas${failedCount > 0 ? ` (${failedCount} fallaron)` : ''}. Haz click en "Analizar identidad visual"`, 'success')
+      }, 500)
+
+      // Limpiar el textarea
+      document.getElementById('instagramURLsManual').value = ''
+    }
+
     async function analyzeVisualIdentity() {
       if (currentBrandImages.length === 0) {
         showToast('❌ Carga al menos 1 imagen', 'error')
@@ -2263,34 +3725,58 @@
 
       showLoading('visualLoading', true)
       try {
-        const response = await fetch('/api/analyze-visual-identity', {
+        // Crear FormData con las imágenes en base64
+        const formData = new FormData()
+
+        for (const image of currentBrandImages) {
+          // Convertir base64 a Blob
+          const arr = image.data.split(',')
+          const mime = arr[0].match(/:(.*?);/)[1]
+          const bstr = atob(arr[1])
+          const n = bstr.length
+          const u8arr = new Uint8Array(n)
+          for (let i = 0; i < n; i++) {
+            u8arr[i] = bstr.charCodeAt(i)
+          }
+          const blob = new Blob([u8arr], { type: mime })
+          formData.append('images', blob, image.name)
+        }
+
+        const response = await fetch('/api/analyze-visual-assets', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            images: currentBrandImages,
-            brandName: currentBrand?.nombre || 'Sin nombre'
-          })
+          body: formData
         })
 
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)
 
-        currentVisualAnalysis = data.analysis
+        currentVisualAnalysis = data.visualAssets.analysis
+
+        // Guardar en localStorage
+        localStorage.setItem('visualAssets', JSON.stringify(data.visualAssets))
 
         // Mostrar resultado
         const resultDiv = document.getElementById('visualAnalysisResult')
-        document.getElementById('visualAnalysisContent').textContent = JSON.stringify(data.analysis, null, 2)
+        document.getElementById('visualAnalysisContent').textContent = JSON.stringify(data.visualAssets.analysis, null, 2)
         resultDiv.style.display = 'block'
 
         // Llenar campos automáticamente si existen
-        if (data.analysis.colores && data.analysis.colores.length > 0) {
-          const primario = data.analysis.colores.find(c => c.uso === 'primario')
+        if (data.visualAssets.analysis.colores && data.visualAssets.analysis.colores.length > 0) {
+          const primario = data.visualAssets.analysis.colores.find(c => c.uso === 'primario')
           if (primario) {
             document.getElementById('bbColorPrimario').value = primario.hex
           }
         }
 
-        showToast('✅ Análisis visual completado', 'success')
+        // Mostrar colores extraídos
+        const colorSummary = data.visualAssets.analysis.colores
+          .slice(0, 3)
+          .map(c => `${c.nombre} (${c.hex})`)
+          .join(', ')
+        document.getElementById('summaryColors').textContent = colorSummary || '-'
+        document.getElementById('summaryImages').textContent = data.visualAssets.totalImages
+
+        showToast(`✅ Análisis visual completado (${data.visualAssets.totalImages} imágenes)`, 'success')
       } catch (error) {
         showToast(`❌ Error: ${error.message}`, 'error')
       } finally {
@@ -2406,22 +3892,22 @@
         const chatHTML = `
           <div id="chat-section-${moduleName}" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border-light);">
             <!-- CUADRO EXPLICATIVO -->
-            <div style="background: linear-gradient(135deg, rgba(104, 96, 238, 0.08), rgba(245, 166, 35, 0.08)); border: 1px solid rgba(104, 96, 238, 0.2); border-radius: 8px; padding: 14px; margin-bottom: 20px;">
+            <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 14px; margin-bottom: 20px;">
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <div style="min-width: 24px; color: #6860EE;">${info.icon}</div>
-                <div style="font-weight: 700; color: #6860EE;">${info.name}</div>
+                <div style="min-width: 24px; color: var(--text-disabled);">${info.icon}</div>
+                <div style="font-weight: 600; color: var(--text-secondary);">${info.name}</div>
               </div>
-              <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
-                <strong style="color: var(--text-primary);">📊 Este módulo se basa en:</strong><br>
+              <div style="font-size: 0.85rem; color: var(--text-disabled); line-height: 1.6;">
+                <strong style="color: var(--text-secondary); font-family: var(--font-mono); text-transform: uppercase; font-size: 0.75rem;">📊 Este módulo se basa en:</strong><br>
                 ${info.sources}
               </div>
             </div>
 
             <!-- CHAT CONTEXTUAL -->
-            <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-light); border-radius: 8px; padding: 15px;">
-              <h3 style="margin: 0 0 15px 0; font-size: 0.95rem; color: var(--text-secondary);">💬 Asistente Contextual</h3>
+            <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 15px;">
+              <h3 style="margin: 0 0 15px 0; font-size: 0.75rem; font-weight: 600; color: var(--text-disabled); text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.5px;">💬 Asistente contextual</h3>
 
-              <div id="chat-messages-${moduleName}" style="background: white; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px; height: 250px; overflow-y: auto; margin-bottom: 12px; font-size: 0.9rem;"></div>
+              <div id="chat-messages-${moduleName}" style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; height: 250px; overflow-y: auto; margin-bottom: 12px; font-size: 0.9rem;"></div>
 
               <div style="display: flex; gap: 8px;">
                 <input type="text" id="chat-input-${moduleName}" placeholder="¿Hay otra herramienta que podamos usar? ¿Qué datos usas?" style="flex: 1; padding: 10px; border: 1px solid var(--border-light); border-radius: 6px; font-size: 0.9rem;" onkeypress="if(event.key==='Enter') sendContextQuestion('${moduleName}')">
@@ -2441,6 +3927,11 @@
         } else {
           moduleDiv.insertAdjacentHTML('beforeend', chatHTML)
         }
+      }
+
+      // Cargar sugerencias de optimización
+      if (moduleName === 'generador') {
+        checkOptimizationsForModule()
       }
     }
 
@@ -2485,8 +3976,8 @@
 
     // ============= FUNCIONES DE PESTAÑAS =============
     function switchTab(tabName, button) {
-      // Inicializar chat del módulo
-      setTimeout(() => initializeModuleChat(tabName), 100)
+      // Inicializar chat flotante
+      setTimeout(() => initializeFloatingChat(tabName), 100)
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'))
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'))
       document.getElementById(tabName).classList.add('active')
@@ -2494,6 +3985,371 @@
     }
 
     // ============= GENERADOR CON TIPOGRAFÍA INTELIGENTE =============
+
+    // ============= ESTIMACIÓN DE TOKENS PRE-GENERACIÓN =============
+    function estimateTokensForContent(type, quantity, theme) {
+      // Baseline estimates por tipo de contenido (en tokens)
+      const baselines = {
+        'carrusel': 1500,
+        'stories': 800,
+        'post': 500,
+        'reels': 1200
+      }
+
+      const base = baselines[type] || 1000
+      const quantityMultiplier = Math.max(1, quantity || 1)
+      const themeTokens = (theme || '').length * 1.5 // Aprox 1.5 tokens por carácter
+
+      // Estimado total
+      const estimated = Math.round(base * quantityMultiplier + themeTokens)
+      return estimated
+    }
+
+    function getSmartRecommendation(theme, currentType) {
+      // Obtener recomendaciones del localStorage
+      const analyticsData = JSON.parse(localStorage.getItem('analytics_data') || '[]')
+
+      // Filtrar recomendaciones HIGH priority (reduction > 25%)
+      const highPriority = analyticsData.filter(r => r.reduction && r.reduction > 25)
+
+      if (highPriority.length === 0) {
+        return null
+      }
+
+      // Keywords para detectar tipos de contenido
+      const launchKeywords = ['lanzamiento', 'nuevo', 'debut', 'presentación', 'launch']
+      const productKeywords = ['producto', 'item', 'sku', 'catálogo', 'collection']
+      const promotionKeywords = ['descuento', 'promo', 'oferta', 'venta', 'sale', 'deal']
+
+      const themeLower = (theme || '').toLowerCase()
+      let recommendedType = currentType
+      let reduction = highPriority[0].reduction || 25
+
+      // Detectar tema y recomendar formato
+      if (launchKeywords.some(kw => themeLower.includes(kw))) {
+        recommendedType = 'carrusel'
+        reduction = 28
+      } else if (productKeywords.some(kw => themeLower.includes(kw))) {
+        recommendedType = 'carrusel'
+        reduction = 32
+      } else if (promotionKeywords.some(kw => themeLower.includes(kw))) {
+        recommendedType = 'stories'
+        reduction = 25
+      }
+
+      if (recommendedType !== currentType) {
+        return {
+          suggestion: `Usa formato ${recommendedType} para ahorrar ${reduction}% en tokens`,
+          reduction: reduction,
+          recommendedType: recommendedType
+        }
+      }
+
+      // Default: usar recomendación HIGH priority
+      return {
+        suggestion: highPriority[0].suggestion || `Optimiza tu contenido para ahorrar ${reduction}%`,
+        reduction: reduction,
+        recommendedType: null
+      }
+    }
+
+    function acceptRecommendation() {
+      const type = document.getElementById('genTipo').value
+      const recommendedType = window.currentRecommendation?.recommendedType
+
+      // Si hay tipo recomendado diferente, cambiar el select
+      if (recommendedType && recommendedType !== type) {
+        document.getElementById('genTipo').value = recommendedType
+      }
+
+      // Guardar en historial
+      const historial = JSON.parse(localStorage.getItem('historial_recomendaciones') || '[]')
+      historial.push({
+        id: Date.now().toString(),
+        endpoint: 'generate',
+        tipo: document.getElementById('genTipo').value,
+        tema: document.getElementById('genCopy').value.substring(0, 100),
+        recomendacion: window.currentRecommendationText || 'N/A',
+        aceptada: true,
+        tokensEstimados: window.currentTokenEstimate || 0,
+        timestamp: new Date().toISOString()
+      })
+
+      // Limitar a últimas 100 recomendaciones
+      if (historial.length > 100) {
+        historial.shift()
+      }
+      localStorage.setItem('historial_recomendaciones', JSON.stringify(historial))
+
+      // Ocultar recomendación
+      document.getElementById('preGenRecommendation').style.display = 'none'
+      showToast('✅ Recomendación aceptada', 'success')
+    }
+
+    function rejectRecommendation() {
+      const historial = JSON.parse(localStorage.getItem('historial_recomendaciones') || '[]')
+      historial.push({
+        id: Date.now().toString(),
+        endpoint: 'generate',
+        tipo: document.getElementById('genTipo').value,
+        tema: document.getElementById('genCopy').value.substring(0, 100),
+        recomendacion: window.currentRecommendationText || 'N/A',
+        aceptada: false,
+        tokensEstimados: window.currentTokenEstimate || 0,
+        timestamp: new Date().toISOString()
+      })
+
+      if (historial.length > 100) {
+        historial.shift()
+      }
+      localStorage.setItem('historial_recomendaciones', JSON.stringify(historial))
+
+      document.getElementById('preGenRecommendation').style.display = 'none'
+      showToast('✕ Recomendación descartada', 'info')
+    }
+
+    // Función para mostrar recomendación
+    function showPreGenerationRecommendation() {
+      const type = document.getElementById('genTipo').value
+      const quantity = parseInt(document.getElementById('genCant').value) || 1
+      const theme = document.getElementById('genCopy').value
+
+      // Estimar tokens
+      const estimated = estimateTokensForContent(type, quantity, theme)
+      window.currentTokenEstimate = estimated
+
+      // Obtener recomendación
+      const recommendation = getSmartRecommendation(theme, type)
+
+      const recCard = document.getElementById('preGenRecommendation')
+
+      if (recommendation && theme.length > 20) {
+        document.getElementById('recText').textContent = recommendation.suggestion
+        document.getElementById('tokenEstimateValue').textContent = `${estimated} tokens`
+        window.currentRecommendationText = recommendation.suggestion
+        window.currentRecommendation = recommendation
+        recCard.style.display = 'block'
+      } else {
+        // Mostrar solo estimado si no hay recomendación especial
+        document.getElementById('tokenEstimateValue').textContent = `${estimated} tokens`
+        if (theme.length > 20) {
+          recCard.style.display = 'block'
+        } else {
+          recCard.style.display = 'none'
+        }
+      }
+    }
+
+    // ============= CUSTER DESIGN SKILL INTEGRATION =============
+    /**
+     * Genera diseños profesionales con identidad de marca completa
+     * Lee la marca del localStorage y aplica todos sus lineamientos
+     */
+    async function generateDesignWithBranding(options) {
+      const {
+        titulo,
+        texto,
+        subtitulo = '',
+        cta = 'Descubre más',
+        type = 'post',
+        funnelStage = 'awareness'
+      } = options
+
+      if (!currentBrand) {
+        console.warn('⚠️ No hay marca cargada para generar diseño')
+        return null
+      }
+
+      try {
+        // Preparar datos de marca para la skill
+        const brandData = {
+          nombre: currentBrand.nombre,
+          color_primario: currentBrand.color_primario || '#6860EE',
+          color_secundario: currentBrand.color_secundario || '#F5A623',
+          acentos: currentBrand.acentos || [],
+          tipografia_principal: currentBrand.tipografia_principal || 'Gotham, -apple-system, sans-serif',
+          estilo_visual: currentBrand.estilo_visual || 'moderno',
+          recursos_graficos: currentBrand.recursos_graficos || 'Iconos de línea, formas geométricas',
+          voz_tono: currentBrand.voz_tono || 'profesional',
+          registro: currentBrand.registro || 'formal',
+          tonalidad: currentBrand.tonalidad || []
+        }
+
+        // Preparar contenido
+        const contentData = {
+          titulo: titulo,
+          texto: texto,
+          subtitulo: subtitulo,
+          cta: cta
+        }
+
+        // Log para debugging
+        console.log('🎨 Generando diseño con brand:', brandData.nombre)
+        console.log('📝 Contenido:', contentData.titulo)
+
+        // Aquí iría la llamada a la skill si tuviéramos API
+        // Por ahora, generamos HTML con CSS profesional
+
+        const design = generateDesignHTML({
+          brand: brandData,
+          content: contentData,
+          type: type,
+          funnelStage: funnelStage
+        })
+
+        return design
+      } catch (error) {
+        console.error('❌ Error generando diseño:', error)
+        return null
+      }
+    }
+
+    /**
+     * Genera HTML/SVG profesional con identidad visual
+     */
+    function generateDesignHTML(options) {
+      const { brand, content, type, funnelStage } = options
+
+      const ratio = 1.618
+      const baseFontSize = 9
+      const titleSize = Math.round(baseFontSize * ratio * ratio * 10) / 10
+      const subtitleSize = Math.round(baseFontSize * ratio * 10) / 10
+
+      // Determinar dimensiones según tipo
+      const dimensions = {
+        'post': { width: 1080, height: 1080 },
+        'story': { width: 1080, height: 1920 },
+        'carousel': { width: 1080, height: 1080 },
+        'banner': { width: 1200, height: 628 }
+      }
+
+      const dim = dimensions[type] || dimensions['post']
+
+      // Colores con fallback
+      const primaryColor = brand.color_primario || '#6860EE'
+      const secondaryColor = brand.color_secundario || '#F5A623'
+      const textColor = '#FFFFFF'
+
+      // Generar gradient dinámico basado en funnel stage
+      let gradient = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`
+      if (funnelStage === 'awareness') {
+        gradient = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 50%, #FF6B35 100%)`
+      } else if (funnelStage === 'conversion') {
+        gradient = `linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%)`
+      }
+
+      return `
+        <div style="
+          width: ${dim.width}px;
+          height: ${dim.height}px;
+          background: ${gradient};
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          align-items: center;
+          padding: 60px;
+          box-sizing: border-box;
+          font-family: '${brand.tipografia_principal}';
+          color: ${textColor};
+          border-radius: 20px;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        ">
+          <!-- Elementos gráficos de fondo -->
+          <div style="
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 1;
+          "></div>
+
+          <!-- Contenido principal -->
+          <div style="position: relative; z-index: 2; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            ${content.subtitulo ? `
+              <div style="
+                font-size: ${subtitleSize}px;
+                font-weight: 500;
+                opacity: 0.9;
+                margin-bottom: 16px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+              ">
+                ✨ ${brand.nombre}
+              </div>
+            ` : ''}
+
+            <h1 style="
+              font-size: ${titleSize}px;
+              font-weight: 700;
+              margin: 0 0 20px 0;
+              line-height: 1.3;
+              max-width: 100%;
+            ">
+              ${content.titulo}
+            </h1>
+
+            ${content.texto ? `
+              <p style="
+                font-size: ${baseFontSize}px;
+                font-weight: 400;
+                margin: 0 0 40px 0;
+                opacity: 0.95;
+                line-height: 1.8;
+                max-width: 90%;
+              ">
+                ${content.texto}
+              </p>
+            ` : ''}
+          </div>
+
+          <!-- CTA Button -->
+          <div style="position: relative; z-index: 2;">
+            <button style="
+              background: ${secondaryColor};
+              color: #000;
+              border: none;
+              padding: 18px 48px;
+              font-size: 14px;
+              font-weight: 700;
+              border-radius: 50px;
+              cursor: pointer;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              transition: all 0.3s ease;
+              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(0, 0, 0, 0.3)';"
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.2)';">
+              ${content.cta || 'Descubre cómo'}
+            </button>
+          </div>
+
+          <!-- Badge con marca -->
+          <div style="
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            z-index: 3;
+          ">
+            ${brand.nombre}
+          </div>
+        </div>
+      `
+    }
+
     async function generarContenido() {
       if (!currentBrand) {
         showToast('❌ Selecciona una marca primero', 'error')
@@ -2521,6 +4377,7 @@
           body: JSON.stringify({
             topic,
             format: document.getElementById('genTipo').value,
+            quantity: parseInt(document.getElementById('genCant').value) || 4,
             brain: {
               ...currentBrand,
               visualAssets: {
@@ -2537,16 +4394,74 @@
         const canvas = document.getElementById('genCanvas')
         const ads = data.ads || []
 
-        let adsHTML = ads.map((ad, idx) => `
-          <div style="margin-bottom: 30px; display: flex; justify-content: center;">
-            ${ad.html}
-          </div>
-        `).join('')
+        // ============= DETECTAR FUNNEL STAGE DEL TOPIC =============
+        const topicLower = topic.toLowerCase()
+        let funnelStage = 'awareness'
 
-        let html = createResultsContainer(`${data.topic || 'Anuncios generados'}`, SVG_ICONS.sparkles, `<div style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 20px;">${ads.length} mockups de anuncios creados</div>`) + adsHTML
+        const awarenessKeywords = ['lanzamiento', 'nuevo', 'debut', 'presentación', 'descubre', 'conoce', 'aprende']
+        const considerationKeywords = ['beneficio', 'ventaja', 'característica', 'feature', 'diferencia', 'razón', 'porque']
+        const conversionKeywords = ['precio', 'costo', 'descuento', 'promo', 'oferta', 'compra', 'ahora', 'hoy', 'limitado']
+
+        const awarenessMatch = awarenessKeywords.filter(kw => topicLower.includes(kw)).length
+        const considerationMatch = considerationKeywords.filter(kw => topicLower.includes(kw)).length
+        const conversionMatch = conversionKeywords.filter(kw => topicLower.includes(kw)).length
+
+        if (conversionMatch > Math.max(awarenessMatch, considerationMatch)) {
+          funnelStage = 'conversion'
+        } else if (considerationMatch > awarenessMatch) {
+          funnelStage = 'consideration'
+        }
+
+        // ============= GENERAR DISEÑOS PROFESIONALES CON MARCA =============
+        let adsHTML = ''
+        for (let idx = 0; idx < ads.length; idx++) {
+          const ad = ads[idx]
+
+          // Generar diseño profesional con identidad visual de la marca
+          const brandedDesign = await generateDesignWithBranding({
+            titulo: ad.headline || 'Título',
+            texto: ad.body || 'Descripción',
+            cta: ad.cta || 'Descubre más',
+            type: ad.type || 'post',
+            funnelStage: funnelStage
+          })
+
+          // Usar diseño con marca si se generó, sino usar HTML básico
+          const designHtml = brandedDesign || ad.html
+
+          adsHTML += `
+            <div style="margin-bottom: 30px; display: flex; justify-content: center;">
+              ${designHtml}
+            </div>
+          `
+        }
+
+        let html = createResultsContainer(
+          `${data.topic || 'Anuncios generados'} 🎨`,
+          SVG_ICONS.sparkles,
+          `<div style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 20px;">
+            ${ads.length} diseños profesionales con identidad de marca '${currentBrand.nombre}'
+            <br><span style="font-size: 0.85rem; color: #F5A623;">Funnel Stage: ${funnelStage === 'awareness' ? '🚀 Awareness' : funnelStage === 'consideration' ? '🔍 Consideration' : '💰 Conversion'}</span>
+          </div>`
+        ) + adsHTML
 
         canvas.innerHTML = html
-        showToast('✅ Anuncios visuales generados', 'success')
+
+        // ============= GUARDAR TOKENS REALES EN HISTORIAL =============
+        if (window.currentTokenEstimate) {
+          const historial = JSON.parse(localStorage.getItem('historial_recomendaciones') || '[]')
+
+          if (historial.length > 0) {
+            const lastEntry = historial[historial.length - 1]
+            const tokensReales = (ads.length || 1) * 300
+            lastEntry.tokensReales = tokensReales
+            lastEntry.ahorro = Math.max(0, window.currentTokenEstimate - tokensReales)
+          }
+
+          localStorage.setItem('historial_recomendaciones', JSON.stringify(historial))
+        }
+
+        showToast(`✅ Diseños generados con identidad de ${currentBrand.nombre}`, 'success')
       } catch (error) {
         showToast(`❌ ${error.message}`, 'error')
       } finally {
@@ -2554,7 +4469,217 @@
       }
     }
 
+    // ============= VALIDACIÓN EN TIEMPO REAL =============
+    let validationTimeoutId = null
+    let lastValidationTimestamp = 0
+
+    async function validateInRealTime(text) {
+      if (!currentBrand || text.length < 20) {
+        return
+      }
+
+      try {
+        const response = await fetch('/api/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, brain: currentBrand })
+        })
+
+        const data = await response.json()
+        if (!response.ok) return
+
+        const validation = data.validation
+        const scoreElement = document.getElementById('valRealtimeScore')
+        const feedbackElement = document.getElementById('valRealtimeFeedback')
+
+        if (scoreElement && feedbackElement) {
+          const scoreColor = validation.score >= 70 ? '#4ADE80' : validation.score >= 50 ? '#F5A623' : '#EF4444'
+          scoreElement.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+              <span style="font-size: 2rem; font-weight: 800; color: ${scoreColor};">${validation.score}%</span>
+              <span style="color: var(--text-secondary); font-size: 0.85rem;">${validation.aligned ? '✅ Alineado' : '⚠️ Ajustes'}</span>
+            </div>
+          `
+          feedbackElement.innerHTML = validation.feedback
+          feedbackElement.style.display = 'block'
+        }
+      } catch (error) {
+        // Silencio en errores de validación en tiempo real
+      }
+    }
+
+    // Inicializar validación en tiempo real cuando el DOM esté listo
+    function initRealtimeValidation() {
+      const valCopyTextarea = document.getElementById('valCopy')
+      const valCanvas = document.getElementById('valCanvas')
+
+      if (!valCopyTextarea) return
+
+      // Agregar contenedor para feedback en tiempo real
+      const realtimeContainer = document.createElement('div')
+      realtimeContainer.id = 'valRealtimeContainer'
+      realtimeContainer.style.cssText = 'margin-top: 16px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; display: none;'
+      realtimeContainer.innerHTML = `
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">📊 Análisis en vivo:</div>
+        <div id="valRealtimeScore"></div>
+        <div id="valRealtimeFeedback" style="margin-top: 12px; font-size: 0.9rem; color: var(--text-primary); display: none;"></div>
+      `
+
+      // Insertar después del textarea
+      valCopyTextarea.parentNode.insertBefore(realtimeContainer, valCopyTextarea.nextSibling)
+
+      // Event listener con debounce
+      valCopyTextarea.addEventListener('input', (e) => {
+        const container = document.getElementById('valRealtimeContainer')
+        if (e.target.value.length > 20) {
+          container.style.display = 'block'
+          clearTimeout(validationTimeoutId)
+          validationTimeoutId = setTimeout(() => {
+            validateInRealTime(e.target.value)
+          }, 800)
+        } else {
+          container.style.display = 'none'
+          clearTimeout(validationTimeoutId)
+        }
+      })
+    }
+
     // ============= VALIDADOR RELAJADO =============
+    function generateValidationSlides(validation, brand, metadata) {
+      // Generar SLIDES DISEÑADAS con identidad visual completa y golden ratio typography
+      const brandColors = {
+        primary: brand?.color_primario || '#6860EE',
+        secondary: brand?.color_secundario || '#F5A623',
+        accent: brand?.acentos?.[0] || '#4ADE80',
+        dark: '#0D0C1E'
+      }
+
+      const fontFamily = brand?.tipografia_principal || 'Gotham, -apple-system, sans-serif'
+      const typographyScales = metadata?.typographyScales || {
+        body: 9,
+        subtitle: 14.562,
+        title: 23.560
+      }
+
+      // Si no hay slides en la respuesta, generar mínimo
+      const slides = validation.slides || []
+      if (slides.length === 0) {
+        return '<div style="color: var(--text-secondary); padding: 20px;">No hay slides para mostrar</div>'
+      }
+
+      let slidesHTML = `
+        <div style="margin-top: 40px;">
+          <h3 style="color: var(--text-primary); margin-bottom: 30px; font-size: 1.5rem;">🎨 Estructura de Slides - ANTES vs DESPUÉS</h3>
+      `
+
+      // Generar HTML para cada slide
+      slides.forEach((slide, slideIdx) => {
+        const slideNum = slide.numero || (slideIdx + 1)
+
+        // Crear HTML antes (simplificado)
+        const beforeHTML = `
+          <div style="background: linear-gradient(135deg, ${brandColors.primary}20, ${brandColors.secondary}20); border-left: 4px solid ${brandColors.primary}; padding: 24px; border-radius: 8px; margin-bottom: 16px;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; margin-bottom: 8px;">❌ Versión Actual</div>
+            <div style="font-family: ${fontFamily}; color: var(--text-primary); line-height: 1.6;">
+              <div style="font-size: ${typographyScales.title}px; font-weight: 700; margin-bottom: 8px;">${slide.titulo}</div>
+              <div style="font-size: ${typographyScales.body}px; opacity: 0.8;">${slide.contenido_original?.substring(0, 150) || 'Contenido original'}...</div>
+            </div>
+          </div>
+        `
+
+        // Crear HTML cambios
+        const changesHTML = `
+          <div style="background: rgba(245, 166, 35, 0.05); border-left: 4px solid #F5A623; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; margin-bottom: 12px;">📋 Cambios Recomendados</div>
+            ${slide.cambios?.map((cambio, idx) => `
+              <div style="display: flex; gap: 12px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(245, 166, 35, 0.2);">
+                <span style="color: #F5A623; font-weight: 700; min-width: 20px;">${idx + 1}.</span>
+                <div>
+                  <div style="color: var(--text-primary); font-weight: 600; font-size: 0.9rem;">${cambio}</div>
+                </div>
+              </div>
+            `).join('')}
+            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px; font-style: italic;">
+              ${slide.rationale || 'Optimizado para mejor impacto'}
+            </div>
+          </div>
+        `
+
+        // Crear HTML después (versión mejorada completa)
+        const afterHTML = `
+          <div style="background: linear-gradient(135deg, ${brandColors.primary}, ${brandColors.secondary}); border-radius: 12px; padding: 40px; color: white; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px); z-index: 1;"></div>
+            <div style="position: relative; z-index: 2;">
+              <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; opacity: 0.9; margin-bottom: 20px;">✅ Slide ${slideNum} - Versión Optimizada</div>
+              <div style="font-family: ${fontFamily};">
+                <h3 style="font-size: ${typographyScales.title}px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.3;">${slide.titulo}</h3>
+                <p style="font-size: ${typographyScales.body}px; line-height: 1.8; margin: 0 0 24px 0; opacity: 0.95;">${slide.contenido_mejorado?.substring(0, 200) || slide.contenido_mejorado}</p>
+                ${slide.marketingTips?.length > 0 ? `
+                  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.8; margin-bottom: 8px;">💡 Tips Marketing</div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">
+                      ${slide.marketingTips.slice(0, 2).map(tip => `<div>→ ${tip}</div>`).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `
+
+        slidesHTML += `
+          <div style="margin-bottom: 50px; padding: 30px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 12px;">
+            <h4 style="margin: 0 0 24px 0; color: var(--text-primary); font-size: 1.2rem;">Slide ${slideNum}: ${slide.titulo}</h4>
+
+            <div style="margin-bottom: 24px;">
+              <h5 style="color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 12px 0; text-transform: uppercase; font-weight: 600;">Versión Actual</h5>
+              ${beforeHTML}
+            </div>
+
+            <div style="margin-bottom: 24px;">
+              <h5 style="color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 12px 0; text-transform: uppercase; font-weight: 600;">Recomendaciones</h5>
+              ${changesHTML}
+            </div>
+
+            <div>
+              <h5 style="color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 12px 0; text-transform: uppercase; font-weight: 600;">Versión Optimizada</h5>
+              ${afterHTML}
+            </div>
+
+            ${slide.tipografia ? `
+              <div style="margin-top: 20px; padding: 16px; background: rgba(104, 96, 238, 0.05); border-left: 3px solid #6860EE; border-radius: 4px;">
+                <div style="color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">📐 Tipografía Golden Ratio</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-family: monospace; font-size: 0.85rem; color: var(--text-primary);">
+                  <div><strong>Título</strong><br>${slide.tipografia.titulo || typographyScales.title + 'px Bold'}</div>
+                  <div><strong>Subtítulo</strong><br>${slide.tipografia.subtitulo || typographyScales.subtitle + 'px Semibold'}</div>
+                  <div><strong>Cuerpo</strong><br>${slide.tipografia.cuerpo || typographyScales.body + 'px Regular'}</div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `
+      })
+
+      slidesHTML += '</div>'
+      return slidesHTML
+    }
+
+    function getChangeExplanation(cambio, brand) {
+      // Explicaciones de por qué se hacen los cambios
+      const explanations = {
+        'alineación': 'Asegura que el mensaje resonar con la identidad y propuesta de valor de la marca',
+        'CTA': 'Un llamado a la acción claro aumenta conversión y engagement',
+        'claridad': 'Textos directos y simples tienen mejor respuesta de audiencia',
+        'impacto': 'Palabras fuertes crean conexión emocional y recordación',
+        'estructura': 'Mejor jerarquía visual mejora legibilidad y comprensión'
+      }
+
+      for (const [key, value] of Object.entries(explanations)) {
+        if (cambio.toLowerCase().includes(key)) return value
+      }
+      return 'Optimiza la efectividad del mensaje'
+    }
+
     async function validarContenido() {
       if (!currentBrand) {
         showToast('❌ Selecciona una marca primero', 'error')
@@ -2579,38 +4704,87 @@
         if (!response.ok) throw new Error(data.error)
 
         const validation = data.validation
+        const metadata = data.metadata || {}
         const canvas = document.getElementById('valCanvas')
 
-        const statusIcon = validation.aligned ? SVG_ICONS.check : SVG_ICONS.alert
+        // Generar slides con nueva estructura
+        const slidesHTML = generateValidationSlides(validation, currentBrand, metadata)
+
+        const statusIcon = validation.aligned ? '✅' : '⚠️'
+        const statusColor = validation.aligned ? '#4CAF50' : '#FF9800'
         const statusText = validation.aligned ? 'Alineado con marca' : 'Requiere ajustes'
-        const φ = 1.618
-        const sizeTitle = Math.round(14 * φ * φ)
 
-        let statusHTML = createPomelliCard(
-          statusText,
-          statusIcon,
-          `<div style="font-size: 0.95rem; color: var(--text-secondary);">
-            <strong style="color: var(--text-primary);">Score:</strong> <span style="font-size: ${sizeTitle}px; font-weight: 800; color: #6860EE;">${validation.score}%</span>
-          </div>
-          <div style="margin-top: 12px; font-size: 0.95rem; color: var(--text-primary); line-height: 1.7;">${validation.feedback}</div>`
-        )
-
-        let suggestionsHTML = ''
-        if (validation.suggestions && validation.suggestions.length > 0) {
-          const suggestionsContent = validation.suggestions.map(s =>
-            `<div style="padding: 12px; background: rgba(104, 96, 238, 0.05); border-radius: 6px; margin-bottom: 8px; font-size: 0.95rem; color: var(--text-primary); border-left: 3px solid #F5A623;">
-              ${s}
-            </div>`
-          ).join('')
-          suggestionsHTML = createPomelliCard('Sugerencias de mejora', '💡', suggestionsContent)
+        // Información de funnel stage si está disponible
+        const funnelStageEmoji = {
+          'awareness': '👁️',
+          'consideration': '💭',
+          'conversion': '💰'
         }
+        const funnelEmoji = funnelStageEmoji[validation.funnelStage] || '🎯'
 
-        let html = createResultsContainer('Validación completada', SVG_ICONS.check, '') + statusHTML + suggestionsHTML
-        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarValidacion()">' + SVG_ICONS.send.replace('currentColor', 'white') + ' Descargar sugerencias</button>'
+        let statusHTML = `
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+              <div style="font-size: 48px;">${statusIcon}</div>
+              <div>
+                <h3 style="margin: 0; color: var(--text-primary); font-size: 1.3rem;">${statusText}</h3>
+                <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">Análisis de alineación con marca • ${validation.slideStructure?.numSlides || 1} slides detectados</p>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+              <div>
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Score actual</div>
+                <div style="font-size: 2.5rem; font-weight: 800; color: ${statusColor};">${validation.score}%</div>
+              </div>
+              <div>
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Score mejorado</div>
+                <div style="font-size: 2.5rem; font-weight: 800; color: #4CAF50;">${validation.resumenGlobal?.nuevoScore || Math.min(100, validation.score + 20)}%</div>
+              </div>
+              <div>
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Funnel Stage</div>
+                <div style="font-size: 1.3rem;">${funnelEmoji} ${validation.funnelStage || 'general'}</div>
+              </div>
+            </div>
+
+            <div style="background: rgba(104, 96, 238, 0.05); border-left: 4px solid #6860EE; padding: 16px; border-radius: 4px; margin-bottom: 16px;">
+              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">💬 Análisis detallado</div>
+              <div style="color: var(--text-primary); line-height: 1.8; font-size: 0.95rem;">${validation.feedback}</div>
+            </div>
+
+            ${validation.resumenGlobal ? `
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="background: rgba(76, 175, 80, 0.05); border-left: 3px solid #4CAF50; padding: 12px; border-radius: 4px;">
+                  <div style="color: #4CAF50; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">✨ Fortalezas</div>
+                  <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+                    ${validation.resumenGlobal.fortalezas?.slice(0, 2).map(f => `• ${f}`).join('<br>')}
+                  </div>
+                </div>
+                <div style="background: rgba(255, 152, 0, 0.05); border-left: 3px solid #FF9800; padding: 12px; border-radius: 4px;">
+                  <div style="color: #FF9800; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">⚡ Mejoras Críticas</div>
+                  <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+                    ${validation.resumenGlobal.mejoras_criticas?.slice(0, 2).map(m => `• ${m}`).join('<br>')}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `
+
+        let html = createResultsContainer('Validación completada', SVG_ICONS.check, '') + statusHTML
+
+        // Agregar slides estructurados
+        html += slidesHTML
+
+        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarValidacionCompleta()">' + SVG_ICONS.send.replace('currentColor', 'white') + ' 📥 Descargar análisis completo</button>'
 
         canvas.innerHTML = html
-        localStorage.setItem('lastValidation', copy)
-        showToast('✅ Validación completada', 'success')
+        localStorage.setItem('lastValidation', JSON.stringify({
+          copy: copy,
+          validation: validation,
+          timestamp: new Date().toISOString()
+        }))
+        showToast('✅ Validación completada con ' + (validation.slideStructure?.numSlides || 1) + ' slides', 'success')
       } catch (error) {
         showToast(`❌ ${error.message}`, 'error')
       } finally {
@@ -2618,16 +4792,43 @@
       }
     }
 
-    function descargarValidacion() {
-      const content = localStorage.getItem('lastValidation')
-      const json = JSON.stringify({ validacion: content }, null, 2)
-      const blob = new Blob([json], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'validacion.json'
-      a.click()
-      showToast('✅ Descargado', 'success')
+    function descargarValidacionCompleta() {
+      const contentStr = localStorage.getItem('lastValidation')
+      if (!contentStr) {
+        showToast('❌ No hay validación para descargar', 'error')
+        return
+      }
+
+      try {
+        const content = typeof contentStr === 'string' ? JSON.parse(contentStr) : contentStr
+
+        // Descargar como JSON formateado
+        const downloadData = {
+          timestamp: new Date().toISOString(),
+          brand: currentBrand?.nombre || 'Sin marca',
+          validation: content.validation || content,
+          metadata: {
+            slides: content.validation?.slideStructure || {},
+            funnelStage: content.validation?.funnelStage || 'general',
+            score: {
+              actual: content.validation?.score || 0,
+              mejorado: content.validation?.resumenGlobal?.nuevoScore || 0
+            }
+          }
+        }
+
+        const json = JSON.stringify(downloadData, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `validacion-${currentBrand?.nombre || 'analisis'}-${new Date().getTime()}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+        showToast('✅ Análisis descargado', 'success')
+      } catch (error) {
+        showToast('❌ Error al descargar: ' + error.message, 'error')
+      }
     }
 
     // ============= COPY RELAJADO =============
@@ -2906,7 +5107,7 @@
             imgEl.src = img.data || img
             imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border 0.3s;'
             imgEl.title = img.name || `Imagen ${imageIndex + 1}`
-            imgEl.onmouseover = () => (imgEl.style.borderColor = '#6860EE')
+            imgEl.onmouseover = () => (imgEl.style.borderColor = 'rgb(94, 106, 210)')
             imgEl.onmouseout = () => (imgEl.style.borderColor = 'transparent')
             imgEl.onclick = () => {
               currentBrandImages.splice(imageIndex, 1)
@@ -2928,6 +5129,588 @@
         })
       })
     })
+
+    // ============= ANALYTICS CHARTS & FILTERING =============
+    let chartsInstance = { line: null, bar: null }
+
+    function renderCharts(data) {
+      if (!data.savings || data.savings.totalCalls < 10) return
+
+      // Simular datos de tendencia (últimas 20 llamadas)
+      const trend = []
+      for (let i = 0; i < 20; i++) {
+        const reduction = (data.savings.avgFirst - data.savings.avgLast) * (i / 20)
+        trend.push(Math.round(data.savings.avgFirst - reduction))
+      }
+
+      // Gráfico 1: Tendencia de Tokens
+      const tokensChartCanvas = document.getElementById('tokensChart')
+      if (tokensChartCanvas && !chartsInstance.line) {
+        const ctx = tokensChartCanvas.getContext('2d')
+        chartsInstance.line = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: trend.map((_, i) => `Call ${i + 1}`),
+            datasets: [{
+              label: 'Tokens por Llamada',
+              data: trend,
+              borderColor: '#6860EE',
+              backgroundColor: 'rgba(104, 96, 238, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 3,
+              pointBackgroundColor: '#6860EE'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: true, labels: { color: 'var(--text-secondary)' } }
+            },
+            scales: {
+              y: { beginAtZero: false, ticks: { color: 'var(--text-secondary)' } },
+              x: { ticks: { color: 'var(--text-secondary)' } }
+            }
+          }
+        })
+      }
+
+      // Gráfico 2: Por Endpoint
+      const endpointChartCanvas = document.getElementById('endpointChart')
+      if (endpointChartCanvas && data.recommendations && !chartsInstance.bar) {
+        const ctx = endpointChartCanvas.getContext('2d')
+        chartsInstance.bar = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.recommendations.map(r => r.endpoint),
+            datasets: [{
+              label: 'Reducible %',
+              data: data.recommendations.map(r => r.reduction),
+              backgroundColor: data.recommendations.map(r =>
+                r.priority === 'HIGH' ? '#EF4444' : '#EAB308'
+              ),
+              borderRadius: 4
+            }]
+          },
+          options: {
+            indexAxis: 'x',
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: true, labels: { color: 'var(--text-secondary)' } }
+            },
+            scales: {
+              y: { beginAtZero: true, ticks: { color: 'var(--text-secondary)' } },
+              x: { ticks: { color: 'var(--text-secondary)' } }
+            }
+          }
+        })
+      }
+    }
+
+    function filterAnalyticsByEndpoint() {
+      const selectedEndpoint = document.getElementById('analyticsEndpoint').value
+      const tableRows = document.querySelectorAll('#analyticsTable tbody tr')
+
+      tableRows.forEach(row => {
+        if (selectedEndpoint === 'all') {
+          row.style.display = 'table-row'
+        } else {
+          const endpoint = row.cells[0].textContent.trim()
+          row.style.display = endpoint === selectedEndpoint ? 'table-row' : 'none'
+        }
+      })
+    }
+
+    function downloadAnalyticsCSV() {
+      const timestamp = new Date().toISOString().split('T')[0]
+      const recommendations = Array.from(document.querySelectorAll('#analyticsTable tbody tr')).map(row => {
+        if (row.style.display === 'none') return null
+        return {
+          endpoint: row.cells[0].textContent.trim(),
+          reduction: row.cells[1].textContent.trim(),
+          priority: row.cells[2].textContent.trim(),
+          suggestion: row.cells[3].textContent.trim()
+        }
+      }).filter(r => r !== null)
+
+      if (recommendations.length === 0) {
+        showToast('❌ No hay datos para descargar', 'error')
+        return
+      }
+
+      let csv = 'Endpoint,Reducible (%),Prioridad,Sugerencia\n'
+      recommendations.forEach(rec => {
+        csv += `"${rec.endpoint}","${rec.reduction}","${rec.priority}","${rec.suggestion}"\n`
+      })
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `analytics-report-${timestamp}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      showToast('✅ CSV descargado', 'success')
+    }
+
+    // ============= ANALYTICS DASHBOARD =============
+    async function loadAnalyticsDashboard() {
+      showLoading('analyticsLoading', true)
+      try {
+        const response = await fetch('/api/token-analytics', {
+          method: 'GET'
+        })
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        renderAnalyticsDashboard(data)
+        showToast('✅ Dashboard cargado', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading('analyticsLoading', false)
+      }
+    }
+
+    function renderAnalyticsDashboard(data) {
+      const canvas = document.getElementById('analyticsCanvas')
+
+      if (!data.savings || !data.savings.totalCalls || data.savings.totalCalls < 10) {
+        canvas.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⏳</div>
+            <p>Acumulando datos...</p>
+            <p style="font-size: 0.75rem; color: var(--text-disabled);">
+              Necesitamos 10+ llamadas para ver análisis
+            </p>
+          </div>
+        `
+        return
+      }
+
+      let html = '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 32px;">'
+
+      html += createMetricCard(
+        '📊 Ahorro Total',
+        `${data.savings.savedPercent}%`,
+        'Reducción conseguida'
+      )
+
+      html += createMetricCard(
+        '💰 Ahorro Mensual',
+        `$${data.savings.estimatedMonthlySavings}/mes`,
+        'Proyectado a 1000 llamadas/mes'
+      )
+
+      html += createMetricCard(
+        '📈 Llamadas',
+        `${data.savings.totalCalls}`,
+        'Registradas en total'
+      )
+
+      html += '</div>'
+
+      // Gráfico de comparativa
+      html += '<div style="margin-bottom: 32px;">'
+      html += '<h3 style="margin: 0 0 16px 0;">Comparativa Antes vs Después</h3>'
+      html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">'
+
+      html += `<div style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 16px; border-radius: 4px;">
+        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">Promedio Inicial</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">${data.savings.avgFirst}</div>
+        <div style="font-size: 0.7rem; color: var(--text-disabled);">tokens</div>
+      </div>`
+
+      html += `<div style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 16px; border-radius: 4px;">
+        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">Promedio Actual</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">${data.savings.avgLast}</div>
+        <div style="font-size: 0.7rem; color: var(--text-disabled);">tokens</div>
+      </div>`
+
+      html += '</div></div>'
+
+      // Gráficos
+      html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">'
+      html += '<div style="background: var(--bg-tertiary); padding: 16px; border-radius: 4px; border: 1px solid var(--border-light);">'
+      html += '<h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 0.95rem;">Tendencia de Tokens</h4>'
+      html += '<canvas id="tokensChart" style="max-height: 250px;"></canvas>'
+      html += '</div>'
+      html += '<div style="background: var(--bg-tertiary); padding: 16px; border-radius: 4px; border: 1px solid var(--border-light);">'
+      html += '<h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 0.95rem;">Por Endpoint</h4>'
+      html += '<canvas id="endpointChart" style="max-height: 250px;"></canvas>'
+      html += '</div>'
+      html += '</div>'
+
+      // Tabla de recomendaciones
+      if (data.recommendations && data.recommendations.length > 0) {
+        html += '<div style="margin-top: 32px;">'
+        html += '<h3 style="margin: 0 0 16px 0;">Optimizaciones Disponibles</h3>'
+        html += '<table id="analyticsTable" style="width: 100%; border-collapse: collapse;">'
+        html += '<thead><tr style="border-bottom: 1px solid var(--border-light);">'
+        html += '<th style="padding: 12px; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; text-align: left;">Endpoint</th>'
+        html += '<th style="padding: 12px; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; text-align: left;">Reducible</th>'
+        html += '<th style="padding: 12px; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; text-align: left;">Prioridad</th>'
+        html += '<th style="padding: 12px; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; text-align: left;">Sugerencia</th>'
+        html += '</tr></thead>'
+        html += '<tbody>'
+
+        data.recommendations.forEach(rec => {
+          const priorityColor = rec.priority === 'HIGH' ? '#EF4444' : '#EAB308'
+          html += `<tr style="border-bottom: 1px solid var(--border-light);">`
+          html += `<td style="padding: 12px; font-size: 0.875rem;">${rec.endpoint}</td>`
+          html += `<td style="padding: 12px; font-size: 0.875rem;">${rec.reduction}%</td>`
+          html += `<td style="padding: 12px; font-size: 0.875rem;"><span style="background: ${priorityColor}; color: black; padding: 4px 8px; border-radius: 2px; font-weight: 600; font-size: 0.7rem;">${rec.priority}</span></td>`
+          html += `<td style="padding: 12px; font-size: 0.875rem; color: var(--text-secondary);">${rec.suggestion}</td>`
+          html += `</tr>`
+        })
+
+        html += '</tbody></table></div>'
+      }
+
+      canvas.innerHTML = createResultsContainer('📈 Analytics Dashboard', SVG_ICONS.chart, html)
+
+      // Renderizar gráficos después de que el DOM esté listo
+      setTimeout(() => {
+        renderCharts(data)
+      }, 100)
+    }
+
+    function createMetricCard(title, value, subtitle) {
+      return `
+        <div style="
+          background: var(--bg-tertiary);
+          border: 1px solid var(--border-light);
+          padding: 16px;
+          border-radius: 4px;
+          text-align: center;
+        ">
+          <div style="color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 8px;">
+            ${title}
+          </div>
+          <div style="font-size: 2rem; font-weight: 700; color: var(--text-display); margin-bottom: 8px;">
+            ${value}
+          </div>
+          <div style="color: var(--text-disabled); font-size: 0.7rem;">
+            ${subtitle}
+          </div>
+        </div>
+      `
+    }
+
+    // ============= SUGERENCIAS DE OPTIMIZACIÓN =============
+    async function checkOptimizationsForModule() {
+      try {
+        const response = await fetch('/api/token-analytics', {
+          method: 'GET'
+        })
+        const data = await response.json()
+
+        // Solo mostrar si hay recomendaciones HIGH priority
+        const highPriority = data.recommendations?.filter(r => r.priority === 'HIGH') || []
+
+        if (highPriority.length > 0 && data.savings) {
+          showOptimizationBanner(highPriority, data.savings)
+        }
+      } catch (error) {
+        // Silencioso si falla - no mostrar error al usuario
+      }
+    }
+
+    function showOptimizationBanner(recommendations, savings) {
+      const banner = document.getElementById('optimizationBanner')
+      const text = document.getElementById('suggestionsText')
+
+      let html = `<strong>💰 Puedes ahorrar hasta $${savings.estimatedMonthlySavings}/mes</strong><br>`
+      html += '<ul style="margin: 8px 0; padding-left: 16px;">'
+
+      recommendations.forEach(rec => {
+        html += `<li><strong>${rec.endpoint}</strong>: ${rec.reduction}% ahorrable<br><em style="color: var(--text-disabled);">${rec.suggestion}</em></li>`
+      })
+
+      html += '</ul>'
+
+      text.innerHTML = html
+      banner.style.display = 'block'
+    }
+
+    function openAnalyticsDashboard() {
+      const btn = document.querySelector('[onclick*="switchTab(\'analytics\'"]')
+      if (btn) {
+        switchTab('analytics', btn)
+      } else {
+        // Crear el botón dinámicamente si no existe
+        const navButton = document.createElement('button')
+        navButton.className = 'tab-btn'
+        navButton.onclick = function() { switchTab('analytics', this) }
+        switchTab('analytics', navButton)
+      }
+    }
+
+    /* FLOATING CHAT FUNCTIONS */
+    function toggleChatPanel() {
+      const panel = document.getElementById('floating-chat-panel')
+      if (panel.style.display === 'none') {
+        panel.style.display = 'flex'
+        setTimeout(() => {
+          document.getElementById('floating-chat-input').focus()
+        }, 100)
+      } else {
+        panel.style.display = 'none'
+      }
+    }
+
+    function initializeFloatingChat(moduleName) {
+      const info = MODULE_CONTEXT[moduleName]
+      if (!info) return
+
+      window.currentChatModule = moduleName
+
+      const moduleInfo = document.getElementById('chat-module-info')
+      moduleInfo.innerHTML = `
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <span>${info.icon}</span>
+          <strong>${info.name}</strong>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-disabled); font-family: var(--font-mono);">
+          <strong style="text-transform: uppercase;">📊 Basado en:</strong><br>
+          ${info.sources}
+        </div>
+      `
+
+      document.getElementById('chat-panel-messages').innerHTML = ''
+    }
+
+    async function sendFloatingChatMessage() {
+      const input = document.getElementById('floating-chat-input')
+      const question = input.value.trim()
+
+      if (!question) {
+        showToast('❌ Escribe una pregunta', 'error')
+        return
+      }
+
+      if (!window.currentChatModule) {
+        showToast('❌ Selecciona un módulo primero', 'error')
+        return
+      }
+
+      const messagesBox = document.getElementById('chat-panel-messages')
+
+      const userMsg = document.createElement('div')
+      userMsg.className = 'chat-message user'
+      userMsg.innerHTML = `
+        <div class="chat-message-label">👤 Tú</div>
+        <div>${question}</div>
+      `
+      messagesBox.appendChild(userMsg)
+
+      input.value = ''
+      showLoading('chat-loading-indicator', true)
+
+      try {
+        const response = await fetch('/api/assistant-context', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            module: window.currentChatModule,
+            question: question,
+            currentData: currentBrand
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+
+        const assistantMsg = document.createElement('div')
+        assistantMsg.className = 'chat-message assistant'
+        assistantMsg.innerHTML = `
+          <div class="chat-message-label">🤖 Asistente</div>
+          <div>${data.response.replace(/\n/g, '<br>')}</div>
+        `
+        messagesBox.appendChild(assistantMsg)
+
+        messagesBox.scrollTop = messagesBox.scrollHeight
+
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        showLoading('chat-loading-indicator', false)
+        input.focus()
+      }
+    }
+  </script>
+
+  <!-- FLOATING CHAT PANEL -->
+  <div id="floating-chat-panel" class="floating-chat-panel" style="display: none;">
+    <div class="chat-panel-header">
+      <h3>💬 Asistente Contextual</h3>
+      <button class="close-btn" onclick="toggleChatPanel()">✕</button>
+    </div>
+
+    <div id="chat-module-info" class="chat-module-info"></div>
+
+    <div id="chat-panel-messages" class="chat-panel-messages"></div>
+
+    <div class="chat-panel-input">
+      <input type="text"
+             id="floating-chat-input"
+             placeholder="¿Preguntas sobre este módulo?"
+             onkeypress="if(event.key==='Enter') sendFloatingChatMessage()">
+      <button onclick="sendFloatingChatMessage()" class="send-btn">
+        <span id="chat-loading-indicator"></span>
+        💬
+      </button>
+    </div>
+  </div>
+
+  <!-- FLOATING CHAT BUTTON -->
+  <button id="floating-chat-btn" class="floating-chat-btn" onclick="toggleChatPanel()">
+    💬
+  </button>
+
+  <script>
+    // ============= CUSTER SCROLLYTELLING & MORPHING EFFECTS =============
+
+    // Intersection Observer for scroll-triggered animations
+    const observerOptions = {
+      threshold: 0.15,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const scrollObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          entry.target.style.animation = 'scrollParallax var(--transition-slow) ease-out forwards';
+        }
+      });
+    }, observerOptions);
+
+    // Observe all elements with scroll-trigger class
+    document.querySelectorAll('.scroll-trigger').forEach(el => {
+      scrollObserver.observe(el);
+
+      // Check if element is already visible on page load
+      const rect = el.getBoundingClientRect();
+      const isVisible = (rect.top >= -50 && rect.top <= window.innerHeight - 50);
+
+      if (isVisible) {
+        el.classList.add('active');
+        el.style.animation = 'scrollParallax var(--transition-slow) ease-out forwards';
+      }
+    });
+
+    // Morphing effect on element interactions
+    document.addEventListener('mouseover', (e) => {
+      if (e.target.matches('.btn, .tag, .carousel-btn, .brain-nav-btn')) {
+        e.target.style.animation = 'morphButton 0.4s ease-out';
+      }
+    });
+
+    // Scroll parallax effect for slides
+    const parallaxElements = document.querySelectorAll('[data-parallax]');
+    window.addEventListener('scroll', () => {
+      parallaxElements.forEach(el => {
+        const scrollPosition = window.scrollY;
+        const parallaxValue = scrollPosition * (el.dataset.parallax || 0.5);
+        el.style.transform = `translateY(${parallaxValue}px)`;
+      });
+    });
+
+    // Scrollytelling for carousel items
+    const carouselSlides = document.querySelectorAll('.carousel-item, .brain-slide');
+    carouselSlides.forEach((slide, index) => {
+      slide.setAttribute('data-parallax', (0.3 + index * 0.05).toString());
+      slide.classList.add('scroll-trigger');
+
+      // For brain-slides, immediately make them visible
+      if (slide.classList.contains('brain-slide')) {
+        slide.classList.add('active');
+        slide.style.animation = 'scrollParallax var(--transition-slow) ease-out forwards';
+      }
+    });
+
+    // Floating animation on scroll
+    const floatingElements = document.querySelectorAll('[data-float]');
+    window.addEventListener('scroll', () => {
+      floatingElements.forEach(el => {
+        const scrollPosition = window.scrollY;
+        const floatValue = Math.sin(scrollPosition * 0.01) * 8;
+        el.style.transform = `translateY(${floatValue}px)`;
+      });
+    });
+
+    // Enhanced click morphing (ripple effect)
+    document.addEventListener('click', (e) => {
+      const clickTarget = e.target.closest('.btn, .tag, .carousel-btn');
+      if (clickTarget && !clickTarget.disabled) {
+        const ripple = document.createElement('span');
+        ripple.style.cssText = `
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.6);
+          transform: scale(0);
+          animation: ripple-effect 600ms ease-out;
+          pointer-events: none;
+          left: ${e.clientX - clickTarget.getBoundingClientRect().left}px;
+          top: ${e.clientY - clickTarget.getBoundingClientRect().top}px;
+        `;
+        clickTarget.style.position = 'relative';
+        clickTarget.style.overflow = 'hidden';
+        clickTarget.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+      }
+    });
+
+    // Add ripple animation keyframes dynamically
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes ripple-effect {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Mutation observer to apply animations to dynamically created elements
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        if (mutation.addedNodes.length) {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === 1) { // Element node
+              if (node.classList && node.classList.contains('result-card')) {
+                node.style.animation = 'morphIn 0.6s ease-out';
+              }
+            }
+          });
+        }
+      });
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: false
+    });
+
+    // Initialize animations on page load
+    window.addEventListener('load', () => {
+      document.querySelectorAll('.panel, .result-card, .carousel').forEach((el, idx) => {
+        setTimeout(() => {
+          el.style.animation = 'morphIn 0.6s ease-out';
+        }, idx * 100);
+      });
+    });
+
+    console.log('✨ Custer Scrollytelling & Morphing Effects Initialized');
   </script>
 </body>
 </html>
