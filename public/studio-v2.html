@@ -4500,7 +4500,9 @@
               <span style="color: var(--text-secondary); font-size: 0.85rem;">${validation.aligned ? '✅ Alineado' : '⚠️ Ajustes'}</span>
             </div>
           `
-          feedbackElement.innerHTML = validation.feedback
+          // Asegurar que feedback es un string legible (no JSON crudo o [object Object])
+          const feedbackText = typeof validation.feedback === 'string' ? validation.feedback : 'Contenido validado'
+          feedbackElement.innerHTML = feedbackText
           feedbackElement.style.display = 'block'
         }
       } catch (error) {
