@@ -3,6 +3,11 @@
  * Procesa texto para extraer datos de marca
  */
 
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { logTokenUsage } from '@/app/lib/token-optimizer'
+import { COMPACT_SCHEMA_INSTRUCTION, getMaxTokens } from '@/app/lib/prompt-schemas'
+
 export async function POST(request) {
   try {
     const { text } = await request.json()
@@ -11,7 +16,33 @@ export async function POST(request) {
       return Response.json({ error: 'Texto requerido' }, { status: 400 })
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    // Try to read from .env files if process.env doesn't have it
+    let apiKey = process.env.ANTHROPIC_API_KEY
+
+    if (!apiKey) {
+      try {
+        // Try reading .env.local
+        const envPath = join(process.cwd(), '.env.local')
+        const envContent = readFileSync(envPath, 'utf8')
+        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+        if (match) {
+          apiKey = match[1].trim()
+        }
+      } catch (e) {
+        try {
+          // Try reading .env
+          const envPath = join(process.cwd(), '.env')
+          const envContent = readFileSync(envPath, 'utf8')
+          const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+          if (match) {
+            apiKey = match[1].trim()
+          }
+        } catch (e2) {
+          // Silent fallback
+        }
+      }
+    }
+
     if (!apiKey) {
       return Response.json(
         { error: 'API Key no configurada' },
@@ -28,81 +59,23 @@ export async function POST(request) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 2000,
-        system: 'Eres un experto en branding estratégico. Extrae TODA la información disponible del texto. Responde SOLO con JSON válido, sin explicaciones, sin markdown. Para arrays, usa [] si no hay información.',
+        model: 'claude-haiku-4-5',
+        max_tokens: getMaxTokens('process-brand-text'),
+        system: 'Eres experto en branding estratégico. Extrae TODA información del texto. Responde SOLO JSON válido sin markdown.',
         messages: [
           {
             role: 'user',
-            content: `Analiza este documento de marca en detalle. Extrae toda la información disponible y devuelve EXACTAMENTE este JSON (usa null para campos no encontrados, [] para arrays vacíos):
+            content: `Extract brand information from this text and return JSON with any found fields. Structure:
+- basico: {nombre, rubro, ciudad, propuesta}
+- estrategico: {mision, vision, valores[], beneficios_funcionales, beneficios_emocionales}
+- audiencia: {publico_objetivo, audiencia_real, pain_points[], gains[], motivaciones, comportamiento_digital}
+- identidad: {voz_tono, claim, narrativa, territorio_creativo}
+- visual: {tipografia, colores: {primario, secundario, acentos[]}, estilo_visual, recursos_graficos, sistema_grafico, mood_board}
+- posicionamiento: {competencia[], diferenciadores[], propuesta_unica}
+- implementacion: {canales[], formatos[], frecuencia}
+- comunicacion: {keywords[], avoid[], tonalidad[], ejemplos, registro}
 
-{
-  "basico": {
-    "nombre": "nombre de la marca",
-    "rubro": "industria/sector",
-    "ciudad": "ubicación geográfica",
-    "propuesta": "propuesta de valor principal"
-  },
-  "estrategico": {
-    "mision": "misión de la marca",
-    "vision": "visión de la marca",
-    "valores": ["valor1", "valor2", "valor3"],
-    "beneficios_funcionales": "beneficios prácticos/funcionales",
-    "beneficios_emocionales": "beneficios emocionales/psicológicos"
-  },
-  "audiencia": {
-    "publico_objetivo": "descripción demográfica del público",
-    "audiencia_real": "descripción psicográfica/real de la audiencia",
-    "pain_points": ["problema1", "problema2"],
-    "gains": ["beneficio1", "beneficio2"],
-    "motivaciones": "motivaciones de compra",
-    "comportamiento_digital": "cómo se comporta digitalmente"
-  },
-  "identidad": {
-    "voz_tono": "pilares de comunicación y tono",
-    "claim": "claim o manifiesto de la marca",
-    "narrativa": "narrativa de marca / storytelling",
-    "territorio_creativo": "espacio donde la marca se mueve"
-  },
-  "visual": {
-    "tipografia": "descripción de tipografías",
-    "colores": {
-      "primario": "color primario",
-      "secundario": "color secundario",
-      "acentos": ["acento1", "acento2"]
-    },
-    "estilo_visual": "fotografía, ilustración, abstracto, etc",
-    "recursos_graficos": ["recurso1", "recurso2"],
-    "sistema_grafico": "descripción del sistema gráfico",
-    "mood_board": "referencias de inspiración"
-  },
-  "posicionamiento": {
-    "competencia": ["competidor1", "competidor2"],
-    "diferenciadores": ["diferenciador1", "diferenciador2"],
-    "propuesta_unica": "qué les hace únicos"
-  },
-  "implementacion": {
-    "canales": ["canal1", "canal2"],
-    "formatos": ["formato1", "formato2"],
-    "frecuencia": "frecuencia de publicación"
-  },
-  "comunicacion": {
-    "keywords": ["palabra1", "palabra2"],
-    "avoid": ["evitar1", "evitar2"],
-    "tonalidad": ["tono1", "tono2"],
-    "ejemplos": "ejemplos de copy o mensajes"
-  }
-}
-
-INSTRUCCIONES ESPECÍFICAS:
-- Sé exhaustivo en la búsqueda de información
-- Para valores y arrays, extrae al menos 2-3 elementos si están disponibles
-- Describe características reales basadas en el documento
-- Si un campo no tiene información clara, usa null
-- Mantén respuestas concisas pero informativas
-
-DOCUMENTO:
-${text}`
+Return ONLY JSON. Use null for missing fields.\n\nTEXT:\n${text}`
           }
         ]
       })
@@ -123,8 +96,26 @@ ${text}`
       responseText = responseText.replace(/^```\n?/, '').replace(/\n?```$/, '')
     }
 
-    // Parsear JSON
-    let brandData = JSON.parse(responseText)
+    // Parsear JSON con fallback robusto
+    let brandData = null
+    try {
+      // Intentar parsear directo
+      brandData = JSON.parse(responseText)
+    } catch (parseError) {
+      // Si falla, intentar extraer JSON válido
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          brandData = JSON.parse(jsonMatch[0])
+        } catch (e) {
+          // Última opción: devolver estructura por defecto
+          console.error('No se pudo parsear JSON:', parseError.message)
+          brandData = {}
+        }
+      } else {
+        brandData = {}
+      }
+    }
 
     // Asegurar estructura correcta
     const defaultBrand = {
@@ -143,9 +134,19 @@ ${text}`
 
     brandData = { ...defaultBrand, ...brandData }
 
+    // Log token usage para optimización automática
+    const promptTokens = data.usage?.input_tokens || 0
+    const completionTokens = data.usage?.output_tokens || 0
+    logTokenUsage('processBrandText', promptTokens, completionTokens, promptTokens + completionTokens, true)
+
     return Response.json({
       success: true,
-      brand: brandData
+      brand: brandData,
+      _meta: {
+        promptTokens,
+        completionTokens,
+        totalTokens: promptTokens + completionTokens
+      }
     })
   } catch (error) {
     console.error('Error en /api/process-brand-text:', error.message)

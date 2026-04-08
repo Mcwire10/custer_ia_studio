@@ -62,6 +62,36 @@ Automático al hacer `git push` a main
 
 ---
 
+## 📊 Project Management
+
+Custer IA Studio usa un **sistema de orquestación de tareas** con planificación, verificación y lecciones aprendidas.
+
+### 📋 Task Management
+- **`tasks/todo.md`** — Master todo list con epics, tareas completadas, y próximas prioridades
+- **`tasks/lessons.md`** — Base de conocimiento con patrones a seguir y errores a evitar
+- **`tasks/verification-checklist.md`** — Checklist estándar para verificar antes de finalizar tareas
+- **`tasks/archives/`** — Historial de tareas completadas
+
+### 🎯 Workflow Estándar
+Cada tarea no trivial sigue este flujo:
+
+1. **PLANIFICACIÓN** → EnterPlanMode, explorar, diseñar
+2. **APROBACIÓN** → Usuario revisa el plan
+3. **IMPLEMENTACIÓN** → Código + tests + docs (paralelo con subagentes)
+4. **VERIFICACIÓN** → Checklist de calidad antes de finalizar
+5. **LECCIONES** → Registrar aprendizajes y patrones
+
+### 📖 Documentación
+- **`docs/WORKFLOW_GUIDE.md`** — Guía completa del workflow (cómo trabajar con el sistema)
+
+### 🚀 Cómo Comenzar
+1. Leer `docs/WORKFLOW_GUIDE.md` para entender el workflow
+2. Revisar `tasks/todo.md` para ver tareas actuales
+3. Consultar `tasks/lessons.md` antes de implementar (patrones + errores a evitar)
+4. Usar `tasks/verification-checklist.md` antes de marcar tarea como completa
+
+---
+
 ## 📁 Estructura
 
 ```

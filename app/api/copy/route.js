@@ -3,6 +3,30 @@
  * Genera copy para diferentes plataformas
  */
 
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { createStandardSystemPrompt, getMaxTokens } from '@/app/lib/prompt-schemas'
+
+function getApiKey() {
+  let apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    try {
+      const envPath = join(process.cwd(), '.env.local')
+      const envContent = readFileSync(envPath, 'utf8')
+      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+      if (match) apiKey = match[1].trim()
+    } catch (e) {
+      try {
+        const envPath = join(process.cwd(), '.env')
+        const envContent = readFileSync(envPath, 'utf8')
+        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+        if (match) apiKey = match[1].trim()
+      } catch (e2) {}
+    }
+  }
+  return apiKey
+}
+
 async function brainToPromptSystem(brain) {
   if (!brain || !brain.nombre) return 'Eres un copywriter especializado.'
   let prompt = `Eres copywriter para ${brain.nombre}`
@@ -23,15 +47,15 @@ export async function POST(request) {
       )
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = getApiKey()
     if (!apiKey) {
       return Response.json({ error: 'API Key no configurada' }, { status: 500 })
     }
 
-    const system = await brainToPromptSystem(brain) +
-      `\nGenera copy para: ${platforms.join(', ')}\nResponde SOLO JSON: {copies: {platform: {headline: string, body: string, cta: string}}}`
+    const context = brain?.nombre ? `Brand: ${brain.nombre}${brain.propuesta ? ` (${brain.propuesta})` : ''}` : '';
+    const system = createStandardSystemPrompt('copywriter especializado', context, `{copies: {${platforms.map(p => `${p}: {headline, body, cta}`).join(', ')}}}`);
 
-    const userPrompt = `Tema: "${theme}"\n\nAdapta el copy para cada plataforma según sus características y audiencia.`
+    const userPrompt = `Theme: "${theme}". Create copy for: ${platforms.join(', ')}. Adapt per platform characteristics.`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -41,8 +65,8 @@ export async function POST(request) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 500,
+        model: 'claude-haiku-4-5',
+        max_tokens: getMaxTokens('copy'),
         system,
         messages: [{ role: 'user', content: userPrompt }]
       })

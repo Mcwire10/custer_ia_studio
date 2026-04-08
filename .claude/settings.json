@@ -1,0 +1,69 @@
+{
+  "description": "Custer IA Studio - All 55 Skills Enabled",
+
+  "skillsEnabled": {
+    "marketing": {
+      "copywriting": true,
+      "copy-editing": true,
+      "content-strategy": true,
+      "social-content": true,
+      "email-sequence": true,
+      "seo-audit": true,
+      "ai-seo": true,
+      "programmatic-seo": true,
+      "schema-markup": true,
+      "page-cro": true,
+      "form-cro": true,
+      "signup-flow-cro": true,
+      "onboarding-cro": true,
+      "popup-cro": true,
+      "paywall-upgrade-cro": true,
+      "ab-test-setup": true,
+      "paid-ads": true,
+      "ad-creative": true,
+      "cold-email": true,
+      "marketing-ideas": true,
+      "marketing-psychology": true,
+      "product-marketing-context": true,
+      "pricing-strategy": true,
+      "free-tool-strategy": true,
+      "lead-magnets": true,
+      "launch-strategy": true,
+      "competitor-alternatives": true,
+      "customer-research": true,
+      "sales-enablement": true,
+      "analytics-tracking": true,
+      "revops": true,
+      "churn-prevention": true,
+      "referral-program": true
+    },
+    "utilities": {
+      "pdf": true,
+      "pptx": true,
+      "docx": true,
+      "xlsx": true,
+      "canvas-design": true,
+      "brand-guidelines": true,
+      "theme-factory": true,
+      "frontend-design": true,
+      "algorithmic-art": true,
+      "slack-gif-creator": true,
+      "claude-api": true,
+      "mcp-builder": true,
+      "web-artifacts-builder": true,
+      "webapp-testing": true,
+      "doc-coauthoring": true,
+      "internal-comms": true
+    },
+    "automation": {
+      "task-master": true
+    }
+  },
+
+  "projectConfig": {
+    "name": "Custer IA Studio",
+    "skillsPath": ".claude/skills",
+    "totalSkills": 55,
+    "lastUpdated": "2026-04-03"
+  }
+}

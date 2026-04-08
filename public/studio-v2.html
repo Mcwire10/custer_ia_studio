@@ -1970,6 +1970,14 @@
                 <label>Estilo de captions</label>
                 <input type="text" id="bbCaptionsStyle" placeholder="ej: Emojis + texto blanco grande 40px">
               </div>
+
+              <div style="margin-top: 20px;">
+                <button class="btn" style="width: 100%; background: rgba(74, 222, 128, 0.1); border: 1px solid #4ADE80; color: #4ADE80;" onclick="autoFetchMetrics()">
+                  <span id="autoFetchLoading"></span>
+                  🔄 Auto-obtener métricas de redes
+                </button>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 8px; text-align: center;">Conecta tus cuentas de Instagram, Google Analytics, Meta Ads y TikTok</p>
+              </div>
             </div>
           </div>
 
@@ -2178,10 +2186,43 @@
           <input type="text" id="valNombre" placeholder="ej: One Shot Branding">
         </div>
 
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div class="form-group">
+            <label>Tipo de contenido</label>
+            <select id="valTipo">
+              <option value="copy">Copy / Texto</option>
+              <option value="reel">Reel / Video</option>
+              <option value="post">Post / Static</option>
+              <option value="carousel">Carrusel</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Objetivo</label>
+            <select id="valObjetivo">
+              <option value="awareness">Awareness</option>
+              <option value="consideration">Consideration</option>
+              <option value="conversion">Conversion</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Plataforma</label>
+            <select id="valPlataforma">
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="facebook">Facebook</option>
+              <option value="twitter">Twitter</option>
+            </select>
+          </div>
+        </div>
+
         <div class="btn-group">
           <button class="btn" onclick="validarContenido()">
             <span id="valLoading"></span>
-            🎯 Analizar
+            🎯 Analizar con Coach
           </button>
         </div>
       </div>
@@ -3009,6 +3050,79 @@
         lastPost: new Date().toLocaleDateString(),
         avgLikes: '250',
         avgComments: '15'
+      }
+    }
+
+    // ============= AUTO-FETCH METRICS =============
+    async function autoFetchMetrics() {
+      showLoading('autoFetchLoading', true)
+      try {
+        // Obtener handles/IDs de forma más segura (si están disponibles)
+        // Por ahora, mostrar modal para que el usuario ingrese los datos
+
+        const response = await fetch('/api/fetch-brand-metrics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            instagram_handle: document.getElementById('bbInstagramHandle')?.value || document.getElementById('bbInstagramSeguidores')?.placeholder || null,
+            google_analytics_id: document.getElementById('bbGoogleAnalyticsId')?.value || null,
+            meta_ads_account_id: document.getElementById('bbMetaAdsId')?.value || null,
+            tiktok_handle: document.getElementById('bbTiktokHandle')?.value || null
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Error en fetch')
+
+        const metrics = data.metrics
+
+        // Poblar campos con datos de Instagram si existen
+        if (metrics.instagram && !metrics.instagram.error) {
+          const ig = metrics.instagram
+          if (ig.seguidores) document.getElementById('bbInstagramSeguidores').value = ig.seguidores
+          if (ig.engagement_rate) document.getElementById('bbInstagramEngagement').value = ig.engagement_rate
+          if (ig.mejor_horario) document.getElementById('bbMejorHorario').value = ig.mejor_horario
+        }
+
+        // Poblar campos con datos de TikTok si existen
+        if (metrics.tiktok && !metrics.tiktok.error) {
+          const tt = metrics.tiktok
+          if (tt.seguidores) document.getElementById('bbInstagramSeguidores').value = tt.seguidores + ' (TikTok)'
+        }
+
+        // Mostrar next steps si requieren OAuth
+        let message = '✅ Métricas obtenidas'
+        if (data.next_steps) {
+          if (data.next_steps.google_analytics) {
+            message += '\n\n📊 Google Analytics: ' + data.next_steps.google_analytics
+          }
+          if (data.next_steps.meta_ads) {
+            message += '\n📈 Meta Ads: ' + data.next_steps.meta_ads
+          }
+        }
+
+        showToast(message, 'success')
+      } catch (error) {
+        // Mostrar opción de entrada manual si falla el auto-fetch
+        const manualResponse = confirm(
+          '❌ No se pudo obtener datos automáticamente:\n\n' + error.message +
+          '\n\n¿Deseas ingresar los datos manualmente?\n\n' +
+          'Nota: Necesitamos:\n' +
+          '- Instagram handle (@usuario)\n' +
+          '- Google Analytics ID (GA-XXXXX)\n' +
+          '- Meta Ads Account ID\n' +
+          '- TikTok handle (@usuario)'
+        )
+
+        if (manualResponse) {
+          const instagramHandle = prompt('Instagram handle (ej: @custer_agencia):')
+          if (instagramHandle) {
+            // Guardar para próxima vez
+            showToast('💾 Ingresa manualmente en los campos de Métricas de Redes Sociales', 'info')
+          }
+        }
+      } finally {
+        showLoading('autoFetchLoading', false)
       }
     }
 
@@ -4843,101 +4957,248 @@
 
       showLoading('valLoading', true)
       try {
-        const response = await fetch('/api/validate', {
+        // Detectar tipo de contenido y objetivo
+        const contentType = document.getElementById('valTipo')?.value || 'copy'
+        const objetivo = document.getElementById('valObjetivo')?.value || 'general'
+        const targetPlatform = document.getElementById('valPlataforma')?.value || 'instagram'
+
+        // Llamar al Validador (usa endpoint simple que no requiere API keys)
+        const response = await fetch('/api/validate-simple', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: copy, brain: currentBrand })
+          body: JSON.stringify({
+            content: copy,
+            content_type: contentType,
+            brand: currentBrand,
+            objetivo: objetivo,
+            target_platform: targetPlatform
+          })
         })
 
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)
 
-        const validation = data.validation
+        const coachAnalysis = data.coach_analysis
         const metadata = data.metadata || {}
         const canvas = document.getElementById('valCanvas')
 
-        // Generar slides con nueva estructura
-        const slidesHTML = generateValidationSlides(validation, currentBrand, metadata)
+        // Renderizar análisis del Coach
+        const coachHTML = renderCoachAnalysis(coachAnalysis, currentBrand, metadata)
 
-        const statusIcon = validation.aligned ? '✅' : '⚠️'
-        const statusColor = validation.aligned ? '#4CAF50' : '#FF9800'
-        const statusText = validation.aligned ? 'Alineado con marca' : 'Requiere ajustes'
+        let html = createResultsContainer('Análisis del Coach completado ✨', '🎯', '') + coachHTML
 
-        // Información de funnel stage si está disponible
-        const funnelStageEmoji = {
-          'awareness': '👁️',
-          'consideration': '💭',
-          'conversion': '💰'
-        }
-        const funnelEmoji = funnelStageEmoji[validation.funnelStage] || '🎯'
-
-        let statusHTML = `
-          <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-              <div style="font-size: 48px;">${statusIcon}</div>
-              <div>
-                <h3 style="margin: 0; color: var(--text-primary); font-size: 1.3rem;">${statusText}</h3>
-                <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">Análisis de alineación con marca • ${validation.slideStructure?.numSlides || 1} slides detectados</p>
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-              <div>
-                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Score actual</div>
-                <div style="font-size: 2.5rem; font-weight: 800; color: ${statusColor};">${validation.score}%</div>
-              </div>
-              <div>
-                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Score mejorado</div>
-                <div style="font-size: 2.5rem; font-weight: 800; color: #4CAF50;">${validation.resumenGlobal?.nuevoScore || Math.min(100, validation.score + 20)}%</div>
-              </div>
-              <div>
-                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Funnel Stage</div>
-                <div style="font-size: 1.3rem;">${funnelEmoji} ${validation.funnelStage || 'general'}</div>
-              </div>
-            </div>
-
-            <div style="background: rgba(104, 96, 238, 0.05); border-left: 4px solid #6860EE; padding: 16px; border-radius: 4px; margin-bottom: 16px;">
-              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">💬 Análisis detallado</div>
-              <div style="color: var(--text-primary); line-height: 1.8; font-size: 0.95rem;">${validation.feedback}</div>
-            </div>
-
-            ${validation.resumenGlobal ? `
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div style="background: rgba(76, 175, 80, 0.05); border-left: 3px solid #4CAF50; padding: 12px; border-radius: 4px;">
-                  <div style="color: #4CAF50; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">✨ Fortalezas</div>
-                  <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
-                    ${validation.resumenGlobal.fortalezas?.slice(0, 2).map(f => `• ${f}`).join('<br>')}
-                  </div>
-                </div>
-                <div style="background: rgba(255, 152, 0, 0.05); border-left: 3px solid #FF9800; padding: 12px; border-radius: 4px;">
-                  <div style="color: #FF9800; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">⚡ Mejoras Críticas</div>
-                  <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
-                    ${validation.resumenGlobal.mejoras_criticas?.slice(0, 2).map(m => `• ${m}`).join('<br>')}
-                  </div>
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        `
-
-        let html = createResultsContainer('Validación completada', SVG_ICONS.check, '') + statusHTML
-
-        // Agregar slides estructurados
-        html += slidesHTML
-
-        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarValidacionCompleta()">' + SVG_ICONS.send.replace('currentColor', 'white') + ' 📥 Descargar análisis completo</button>'
+        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarCoachAnalisis()">' + SVG_ICONS.send.replace('currentColor', 'white') + ' 📥 Descargar análisis completo</button>'
 
         canvas.innerHTML = html
-        localStorage.setItem('lastValidation', JSON.stringify({
-          copy: copy,
-          validation: validation,
+        localStorage.setItem('lastCoachAnalysis', JSON.stringify({
+          content: copy,
+          analysis: coachAnalysis,
+          metadata: metadata,
           timestamp: new Date().toISOString()
         }))
-        showToast('✅ Validación completada con ' + (validation.slideStructure?.numSlides || 1) + ' slides', 'success')
+        showToast('✅ Análisis Coach completado', 'success')
       } catch (error) {
         showToast(`❌ ${error.message}`, 'error')
       } finally {
         showLoading('valLoading', false)
+      }
+    }
+
+    function renderCoachAnalysis(analysis, brand, metadata) {
+      if (!analysis) {
+        return '<div style="padding: 20px; color: var(--text-secondary);">No se pudo generar análisis</div>'
+      }
+
+      const strategic = analysis.analisis_estrategico || {}
+      const optimized = analysis.version_optimizada || ''
+      const explanations = analysis.explicaciones || []
+      const futureStrategy = analysis.estrategia_futura || {}
+      const videoRecs = analysis.recomendaciones_video || null
+
+      let html = `
+        <!-- ANÁLISIS ESTRATÉGICO -->
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <span style="font-size: 1.5rem;">📊</span>
+            <h3 style="margin: 0; color: var(--text-primary); font-size: 1.2rem;">Análisis Estratégico</h3>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+            <div style="background: rgba(104, 96, 238, 0.05); border-left: 3px solid #6860EE; padding: 12px; border-radius: 4px;">
+              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Objetivo</div>
+              <div style="color: var(--text-primary); font-size: 1rem; font-weight: 600;">${strategic.objetivo_detectado || 'general'}</div>
+            </div>
+            <div style="background: rgba(245, 166, 35, 0.05); border-left: 3px solid #F5A623; padding: 12px; border-radius: 4px;">
+              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Stage del Funnel</div>
+              <div style="color: var(--text-primary); font-size: 1rem; font-weight: 600;">${strategic.stage_funnel || 'general'}</div>
+            </div>
+            <div style="background: rgba(74, 222, 128, 0.05); border-left: 3px solid #4ADE80; padding: 12px; border-radius: 4px;">
+              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Emociones a Generar</div>
+              <div style="color: var(--text-primary); font-size: 0.95rem;">${(strategic.emociones_a_generar || []).join(', ') || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VERSIÓN OPTIMIZADA -->
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <span style="font-size: 1.5rem;">✅</span>
+            <h3 style="margin: 0; color: var(--text-primary); font-size: 1.2rem;">Versión Optimizada (Listo para copiar)</h3>
+          </div>
+
+          <div style="background: rgba(74, 222, 128, 0.08); border-left: 4px solid #4ADE80; padding: 20px; border-radius: 8px; margin-bottom: 12px; font-family: 'Monaco', 'Courier New', monospace; line-height: 1.8; color: var(--text-primary);">
+            ${optimized.split('\n').map(line => `<div style="margin-bottom: 8px;">${line || '&nbsp;'}</div>`).join('')}
+          </div>
+
+          <button class="btn" onclick="navigator.clipboard.writeText(\`${optimized.replace(/`/g, '\\`')}\`); showToast('✅ Copiado al portapapeles', 'success')" style="width: 100%; padding: 12px; font-size: 0.95rem;">📋 Copiar todo</button>
+        </div>
+
+        <!-- POR QUÉ CADA CAMBIO (Secciones Educativas) -->
+        ${explanations.length > 0 ? `
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+              <span style="font-size: 1.5rem;">📚</span>
+              <h3 style="margin: 0; color: var(--text-primary); font-size: 1.2rem;">Por qué cada cambio mejora</h3>
+            </div>
+
+            ${explanations.map((exp, idx) => `
+              <div style="background: rgba(104, 96, 238, 0.03); border-left: 4px solid #6860EE; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div style="margin-bottom: 12px;">
+                  <div style="color: #6860EE; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Cambio ${idx + 1}</div>
+                  <div style="color: var(--text-primary); font-size: 1rem; font-weight: 600;">${exp.cambio}</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                  <div>
+                    <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">💡 Principio de Marketing</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${exp.principio_marketing}</div>
+                  </div>
+                  <div>
+                    <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">🎯 Emoción que genera</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${exp.emocion}</div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 12px;">
+                  <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">📊 Tu contexto de marca</div>
+                  <div style="color: var(--text-secondary); font-size: 0.9rem;">${exp.contexto_marca}</div>
+                </div>
+
+                ${exp.referencia_historial ? `
+                  <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(104, 96, 238, 0.2);">
+                    <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">📈 Tu historial</div>
+                    <div style="color: #4ADE80; font-size: 0.9rem;">${exp.referencia_historial}</div>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <!-- ESTRATEGIA FUTURA (COACHING) -->
+        ${futureStrategy.siguiente_paso ? `
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+              <span style="font-size: 1.5rem;">🔮</span>
+              <h3 style="margin: 0; color: var(--text-primary); font-size: 1.2rem;">Estrategia Futura (Coaching)</h3>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+              <div style="background: rgba(104, 96, 238, 0.05); border-left: 3px solid #6860EE; padding: 12px; border-radius: 4px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">1️⃣ Siguiente paso</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.6;">${futureStrategy.siguiente_paso}</div>
+              </div>
+
+              <div style="background: rgba(245, 166, 35, 0.05); border-left: 3px solid #F5A623; padding: 12px; border-radius: 4px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">2️⃣ Cómo testear</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.6;">${futureStrategy.como_testear}</div>
+              </div>
+
+              <div style="background: rgba(74, 222, 128, 0.05); border-left: 3px solid #4ADE80; padding: 12px; border-radius: 4px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">3️⃣ Métrica clave</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.6;">${futureStrategy.metrica_clave}</div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- RECOMENDACIONES DE VIDEO (Si aplica) -->
+        ${videoRecs ? `
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+              <span style="font-size: 1.5rem;">🎬</span>
+              <h3 style="margin: 0; color: var(--text-primary); font-size: 1.2rem;">Recomendaciones para Reels/Video</h3>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div style="background: rgba(104, 96, 238, 0.05); border-left: 3px solid #6860EE; padding: 12px; border-radius: 4px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">🪝 Hook sugerido</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem;">${videoRecs.hook_sugerido}</div>
+              </div>
+
+              <div style="background: rgba(245, 166, 35, 0.05); border-left: 3px solid #F5A623; padding: 12px; border-radius: 4px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">⏱️ Duración óptima</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem;">${videoRecs.duracion_optima}</div>
+              </div>
+
+              <div style="background: rgba(74, 222, 128, 0.05); border-left: 3px solid #4ADE80; padding: 12px; border-radius: 4px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">🎵 Audio trending</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem;">${videoRecs.audio_trending}</div>
+              </div>
+
+              <div style="background: rgba(104, 96, 238, 0.05); border-left: 3px solid #6860EE; padding: 12px; border-radius: 4px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">✨ Transición clave</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem;">${videoRecs.transicion_clave}</div>
+              </div>
+
+              <div style="background: rgba(245, 166, 35, 0.05); border-left: 3px solid #F5A623; padding: 12px; border-radius: 4px; grid-column: span 2;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">📝 Estilo de caption</div>
+                <div style="color: var(--text-primary); font-size: 0.95rem;">${videoRecs.caption_style}</div>
+              </div>
+            </div>
+
+            ${videoRecs.cta_recomendado ? `
+              <div style="background: rgba(74, 222, 128, 0.08); border-left: 4px solid #4ADE80; padding: 16px; border-radius: 8px; margin-top: 16px;">
+                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">🎯 CTA recomendado</div>
+                <div style="color: var(--text-primary); font-size: 1rem; font-weight: 600;">${videoRecs.cta_recomendado}</div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+      `
+
+      return html
+    }
+
+    function descargarCoachAnalisis() {
+      const contentStr = localStorage.getItem('lastCoachAnalysis')
+      if (!contentStr) {
+        showToast('❌ No hay análisis para descargar', 'error')
+        return
+      }
+
+      try {
+        const content = typeof contentStr === 'string' ? JSON.parse(contentStr) : contentStr
+
+        const downloadData = {
+          timestamp: content.timestamp,
+          brand: currentBrand?.nombre || 'Sin marca',
+          content: content.content,
+          analysis: content.analysis,
+          metadata: content.metadata
+        }
+
+        const json = JSON.stringify(downloadData, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `coach-analisis-${currentBrand?.nombre || 'analisis'}-${new Date().getTime()}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+        showToast('✅ Análisis descargado', 'success')
+      } catch (error) {
+        showToast('❌ Error al descargar: ' + error.message, 'error')
       }
     }
 

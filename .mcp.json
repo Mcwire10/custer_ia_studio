@@ -1,0 +1,45 @@
+{
+  "mcpServers": {
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"],
+      "env": {
+        "TASK_MASTER_TOOLS": "standard",
+        "ANTHROPIC_API_KEY": "${process.env.ANTHROPIC_API_KEY}"
+      }
+    },
+    "aidesigner": {
+      "command": "npx",
+      "args": ["-y", "@aidesigner/agent-skills", "start"]
+    },
+    "adobe-creative-cloud": {
+      "command": "npx",
+      "args": ["-y", "adobe-mcp"],
+      "env": {
+        "ADOBE_CLIENT_ID": "${process.env.ADOBE_CLIENT_ID}",
+        "ADOBE_CLIENT_SECRET": "${process.env.ADOBE_CLIENT_SECRET}"
+      }
+    },
+    "google-workspace": {
+      "command": "npx",
+      "args": ["-y", "google-workspace-mcp"],
+      "env": {
+        "GOOGLE_API_KEY": "${process.env.GOOGLE_API_KEY}"
+      }
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "brave-search-mcp"],
+      "env": {
+        "BRAVE_SEARCH_API_KEY": "${process.env.BRAVE_SEARCH_API_KEY}"
+      }
+    },
+    "dataseo": {
+      "command": "npx",
+      "args": ["-y", "dataseo-mcp"],
+      "env": {
+        "DATASEO_API_KEY": "${process.env.DATASEO_API_KEY}"
+      }
+    }
+  }
+}

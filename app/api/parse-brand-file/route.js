@@ -3,6 +3,30 @@
  * Procesa archivos de marca (PDF, imagen, documento) y extrae datos con Claude
  */
 
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { COMPACT_SCHEMA_INSTRUCTION, getMaxTokens } from '@/app/lib/prompt-schemas'
+
+function getApiKey() {
+  let apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    try {
+      const envPath = join(process.cwd(), '.env.local')
+      const envContent = readFileSync(envPath, 'utf8')
+      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+      if (match) apiKey = match[1].trim()
+    } catch (e) {
+      try {
+        const envPath = join(process.cwd(), '.env')
+        const envContent = readFileSync(envPath, 'utf8')
+        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+        if (match) apiKey = match[1].trim()
+      } catch (e2) {}
+    }
+  }
+  return apiKey
+}
+
 export async function POST(request) {
   try {
     const formData = await request.formData()
@@ -12,7 +36,7 @@ export async function POST(request) {
       return Response.json({ error: 'Archivo requerido' }, { status: 400 })
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = getApiKey()
     if (!apiKey) {
       return Response.json(
         { error: 'API Key no configurada' },
@@ -44,66 +68,7 @@ export async function POST(request) {
 
     messageContent.push({
       type: 'text',
-      text: `Extrae TODA la información de branding de este archivo. Sé exhaustivo.
-
-Responde EXACTAMENTE en este formato JSON (sin texto adicional, solo JSON):
-{
-  "basico": {
-    "nombre": "nombre de la marca o null",
-    "rubro": "industria o null",
-    "ciudad": "ubicación o null",
-    "propuesta": "propuesta de valor o null"
-  },
-  "estrategico": {
-    "mision": "misión o null",
-    "vision": "visión o null",
-    "valores": ["valor1", "valor2"],
-    "beneficios_funcionales": "beneficios prácticos o null",
-    "beneficios_emocionales": "beneficios emocionales o null"
-  },
-  "audiencia": {
-    "publico_objetivo": "público objetivo o null",
-    "audiencia_real": "audiencia real/psicográfica o null",
-    "pain_points": ["problema1", "problema2"],
-    "gains": ["beneficio1", "beneficio2"],
-    "motivaciones": "motivaciones o null",
-    "comportamiento_digital": "comportamiento digital o null"
-  },
-  "identidad": {
-    "voz_tono": "voz y tono o null",
-    "claim": "claim/manifiesto o null",
-    "narrativa": "narrativa o null",
-    "territorio_creativo": "territorio creativo o null"
-  },
-  "visual": {
-    "tipografia": "tipografía o null",
-    "colores": {
-      "primario": "color primario o null",
-      "secundario": "color secundario o null",
-      "acentos": []
-    },
-    "estilo_visual": "fotografía/ilustración/etc o null",
-    "recursos_graficos": [],
-    "sistema_grafico": "sistema gráfico o null",
-    "mood_board": "referencias o null"
-  },
-  "posicionamiento": {
-    "competencia": [],
-    "diferenciadores": [],
-    "propuesta_unica": "propuesta única o null"
-  },
-  "implementacion": {
-    "canales": [],
-    "formatos": [],
-    "frecuencia": "frecuencia o null"
-  },
-  "comunicacion": {
-    "keywords": [],
-    "avoid": [],
-    "tonalidad": [],
-    "ejemplos": "ejemplos de copy o null"
-  }
-}`
+      text: `Extract ALL brand information from this file exhaustively. ${COMPACT_SCHEMA_INSTRUCTION} Respond ONLY JSON without markdown.`
     })
 
     // Llamar a Claude
@@ -115,9 +80,9 @@ Responde EXACTAMENTE en este formato JSON (sin texto adicional, solo JSON):
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 2000,
-        system: 'Eres un experto en branding estratégico. Responde SOLO con JSON válido. Sin explicaciones, sin markdown, sin comillas adicionales. Solo el JSON.',
+        model: 'claude-haiku-4-5',
+        max_tokens: getMaxTokens('parse-brand-file'),
+        system: 'Eres experto en branding estratégico. Responde SOLO JSON válido sin markdown ni explicaciones.',
         messages: [
           {
             role: 'user',

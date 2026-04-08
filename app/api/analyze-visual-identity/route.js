@@ -3,6 +3,10 @@
  * Analiza identidad visual de múltiples imágenes usando Claude Vision
  */
 
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { getMaxTokens } from '@/app/lib/prompt-schemas'
+
 export async function POST(request) {
   try {
     const { images, brandName } = await request.json()
@@ -29,7 +33,33 @@ export async function POST(request) {
       console.log(`Payload demasiado grande (${Math.round(totalSize / 1024 / 1024)}MB), comprimiendo...`)
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    // Try to read from .env files if process.env doesn't have it
+    let apiKey = process.env.ANTHROPIC_API_KEY
+
+    if (!apiKey) {
+      try {
+        // Try reading .env.local
+        const envPath = join(process.cwd(), '.env.local')
+        const envContent = readFileSync(envPath, 'utf8')
+        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+        if (match) {
+          apiKey = match[1].trim()
+        }
+      } catch (e) {
+        try {
+          // Try reading .env
+          const envPath = join(process.cwd(), '.env')
+          const envContent = readFileSync(envPath, 'utf8')
+          const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+          if (match) {
+            apiKey = match[1].trim()
+          }
+        } catch (e2) {
+          // Silent fallback
+        }
+      }
+    }
+
     if (!apiKey) {
       return Response.json(
         { error: 'API Key no configurada' },
@@ -52,66 +82,12 @@ export async function POST(request) {
       })
     })
 
-    // Prompt para análisis visual
+    // Prompt para análisis visual (optimizado)
     messageContent.push({
       type: 'text',
-      text: `Analiza estas ${images.length} imágenes de la marca "${brandName || 'sin nombre'}" y extrae su identidad visual.
-
-IMPORTANTE: Responde SOLO en JSON válido, sin explicaciones ni markdown.
-
-{
-  "colores": [
-    {
-      "hex": "código hex del color",
-      "rgb": "rgb(r, g, b)",
-      "nombre": "nombre del color",
-      "uso": "dónde aparece (fondo, texto, acento, etc)",
-      "frecuencia": porcentaje estimado de uso (1-100)
-    }
-  ],
-  "tipografia": [
-    {
-      "familia": "nombre de la familia tipográfica",
-      "peso": "light/regular/medium/bold/etc",
-      "uso": "donde se utiliza (títulos, body, botones)",
-      "estilo": "características (san-serif, moderna, minimalista)"
-    }
-  ],
-  "fotografia": {
-    "estilo": "fotografía/ilustración/mixto/etc",
-    "composicion": "descripción de cómo se componen las imágenes",
-    "temas": ["tema1", "tema2"],
-    "tratamiento": "filtros, saturación, contraste, etc",
-    "perspectiva": "ángulos y perspectivas utilizadas"
-  },
-  "elementos_graficos": {
-    "iconos": ["descripción de íconos utilizados"],
-    "formas": ["formas básicas utilizadas"],
-    "texturas": ["texturas encontradas"],
-    "patrones": ["patrones visuales identificados"],
-    "lineas": "estilos de líneas (finas, gruesas, punteadas)"
-  },
-  "sistema_visual": {
-    "consistencia": "nivel de consistencia entre imágenes (alto/medio/bajo)",
-    "paleta_dominante": ["color1", "color2", "color3"],
-    "atmosfera": "atmósfera general (profesional, lúdico, minimalista, etc)",
-    "balance": "descripción de balance visual"
-  },
-  "recomendaciones": {
-    "mantener": ["elemento1", "elemento2"],
-    "mejorar": ["aspecto1", "aspecto2"],
-    "expandir": "cómo expandir el sistema visual"
-  },
-  "resumen": "resumen ejecutivo de la identidad visual en 1-2 párrafos"
-}
-
-INSTRUCCIONES:
-- Sé ESPECÍFICO con códigos hex y nombres de colores
-- Identifica tipografías reales si las reconoces
-- Extrae al menos 5-7 colores principales
-- Describe el tratamiento fotográfico en detalle
-- Nota cualquier elemento gráfico repetido
-- Proporciona análisis consistente y profesional`
+      text: `Analyze ${images.length} brand images for "${brandName || 'untitled'}" visual identity.
+Return JSON: {colores:[{hex,rgb,nombre,uso,frecuencia}],tipografia:[{familia,peso,uso,estilo}],fotografia:{},elementos_graficos:{},sistema_visual:{},recomendaciones:{},resumen:""}
+INSTRUCTIONS: Be specific with hex codes, identify real typefaces, extract 5-7 main colors, detail photography treatment, note repeated graphic elements. Respond ONLY valid JSON.`
     })
 
     // Llamar a Claude Vision
@@ -123,10 +99,9 @@ INSTRUCCIONES:
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-1-20250805',
-        max_tokens: 2500,
-        system:
-          'Eres un experto en diseño y branding visual. Analiza imágenes con detalle profesional. Responde SOLO en JSON válido.',
+        model: 'claude-haiku-4-5',
+        max_tokens: getMaxTokens('analyze-visual-identity'),
+        system: 'Eres experto en diseño y branding visual. Analiza imágenes con detalle profesional. Responde SOLO JSON válido sin markdown.',
         messages: [
           {
             role: 'user',

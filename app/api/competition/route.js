@@ -3,6 +3,30 @@
  * Analiza competencia y compara con tu marca
  */
 
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { createStandardSystemPrompt, getMaxTokens } from '@/app/lib/prompt-schemas'
+
+function getApiKey() {
+  let apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    try {
+      const envPath = join(process.cwd(), '.env.local')
+      const envContent = readFileSync(envPath, 'utf8')
+      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+      if (match) apiKey = match[1].trim()
+    } catch (e) {
+      try {
+        const envPath = join(process.cwd(), '.env')
+        const envContent = readFileSync(envPath, 'utf8')
+        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+        if (match) apiKey = match[1].trim()
+      } catch (e2) {}
+    }
+  }
+  return apiKey
+}
+
 async function brainToPromptSystem(brain) {
   if (!brain || !brain.nombre) return 'Eres un analista de mercado.'
   let prompt = `Eres analista de mercado. Tu cliente es ${brain.nombre}`
@@ -22,15 +46,15 @@ export async function POST(request) {
       )
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = getApiKey()
     if (!apiKey) {
       return Response.json({ error: 'API Key no configurada' }, { status: 500 })
     }
 
-    const system = await brainToPromptSystem(brain) +
-      '\nAnaliza competidores. Responde SOLO JSON: {competitors: [{name: string, strengths: string, weaknesses: string, positioning: string, score: number}]}'
+    const context = brain?.nombre ? `vs ${brain.nombre}${brain.propuesta ? ` (${brain.propuesta})` : ''}` : '';
+    const system = createStandardSystemPrompt('market analyst', context, '{competitors: [{name, strengths, weaknesses, positioning, score}]}');
 
-    const userPrompt = `Competidores a analizar: ${competitors.join(', ')}\n\nCompara su posicionamiento, fortalezas y debilidades contra ${brain.nombre}. Da un score de 0-100 para cada uno.`
+    const userPrompt = `Analyze competitors: ${competitors.join(', ')}. Compare positioning, strengths, weaknesses. Score 0-100 each.`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -40,8 +64,8 @@ export async function POST(request) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 500,
+        model: 'claude-haiku-4-5',
+        max_tokens: getMaxTokens('competition'),
         system,
         messages: [{ role: 'user', content: userPrompt }]
       })

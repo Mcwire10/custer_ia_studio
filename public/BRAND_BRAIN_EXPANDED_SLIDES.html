@@ -1,0 +1,408 @@
+<!--
+BRAND BRAIN - EXPANDED SLIDES
+Nuevas diapositivas para expandir la memoria de marca
+Incluir estos slides en el brain-slider-container de studio-v2.html
+-->
+
+<!-- SLIDE 2: ESTRATEGIA DE MARCA -->
+<div class="brain-slide">
+  <h3>2️⃣ Estrategia de marca</h3>
+  <p class="slide-description">Propósito, misión, visión y valores fundamentales.</p>
+
+  <div class="form-group">
+    <label>🎯 Propósito de marca</label>
+    <textarea id="brandPurpose" placeholder="¿Por qué existe tu marca? ¿Cuál es su causa o misión social?" style="height: 80px;"></textarea>
+    <small style="color: var(--text-tertiary);">Ejemplo: 'Democratizar el acceso a herramientas de diseño'</small>
+  </div>
+
+  <div class="form-group">
+    <label>📋 Misión</label>
+    <textarea id="brandMission" placeholder="¿Qué hace tu marca día a día? ¿Cómo crea valor?" style="height: 80px;"></textarea>
+    <small style="color: var(--text-tertiary);">Ejemplo: 'Crear plataformas que habiliten a creativos a expresar ideas'</small>
+  </div>
+
+  <div class="form-group">
+    <label>🚀 Visión (3-5 años)</label>
+    <textarea id="brandVision" placeholder="¿Dónde quiere llegar tu marca en 3-5 años?" style="height: 80px;"></textarea>
+    <small style="color: var(--text-tertiary);">Ejemplo: 'Ser la plataforma #1 de diseño colaborativo en Latinoamérica'</small>
+  </div>
+
+  <div class="form-group">
+    <label>💎 Valores clave (máximo 5)</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <input type="text" id="valor1" placeholder="Valor 1 (ej: Innovación)" style="height: 36px;">
+      <input type="text" id="valor2" placeholder="Valor 2 (ej: Inclusión)" style="height: 36px;">
+      <input type="text" id="valor3" placeholder="Valor 3 (ej: Autenticidad)" style="height: 36px;">
+      <input type="text" id="valor4" placeholder="Valor 4 (ej: Excelencia)" style="height: 36px;">
+      <input type="text" id="valor5" placeholder="Valor 5 (opcional)" style="height: 36px;">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: VÍDIVIDENCIADORES COMPETITIVOS -->
+<div class="brain-slide">
+  <h3>3️⃣ Diferenciadores & Posicionamiento</h3>
+  <p class="slide-description">Qué te diferencia y por qué eres único.</p>
+
+  <div class="form-group">
+    <label>🔥 Propuesta de valor única</label>
+    <textarea id="uniqueProposition" placeholder="¿Qué prometes que otros no? (máx 2 frases)" style="height: 80px;"></textarea>
+    <small style="color: var(--text-tertiary);">Ejemplo: 'Diseño IA-asistido que genera en segundos lo que toma horas'</small>
+  </div>
+
+  <div class="form-group">
+    <label>⚡ Diferenciadores competitivos</label>
+    <div style="display: grid; gap: 8px;">
+      <div style="padding: 10px; background: var(--bg-secondary); border-radius: 4px; border: 1px solid var(--border-light);">
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Diferenciador 1</label>
+        <input type="text" id="diff1" placeholder="Ej: Velocidad de generación" style="width: 100%; height: 32px; background: transparent; border: none; padding: 0;">
+      </div>
+      <div style="padding: 10px; background: var(--bg-secondary); border-radius: 4px; border: 1px solid var(--border-light);">
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Diferenciador 2</label>
+        <input type="text" id="diff2" placeholder="Ej: Precisión en brand compliance" style="width: 100%; height: 32px; background: transparent; border: none; padding: 0;">
+      </div>
+      <div style="padding: 10px; background: var(--bg-secondary); border-radius: 4px; border: 1px solid var(--border-light);">
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Diferenciador 3</label>
+        <input type="text" id="diff3" placeholder="Ej: Integración con redes sociales" style="width: 100%; height: 32px; background: transparent; border: none; padding: 0;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: IDENTIDAD DE VOZ Y TONO -->
+<div class="brain-slide">
+  <h3>4️⃣ Voz, tono y personalidad</h3>
+  <p class="slide-description">Cómo habla tu marca y cómo se adapta según contexto.</p>
+
+  <div class="form-group">
+    <label>🗣️ Voz de marca (características)</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleBrandVoice(this, 'directo')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Directo</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleBrandVoice(this, 'coloquial')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Coloquial</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleBrandVoice(this, 'humor')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Con humor</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleBrandVoice(this, 'profesional')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Profesional</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleBrandVoice(this, 'inspirador')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Inspirador</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleBrandVoice(this, 'educativo')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Educativo</div>
+      </div>
+    </div>
+    <input type="hidden" id="brandVoiceSelected">
+  </div>
+
+  <div class="form-group">
+    <label>📝 Personalidad (adjetivos)</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <input type="text" id="personality1" placeholder="Adj. 1 (ej: Innovadora)" style="height: 36px;">
+      <input type="text" id="personality2" placeholder="Adj. 2 (ej: Accesible)" style="height: 36px;">
+      <input type="text" id="personality3" placeholder="Adj. 3 (ej: Confiable)" style="height: 36px;">
+      <input type="text" id="personality4" placeholder="Adj. 4 (ej: Ambiciosa)" style="height: 36px;">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>📋 Máximas de marca (frases clave que la definen)</label>
+    <textarea id="brandMaxims" placeholder="Ej: 'Hecho rápido, hecho bien' o 'Los diseñadores primero'" style="height: 80px;"></textarea>
+  </div>
+</div>
+
+<!-- SLIDE 5: POSICIONAMIENTO DE MERCADO -->
+<div class="brain-slide">
+  <h3>5️⃣ Posicionamiento de mercado</h3>
+  <p class="slide-description">Tu industria, audiencia y competencia.</p>
+
+  <div class="form-group">
+    <label>🏭 Industria / Rubro</label>
+    <input type="text" id="marketIndustry" placeholder="Ej: SaaS de diseño, Marketing, E-commerce, etc." style="height: 40px;">
+  </div>
+
+  <div class="form-group">
+    <label>🎯 Mercado objetivo</label>
+    <textarea id="targetMarket" placeholder="Descripción del mercado: tamaño, crecimiento, oportunidades" style="height: 80px;"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>👥 Audiencia primaria (Buyer Persona)</label>
+    <textarea id="primaryAudience" placeholder="Ej: Agencias de diseño de 5-50 personas en LATAM con budget 500-5000 USD/mes" style="height: 80px;"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>🎪 Audiencias secundarias</label>
+    <textarea id="secondaryAudience" placeholder="Ej: Freelancers, Grandes corporaciones, Educación, etc." style="height: 80px;"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>🥊 Competidores principales (Top 3-5)</label>
+    <div style="display: grid; gap: 8px;">
+      <input type="text" id="competitor1" placeholder="Competidor 1 (ej: Figma)" style="height: 36px;">
+      <input type="text" id="competitor2" placeholder="Competidor 2 (ej: Adobe XD)" style="height: 36px;">
+      <input type="text" id="competitor3" placeholder="Competidor 3 (ej: Sketch)" style="height: 36px;">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>🎯 Posicionamiento vs competencia</label>
+    <textarea id="competitivePosition" placeholder="¿Cómo te posicionas? (ej: 'Más rápido que Figma, más asequible que Adobe')" style="height: 80px;"></textarea>
+  </div>
+</div>
+
+<!-- SLIDE 6: IDENTIDAD VISUAL EXPANDIDA -->
+<div class="brain-slide">
+  <h3>6️⃣ Identidad visual completa</h3>
+  <p class="slide-description">Colores, tipografía, estilo y elementos gráficos.</p>
+
+  <div class="form-group">
+    <label>🎨 Paleta de colores</label>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Primario</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="color" id="colorPrimary" value="#6860EE" style="flex: 0 0 50px; height: 40px; cursor: pointer;">
+          <input type="text" id="colorPrimaryHex" value="#6860EE" style="flex: 1; height: 40px;" readonly>
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Secundario</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="color" id="colorSecondary" value="#764ba2" style="flex: 0 0 50px; height: 40px; cursor: pointer;">
+          <input type="text" id="colorSecondaryHex" value="#764ba2" style="flex: 1; height: 40px;" readonly>
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Acento</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="color" id="colorAccent" value="#F5A623" style="flex: 0 0 50px; height: 40px; cursor: pointer;">
+          <input type="text" id="colorAccentHex" value="#F5A623" style="flex: 1; height: 40px;" readonly>
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Neutro</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="color" id="colorNeutral" value="#808080" style="flex: 0 0 50px; height: 40px; cursor: pointer;">
+          <input type="text" id="colorNeutralHex" value="#808080" style="flex: 1; height: 40px;" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>🔤 Tipografía</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Principal</label>
+        <select id="typoPrimary" style="width: 100%; height: 40px; background: var(--bg-secondary); border: 1px solid var(--border-light); color: var(--text-primary);">
+          <option value="Gotham">Gotham</option>
+          <option value="Inter">Inter</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Bebas Neue">Bebas Neue</option>
+          <option value="Raleway">Raleway</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Secundaria</label>
+        <select id="typoSecondary" style="width: 100%; height: 40px; background: var(--bg-secondary); border: 1px solid var(--border-light); color: var(--text-primary);">
+          <option value="Inter">Inter</option>
+          <option value="Open Sans">Open Sans</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Lato">Lato</option>
+          <option value="Source Sans Pro">Source Sans Pro</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>🎭 Estilo visual</label>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="selectStyle(this, 'minimalista')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Minimalista</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="selectStyle(this, 'moderno')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Moderno</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="selectStyle(this, 'clásico')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Clásico</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="selectStyle(this, 'creativo')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Creativo</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="selectStyle(this, 'corporativo')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Corporativo</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="selectStyle(this, 'disruptivo')">
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Disruptivo</div>
+      </div>
+    </div>
+    <input type="hidden" id="styleSelected">
+  </div>
+
+  <div class="form-group">
+    <label>📸 Estilo fotográfico</label>
+    <select id="photoStyle" style="width: 100%; height: 40px; background: var(--bg-secondary); border: 1px solid var(--border-light); color: var(--text-primary);">
+      <option value="">Selecciona un estilo...</option>
+      <option value="Lifestyle">Lifestyle</option>
+      <option value="Corporativo">Corporativo</option>
+      <option value="Minimalista">Minimalista</option>
+      <option value="Conceptual">Conceptual</option>
+      <option value="Product">Product</option>
+      <option value="Blanco/Gris">Blanco/Gris</option>
+    </select>
+  </div>
+</div>
+
+<!-- SLIDE 7: MENSAJERÍA Y NARRATIVA -->
+<div class="brain-slide">
+  <h3>7️⃣ Mensajería y narrativa</h3>
+  <p class="slide-description">Mensajes clave, claims y narrativa de marca.</p>
+
+  <div class="form-group">
+    <label>💬 Mensajes clave (Top 3)</label>
+    <div style="display: grid; gap: 8px;">
+      <input type="text" id="message1" placeholder="Mensaje 1" style="height: 36px;">
+      <input type="text" id="message2" placeholder="Mensaje 2" style="height: 36px;">
+      <input type="text" id="message3" placeholder="Mensaje 3" style="height: 36px;">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>🎤 Tagline / Slogan</label>
+    <input type="text" id="tagline" placeholder="Ej: 'Diseña. Crea. Inspira.'" style="height: 40px;">
+  </div>
+
+  <div class="form-group">
+    <label>📖 Narrativa / Story de marca</label>
+    <textarea id="brandStory" placeholder="Cuéntanos la historia: ¿Cómo nació? ¿Cuál es el propósito? ¿Por qué importa?" style="height: 120px;"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>🤝 Promesas de marca (Qué promete tu marca)</label>
+    <textarea id="brandPromises" placeholder="Ej: Velocidad, Calidad, Soporte 24/7, Innovación continua" style="height: 80px;"></textarea>
+  </div>
+</div>
+
+<!-- SLIDE 8: GUÍAS DE APLICACIÓN -->
+<div class="brain-slide">
+  <h3>8️⃣ Guías de aplicación</h3>
+  <p class="slide-description">Dónde, cómo y cuándo usar tu marca.</p>
+
+  <div class="form-group">
+    <label>📱 Canales principales</label>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleChannel(this)">
+        <div style="font-size: 0.8rem;">Instagram</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleChannel(this)">
+        <div style="font-size: 0.8rem;">LinkedIn</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleChannel(this)">
+        <div style="font-size: 0.8rem;">TikTok</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleChannel(this)">
+        <div style="font-size: 0.8rem;">Web</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleChannel(this)">
+        <div style="font-size: 0.8rem;">Email</div>
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; cursor: pointer; text-align: center;" onclick="toggleChannel(this)">
+        <div style="font-size: 0.8rem;">Print</div>
+      </div>
+    </div>
+    <input type="hidden" id="channelsSelected">
+  </div>
+
+  <div class="form-group">
+    <label>❌ Restricciones (Qué NO hacer)</label>
+    <textarea id="brandRestrictions" placeholder="Ej: No usar colores saturados, No exceso de efectos, No perder claridad, No cambiar tipografía" style="height: 80px;"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>⚠️ Excepciones (Cuándo se pueden quebrar reglas)</label>
+    <textarea id="brandExceptions" placeholder="Ej: Colabs especiales pueden usar paleta diferente, Campañas virales pueden ser más desenfadadas" style="height: 80px;"></textarea>
+  </div>
+</div>
+
+<!-- SLIDE 9: REDES SOCIALES AVANZADO -->
+<div class="brain-slide">
+  <h3>9️⃣ Estrategia en redes sociales</h3>
+  <p class="slide-description">Cómo se comporta tu marca en cada canal.</p>
+
+  <div class="form-group">
+    <label>📱 Handle principal</label>
+    <input type="text" id="socialHandle" placeholder="@tuusuario" style="height: 40px;">
+  </div>
+
+  <div class="form-group">
+    <label>👥 Métricas clave</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px;">
+        <label style="font-size: 0.7rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">SEGUIDORES</label>
+        <input type="text" id="socialFollowers" placeholder="123K" style="width: 100%; height: 32px; background: transparent; border: none; padding: 0; font-size: 1.1rem; font-weight: 600;">
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px;">
+        <label style="font-size: 0.7rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">ENGAGEMENT %</label>
+        <input type="text" id="socialEngagement" placeholder="4.5%" style="width: 100%; height: 32px; background: transparent; border: none; padding: 0; font-size: 1.1rem; font-weight: 600;">
+      </div>
+      <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px;">
+        <label style="font-size: 0.7rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">POSTOS/SEMANA</label>
+        <input type="text" id="socialPostFreq" placeholder="3-4" style="width: 100%; height: 32px; background: transparent; border: none; padding: 0; font-size: 1.1rem; font-weight: 600;">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>📅 Mejores horarios</label>
+    <textarea id="bestHours" placeholder="Ej: Martes-Jueves 10-11 AM y 6-7 PM son los mejores momentos" style="height: 60px;"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>🏷️ Hashtags principales (Top 10)</label>
+    <textarea id="topHashtags" placeholder="#diseño #marketing #creatividad #innovación #agencia #digitalart #branding #contenido #redes #socialmedia" style="height: 80px;"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>🎯 Tono por canal (cómo varía tu voz)</label>
+    <textarea id="tonePorCanal" placeholder="Instagram: Más creativo y visual | LinkedIn: Más profesional y educational | TikTok: Más joven y desenfadado" style="height: 80px;"></textarea>
+  </div>
+</div>
+
+<!-- SLIDE 10: RESUMEN Y EXPORT -->
+<div class="brain-slide">
+  <h3>🎬 Resumen y exportar</h3>
+  <p class="slide-description">Revisa tu Brand Brain completo antes de guardar.</p>
+
+  <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px; padding: 15px; margin-bottom: 15px;">
+    <h4 style="margin: 0 0 12px 0; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; font-family: var(--font-mono);">📊 CAMPOS COMPLETADOS</h4>
+    <div id="completionStatus" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem;">
+      <!-- Se llena con JavaScript -->
+    </div>
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-light);">
+      <div style="font-size: 0.9rem; color: var(--text-secondary);">
+        Completitud: <span id="completionPercentage" style="color: var(--color-success); font-weight: 600;">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <button class="btn" onclick="exportBrandBrain('json')" style="width: 100%;">
+      📥 Descargar JSON
+    </button>
+    <button class="btn" style="background: var(--color-success); width: 100%;" onclick="saveBrandBrain()">
+      💾 Guardar en BD
+    </button>
+  </div>
+
+  <button class="btn" style="width: 100%; margin-top: 10px; background: var(--color-accent);" onclick="sharebrainBrain()">
+    📤 Compartir con equipo
+  </button>
+</div>

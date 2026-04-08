@@ -1,0 +1,130 @@
+═══════════════════════════════════════════════════════════════════════════
+  🚀 QUICK START - TESTING & VERIFICATION
+═══════════════════════════════════════════════════════════════════════════
+
+OBJETIVO: Llegar al 100% verificando que TODO funciona con Haiku
+
+TIEMPO TOTAL: ~1-2 horas
+
+═══════════════════════════════════════════════════════════════════════════
+  PASO 1: INSTALAR NODE.JS (5 min)
+═══════════════════════════════════════════════════════════════════════════
+
+Abre Terminal y ejecuta:
+
+  brew install node
+
+Verifica:
+
+  node --version
+  npm --version
+
+Deberían devolver versiones (ej: v18.0.0)
+
+═══════════════════════════════════════════════════════════════════════════
+  PASO 2: ARRANCAR SERVIDOR (2 min)
+═══════════════════════════════════════════════════════════════════════════
+
+En Terminal:
+
+  cd /Users/leandromoyano/agentes/custer_ai_studio
+  npm run dev
+
+Espera hasta ver:
+
+  ▲ Next.js 14.2.0
+  ✓ Compiled successfully
+  ✓ Ready in 1.2s
+
+NOTA: No presiones Ctrl+C - déjalo corriendo
+
+═══════════════════════════════════════════════════════════════════════════
+  PASO 3: ABRIR EN NAVEGADOR (1 min)
+═══════════════════════════════════════════════════════════════════════════
+
+Abre navegador:
+
+  http://localhost:3000
+
+Deberías ver la aplicación con 7 tabs
+
+═══════════════════════════════════════════════════════════════════════════
+  PASO 4: TESTING (30-45 min)
+═══════════════════════════════════════════════════════════════════════════
+
+Abre DevTools: F12 (o Cmd+Option+I en Mac)
+
+Ve a tab: Console
+
+Ahora testea siguiendo NEXT_STEPS.md:
+
+  [ ] Tab 1: 🧠 Brand Brain (4 tests)
+  [ ] Tab 2: ✨ Generador (3 tests)
+  [ ] Tab 3: 🎯 Validador (2 tests)
+  [ ] Tab 4: ✍️ Copy (1 test)
+  [ ] Tab 5: 🔍 Competencia (1 test)
+  [ ] Tab 6: 📊 Reportes (1 test)
+  [ ] Tab 7: 📈 Analytics (3 tests)
+  [ ] EXTRA: Liquid Glass Toggle (1 test)
+
+═══════════════════════════════════════════════════════════════════════════
+  PASO 5: DOCUMENTAR PROBLEMAS (15 min)
+═══════════════════════════════════════════════════════════════════════════
+
+Si encuentras errores:
+
+1. Nota el error de Console (F12)
+2. Abre TESTING_RESULTS_TEMPLATE.md
+3. Rellena la plantilla para cada problema
+4. Guarda como TESTING_RESULTS.md
+
+═══════════════════════════════════════════════════════════════════════════
+  ESTADO ACTUAL
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Completado:
+  - Todos los endpoints usan Haiku
+  - 8 features implementadas
+  - Tokens optimizados 26%
+  - 6 guías de documentación
+
+❌ Pendiente:
+  - Instalar Node.js
+  - Testing manual de 7 tabs
+  - Identificar bugs específicos
+  - Aplicar fixes
+
+═══════════════════════════════════════════════════════════════════════════
+  SI ALGO NO FUNCIONA
+═══════════════════════════════════════════════════════════════════════════
+
+Error: "command not found: npm"
+  Solución: brew install node
+
+Error: "EADDRINUSE: address already in use :::3000"
+  Solución: pkill -f "next dev" (y luego npm run dev de nuevo)
+
+Error: "ANTHROPIC_API_KEY no configurada"
+  Solución: echo "ANTHROPIC_API_KEY=tu_clave" > .env.local
+
+Página no carga:
+  Solución: Espera 10 segundos, recarga (Cmd+R)
+
+═══════════════════════════════════════════════════════════════════════════
+  REFERENCIAS
+═══════════════════════════════════════════════════════════════════════════
+
+- NEXT_STEPS.md           → Plan detallado de testing
+- TESTING_PLAN.md         → Matriz de testing para cada tab
+- MODEL_ISSUES_ANALYSIS.md → Análisis de riesgos por endpoint
+- SERVER_STARTUP_GUIDE.md → Guía de arranque avanzada
+- STATUS_REPORT.md        → Reporte de estado
+- diagnostics.sh          → Script de diagnóstico (bash diagnostics.sh)
+
+═══════════════════════════════════════════════════════════════════════════
+
+¡VAMOS! 🚀
+
+Próximo paso: Instalar Node.js
+
+═══════════════════════════════════════════════════════════════════════════

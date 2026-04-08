@@ -3,6 +3,29 @@
  * Chat contextual en cada módulo que explica fuentes de datos y permite cambiar herramientas
  */
 
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+function getApiKey() {
+  let apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    try {
+      const envPath = join(process.cwd(), '.env.local')
+      const envContent = readFileSync(envPath, 'utf8')
+      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+      if (match) apiKey = match[1].trim()
+    } catch (e) {
+      try {
+        const envPath = join(process.cwd(), '.env')
+        const envContent = readFileSync(envPath, 'utf8')
+        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
+        if (match) apiKey = match[1].trim()
+      } catch (e2) {}
+    }
+  }
+  return apiKey
+}
+
 const MODULE_CONTEXT = {
   brain: {
     name: 'Brand Brain',
@@ -124,7 +147,7 @@ export async function POST(request) {
       )
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = getApiKey()
     if (!apiKey) {
       return Response.json(
         { error: 'API Key no configurada' },
@@ -196,7 +219,7 @@ Por favor:
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5',
         max_tokens: 1000,
         system: systemPrompt,
         messages: [
