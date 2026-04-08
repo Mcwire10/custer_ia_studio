@@ -39,3 +39,17 @@ yarn-error.log*
 /tasks/todo.md
 /tasks/archives/
 .claude/token-metrics.json
+
+# Archivos de backup y documentación local
+*.bak
+*.bak2
+dist/
+build/
+
+# Carpetas innecesarias
+/trash/
+/.claude/worktrees/
+
+# Cache y temporal
+.cache/
+temp/
