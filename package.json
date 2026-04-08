@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.86.0",
+    "axios": "^1.6.0",
+    "jsdom": "^29.0.2",
+    "mysql2": "^3.6.0",
+    "next": "^14.0.0",
+    "node-fetch": "^3.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "next": "^14.0.0",
-    "axios": "^1.6.0",
-    "mysql2": "^3.6.0"
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "eslint": "^8",
