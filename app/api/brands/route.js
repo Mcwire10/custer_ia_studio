@@ -11,29 +11,40 @@ import {
   getBrand,
   getBrandByName,
   getAllBrands,
+  getBrandsByUser,
   updateBrand,
   deleteBrand,
   initializeDatabase
 } from '@/lib/brands-db'
+import { getCurrentUser } from '@/lib/auth'
 
 /**
- * GET /api/brands - List all brands
- * GET /api/brands?id=123 - Get specific brand
+ * GET /api/brands - List all brands for authenticated user
+ * GET /api/brands?id=123 - Get specific brand (must belong to user)
  */
 export async function GET(request) {
   try {
     // Initialize DB on first request
     await initializeDatabase()
 
+    // Validar autenticación
+    const user = await getCurrentUser()
+    if (!user) {
+      return Response.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
     if (id) {
-      // Get specific brand
-      const brand = await getBrand(parseInt(id))
+      // Get specific brand - validate ownership
+      const brand = await getBrand(parseInt(id), user.id)
 
       if (!brand) {
-        return Response.json({ error: 'Brand not found' }, { status: 404 })
+        return Response.json({ error: 'Brand no encontrado o acceso denegado' }, { status: 404 })
       }
 
       return Response.json({
@@ -42,8 +53,8 @@ export async function GET(request) {
       })
     }
 
-    // Get all brands
-    const brands = await getAllBrands()
+    // Get all brands for this user
+    const brands = await getBrandsByUser(user.id)
 
     return Response.json({
       success: true,
@@ -56,7 +67,7 @@ export async function GET(request) {
 }
 
 /**
- * POST /api/brands - Create new brand
+ * POST /api/brands - Create new brand for authenticated user
  * Body:
  * {
  *   brand: { ...brand data },
@@ -65,6 +76,15 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
+    // Validar autenticación
+    const user = await getCurrentUser()
+    if (!user) {
+      return Response.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      )
+    }
+
     const { brand, analysis } = await request.json()
 
     if (!brand || !brand.nombre) {
@@ -74,23 +94,14 @@ export async function POST(request) {
       )
     }
 
-    // Check if brand already exists
-    const existing = await getBrandByName(brand.nombre)
-    if (existing) {
-      return Response.json(
-        { error: 'Brand with this name already exists' },
-        { status: 409 }
-      )
-    }
-
-    // Save brand
-    const result = await saveBrand(brand)
+    // Save brand with user_id
+    const result = await saveBrand(brand, user.id)
 
     return Response.json({
       success: true,
       id: result.id,
       brand: result,
-      message: 'Brand created successfully'
+      message: 'Marca creada exitosamente'
     })
   } catch (error) {
     console.error('Error en POST /api/brands:', error)
@@ -99,7 +110,7 @@ export async function POST(request) {
 }
 
 /**
- * PUT /api/brands - Update brand
+ * PUT /api/brands - Update brand (must belong to authenticated user)
  * Body:
  * {
  *   id: 123,
@@ -108,31 +119,40 @@ export async function POST(request) {
  */
 export async function PUT(request) {
   try {
+    // Validar autenticación
+    const user = await getCurrentUser()
+    if (!user) {
+      return Response.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      )
+    }
+
     const { id, ...updates } = await request.json()
 
     if (!id) {
       return Response.json({ error: 'Brand ID is required' }, { status: 400 })
     }
 
-    // Check if brand exists
-    const brand = await getBrand(id)
+    // Check if brand exists and belongs to user
+    const brand = await getBrand(id, user.id)
     if (!brand) {
-      return Response.json({ error: 'Brand not found' }, { status: 404 })
+      return Response.json({ error: 'Brand no encontrado o acceso denegado' }, { status: 404 })
     }
 
     // Update brand
-    const success = await updateBrand(id, updates)
+    const success = await updateBrand(id, updates, user.id)
 
     if (!success) {
-      return Response.json({ error: 'Failed to update brand' }, { status: 400 })
+      return Response.json({ error: 'Error actualizando la marca' }, { status: 400 })
     }
 
-    const updated = await getBrand(id)
+    const updated = await getBrand(id, user.id)
 
     return Response.json({
       success: true,
       brand: updated,
-      message: 'Brand updated successfully'
+      message: 'Marca actualizada exitosamente'
     })
   } catch (error) {
     console.error('Error en PUT /api/brands:', error)
@@ -141,10 +161,19 @@ export async function PUT(request) {
 }
 
 /**
- * DELETE /api/brands/:id - Delete brand
+ * DELETE /api/brands/:id - Delete brand (must belong to authenticated user)
  */
 export async function DELETE(request) {
   try {
+    // Validar autenticación
+    const user = await getCurrentUser()
+    if (!user) {
+      return Response.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -152,22 +181,22 @@ export async function DELETE(request) {
       return Response.json({ error: 'Brand ID is required' }, { status: 400 })
     }
 
-    // Check if brand exists
-    const brand = await getBrand(parseInt(id))
+    // Check if brand exists and belongs to user
+    const brand = await getBrand(parseInt(id), user.id)
     if (!brand) {
-      return Response.json({ error: 'Brand not found' }, { status: 404 })
+      return Response.json({ error: 'Brand no encontrado o acceso denegado' }, { status: 404 })
     }
 
     // Delete brand
-    const success = await deleteBrand(parseInt(id))
+    const success = await deleteBrand(parseInt(id), user.id)
 
     if (!success) {
-      return Response.json({ error: 'Failed to delete brand' }, { status: 400 })
+      return Response.json({ error: 'Error eliminando la marca' }, { status: 400 })
     }
 
     return Response.json({
       success: true,
-      message: 'Brand deleted successfully'
+      message: 'Marca eliminada exitosamente'
     })
   } catch (error) {
     console.error('Error en DELETE /api/brands:', error)

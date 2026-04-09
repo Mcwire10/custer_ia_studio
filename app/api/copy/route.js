@@ -6,6 +6,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { createStandardSystemPrompt, getMaxTokens } from '@/app/lib/prompt-schemas'
+import { getCurrentUser } from '@/lib/auth'
 
 function getApiKey() {
   let apiKey = process.env.ANTHROPIC_API_KEY
@@ -38,6 +39,15 @@ async function brainToPromptSystem(brain) {
 
 export async function POST(request) {
   try {
+    // Validar autenticación
+    const user = await getCurrentUser()
+    if (!user) {
+      return Response.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      )
+    }
+
     const { theme, platforms, brain } = await request.json()
 
     if (!theme?.trim() || !platforms || platforms.length === 0) {

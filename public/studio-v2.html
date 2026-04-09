@@ -1435,7 +1435,7 @@
         <button onclick="openBrandManager()" style="padding: 12px 20px; height: fit-content; align-self: flex-end;">+ Nueva</button>
       </div>
 
-      <!-- ============= LIQUID GLASS THEME TOGGLE ============= -->
+      <!-- ============= LIQUID GLASS THEME TOGGLE & USER MENU ============= -->
       <div style="display: flex; gap: 12px; align-items: center;">
         <button id="themeToggle" class="theme-toggle-btn" onclick="toggleLiquidGlass()"
           title="Toggle Liquid Glass Effects"
@@ -1456,6 +1456,26 @@
           <span id="themeIcon">🔷</span>
           <span id="themeLabel">Glass</span>
         </button>
+
+        <div id="userMenu" style="display: flex; gap: 8px; align-items: center;">
+          <span id="currentUsername" style="font-size: 0.9rem; color: var(--text-secondary);"></span>
+          <button onclick="handleLogout()"
+            style="
+              background: rgba(239, 68, 68, 0.1);
+              border: 1px solid rgba(239, 68, 68, 0.3);
+              color: #FF6B6B;
+              padding: 8px 16px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 0.9rem;
+              font-weight: 600;
+              transition: all 0.3s ease;
+            "
+            onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
+            onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
+            🚪 Salir
+          </button>
+        </div>
       </div>
     </div>
 
@@ -2476,6 +2496,239 @@
     let currentAds = []
     let currentAdIndex = 0
     let imageStorage = {} // Almacenamiento temporal de imágenes
+    let currentUser = null // Usuario autenticado
+
+    // ============= FUNCIONES DE AUTENTICACIÓN =============
+
+    /**
+     * Verifica si el usuario está autenticado y carga sus datos
+     * Si no está autenticado, redirige a login.html
+     */
+    async function verifyAuthenticationAndLoadUser() {
+      try {
+        const response = await fetch('/api/auth/me')
+        const data = await response.json()
+
+        if (!response.ok || !data.user) {
+          // No autenticado - redirigir a login
+          console.log('No autenticado, redirigiendo a login...')
+          window.location.href = '/login.html'
+          return
+        }
+
+        // Usuario autenticado
+        currentUser = data.user
+        console.log('✅ Usuario autenticado:', currentUser.username)
+
+        // Mostrar nombre de usuario en el header
+        const usernameDisplay = document.getElementById('currentUsername')
+        if (usernameDisplay) {
+          usernameDisplay.textContent = `👤 ${currentUser.username}`
+        }
+
+        // Cargar marcas del usuario desde BD
+        await loadUserBrands()
+
+      } catch (error) {
+        console.error('Error verificando autenticación:', error)
+        // En caso de error, redirigir a login como medida de seguridad
+        window.location.href = '/login.html'
+      }
+    }
+
+    /**
+     * Cargar marcas del usuario desde la base de datos
+     */
+    async function loadUserBrands() {
+      try {
+        const response = await fetch('/api/brands')
+        const data = await response.json()
+
+        if (response.ok && data.brands) {
+          allBrands = data.brands
+          console.log('📦 Marcas cargadas:', allBrands.length)
+
+          // Actualizar dropdown de marcas
+          updateBrandSelector()
+
+          // Cargar la primera marca si existe
+          if (allBrands.length > 0) {
+            selectBrand(allBrands[0].id)
+          }
+        }
+      } catch (error) {
+        console.error('Error cargando marcas:', error)
+      }
+    }
+
+    /**
+     * Actualizar el dropdown de marcas disponibles
+     */
+    function updateBrandSelector() {
+      const brandSelect = document.getElementById('brandSelect')
+      if (!brandSelect) return
+
+      // Limpiar opciones actuales
+      brandSelect.innerHTML = '<option value="">-- Selecciona una marca --</option>'
+
+      // Agregar marcas disponibles
+      allBrands.forEach(brand => {
+        const option = document.createElement('option')
+        option.value = brand.id
+        option.textContent = brand.name
+        // Marcar la primera como seleccionada
+        if (brand === allBrands[0]) {
+          option.selected = true
+        }
+        brandSelect.appendChild(option)
+      })
+    }
+
+    /**
+     * Manejar logout del usuario
+     */
+    async function handleLogout() {
+      try {
+        // Confirmar logout
+        if (!confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+          return
+        }
+
+        // Llamar endpoint de logout
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST'
+        })
+
+        if (response.ok) {
+          console.log('Sesión cerrada exitosamente')
+          // Redirigir a login
+          window.location.href = '/login.html'
+        } else {
+          alert('Error al cerrar sesión')
+        }
+      } catch (error) {
+        console.error('Error en logout:', error)
+        alert('Error al cerrar sesión')
+      }
+    }
+
+    // ============= FUNCIONES DE CONVERSACIÓN =============
+
+    /**
+     * Guardar una conversación (mensaje del usuario)
+     */
+    async function saveConversation(message, messageType = 'user_question') {
+      if (!currentBrand || !currentBrand.id) {
+        console.warn('No brand selected')
+        return null
+      }
+
+      try {
+        const context = {
+          brand_name: currentBrand.nombre,
+          brand_rubro: currentBrand.rubro,
+          brand_propuesta: currentBrand.propuesta,
+          timestamp: new Date().toISOString()
+        }
+
+        const response = await fetch('/api/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brand_id: currentBrand.id,
+            message: message,
+            message_type: messageType,
+            context: context
+          })
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+          console.log('✅ Conversación guardada:', data.conversation_id)
+          return data
+        } else {
+          console.error('Error guardando conversación:', data.error)
+          return null
+        }
+      } catch (error) {
+        console.error('Error en saveConversation:', error)
+        return null
+      }
+    }
+
+    /**
+     * Cargar historial de conversaciones de una marca
+     */
+    async function loadConversationHistory(brandId = null) {
+      const bid = brandId || (currentBrand?.id)
+      if (!bid) {
+        console.warn('No brand selected')
+        return []
+      }
+
+      try {
+        const response = await fetch(`/api/conversations?brand_id=${bid}&limit=50`)
+        const data = await response.json()
+
+        if (response.ok && data.conversations) {
+          console.log(`📝 Conversaciones cargadas: ${data.conversations.length}`)
+          return data.conversations
+        } else {
+          console.error('Error cargando conversaciones:', data.error)
+          return []
+        }
+      } catch (error) {
+        console.error('Error en loadConversationHistory:', error)
+        return []
+      }
+    }
+
+    /**
+     * Obtener contexto de conversaciones previas para enriquecer prompts
+     * Retorna un string formateado para incluir en prompts de Claude
+     */
+    async function getConversationContext(brandId = null) {
+      const conversations = await loadConversationHistory(brandId)
+
+      if (conversations.length === 0) {
+        return ''
+      }
+
+      // Formatear últimas 5 conversaciones
+      const recentConversations = conversations.slice(-10)
+      const contextString = recentConversations
+        .map(c => {
+          const type = c.type === 'user' ? '👤 Usuario' : '🤖 Agente'
+          return `${type}: ${c.message}`
+        })
+        .join('\n')
+
+      return `\n### Contexto de Conversaciones Previas:\n${contextString}`
+    }
+
+    /**
+     * Auto-guardar mensaje del chat cuando el usuario envía una pregunta
+     * Se llamará desde el manejador del chat
+     */
+    async function autoSaveUserMessage(messageText) {
+      if (!messageText.trim()) return
+
+      // Guardar de forma asincrónica sin esperar
+      saveConversation(messageText, 'user_message').catch(err => {
+        console.error('Error auto-guardando mensaje:', err)
+      })
+    }
+
+    /**
+     * Auto-guardar respuesta del agente
+     */
+    async function autoSaveAgentResponse(userMessage, agentResponse) {
+      // Guardar respuesta como conversación separada
+      saveConversation(agentResponse, 'agent_response').catch(err => {
+        console.error('Error auto-guardando respuesta:', err)
+      })
+    }
 
     // ============= FUNCIONES DE MARCA =============
     function switchLoadMethod(method, button) {
@@ -2647,6 +2900,9 @@
 
     // Inicializar slider cuando la página carga
     document.addEventListener('DOMContentLoaded', function() {
+      // ============= VERIFICAR AUTENTICACIÓN =============
+      verifyAuthenticationAndLoadUser()
+
       // Load theme preference (Liquid Glass)
       loadThemePreference()
 
@@ -4638,6 +4894,14 @@
           imageStorage[sessionId] = window.currentBrandImages
         }
 
+        // Cargar contexto de conversaciones previas para enriquecer la generación
+        let conversationHistory = null
+        try {
+          conversationHistory = await getConversationContext(currentBrand?.id)
+        } catch (err) {
+          console.warn('No se pudo cargar historial de conversaciones:', err)
+        }
+
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -4645,6 +4909,7 @@
             topic,
             format: document.getElementById('genTipo').value,
             quantity: parseInt(document.getElementById('genCant').value) || 4,
+            conversationHistory: conversationHistory, // ← Agregar contexto de conversaciones
             brain: {
               ...currentBrand,
               visualAssets: {

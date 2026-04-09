@@ -6,6 +6,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { getMaxTokens } from '@/app/lib/prompt-schemas'
+import { getCurrentUser } from '@/lib/auth'
 
 function getApiKey() {
   let apiKey = process.env.ANTHROPIC_API_KEY
@@ -256,7 +257,16 @@ async function generateImageReplicate(topic, style, type, brand) {
 
 export async function POST(request) {
   try {
-    const { topic, format, brain: brandData, quantity } = await request.json()
+    // Validar autenticación
+    const user = await getCurrentUser()
+    if (!user) {
+      return Response.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      )
+    }
+
+    const { topic, format, brain: brandData, quantity, conversationHistory } = await request.json()
 
     if (!topic) {
       return Response.json(
@@ -364,12 +374,17 @@ export async function POST(request) {
       ${generatedImageUrl ? `📸 IMAGE AVAILABLE: ${generatedImageUrl}` : 'No generated images.'}
       ${brain?.visualAssets?.images?.length ? `Also have ${brain.visualAssets.images.length} reference images available.` : ''}`
 
-    const userPrompt = `Create EXACTLY ${qty} ad mockups for: ${topic}
+    let userPrompt = `Create EXACTLY ${qty} ad mockups for: ${topic}
 Format: Instagram Post, Story, Facebook, LinkedIn. Include impact headline, copy, CTA.
 STRICT: All buttons use accentColor: "${brandColors.secondary}". No other colors for CTAs.
 ${generatedImageUrl ? `IMPORTANT: Use this generated image URL in mockups: ${generatedImageUrl}` : ''}
 Return JSON: {topic,ads:[{type,headline,body,cta,imageUrl,imageDescription,bgGradient,textColor,accentColor}]}.
 For each ad: include "imageUrl" (the generated image URL if appropriate) or null, plus "imageDescription" explaining the visual.`
+
+    // Agregar contexto de conversaciones previas si está disponible
+    if (conversationHistory && conversationHistory.length > 0) {
+      userPrompt += `\n\n### Context from Previous Brand Conversations:\n${conversationHistory}\n\nUse this context to align the generated content with previous brand insights and strategies.`
+    }
 
     // Llamar a Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
