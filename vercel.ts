@@ -8,27 +8,9 @@ export const config: VercelConfig = {
   // Build Configuration
   buildCommand: 'npm run build',
   framework: 'nextjs',
-  nodeVersion: '24.x',
 
   // Environment Variables (will be set via vercel env)
-  env: [
-    // API Keys
-    'ANTHROPIC_API_KEY',
-    'FAL_API_KEY',
-    'STABILITY_API_KEY',
-    'GEMINI_API_KEY',
-    'REPLICATE_API_KEY',
-
-    // Database
-    'DB_HOST',
-    'DB_PORT',
-    'DB_NAME',
-    'DB_USER',
-    'DB_PASSWORD',
-
-    // App
-    'NODE_ENV',
-  ],
+  // Note: env is configured through vercel dashboard, not here
 
   // Functions (API Routes)
   functions: {
