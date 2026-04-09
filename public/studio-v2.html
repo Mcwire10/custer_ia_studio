@@ -6401,5 +6401,375 @@
 
     console.log('✨ Custer Scrollytelling & Morphing Effects Initialized');
   </script>
+
+  <!-- ============= PLAN 6: BRAND SELECTION + AUTO-POPULATE INTEGRATION ============= -->
+
+  <!-- MODAL: Brand Selection -->
+  <div id="brandSelectionModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 16px; padding: 32px; max-width: 900px; max-height: 90vh; overflow-y: auto; width: 90%;">
+      <h2 style="margin-bottom: 8px;">🎨 Selecciona o crea una marca</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 24px;">Elige una marca existente para continuar o crea una nueva</p>
+
+      <div id="existingBrandsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;"></div>
+      <div id="noBrandsMessage" style="text-align: center; padding: 32px; border: 2px dashed var(--border-light); border-radius: 12px; display: none;">
+        <div style="font-size: 48px; margin-bottom: 12px;">🚀</div>
+        <p style="color: var(--text-secondary);">No tienes marcas creadas aún</p>
+      </div>
+
+      <div style="border-top: 1px solid var(--border-light); margin: 32px 0;"></div>
+      <button onclick="startCreateBrand()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 16px 24px; font-weight: 600; width: 100%;">+ Nueva Marca</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Unified Content Loader -->
+  <div id="unifiedBrandLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 16px; padding: 32px; max-width: 600px; max-height: 90vh; overflow-y: auto; width: 100%; position: relative;">
+      <button onclick="closeUnifiedBrandLoader()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-tertiary); border: 1px solid var(--border-light); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;">✕</button>
+
+      <h2 style="margin-bottom: 8px;">📥 Carga todo sobre tu marca</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 24px;">Sube imágenes, Instagram, sitio web o información. Analizamos todo automáticamente.</p>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-weight: 600; display: block; margin-bottom: 12px;">🖼️ Imágenes, PDF, logo</label>
+        <div id="dropZone" style="border: 2px dashed var(--border-light); border-radius: 12px; padding: 32px 16px; text-align: center; background: rgba(104, 96, 238, 0.02); transition: all 0.3s; cursor: pointer;">
+          <div style="font-size: 32px; margin-bottom: 12px;">📸</div>
+          <p style="font-weight: 600; margin-bottom: 4px;">Arrastra archivos aquí</p>
+          <p style="font-size: 14px; color: var(--text-secondary);">o</p>
+          <button type="button" onclick="document.getElementById('fileInput').click()" class="btn" style="margin-top: 8px;">Seleccionar</button>
+          <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 8px;">JPG, PNG, PDF (máx 5MB)</p>
+          <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display: none;" onchange="handleFileInput(this.files)" />
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-weight: 600; display: block; margin-bottom: 12px;">📱 Instagram</label>
+        <div style="display: flex; gap: 8px;">
+          <span style="display: flex; align-items: center; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-secondary);">@</span>
+          <input type="text" id="instagramHandle" placeholder="usuario" style="flex: 1; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);" />
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-weight: 600; display: block; margin-bottom: 12px;">🌐 Sitio web</label>
+        <input type="text" id="websiteUrl" placeholder="https://mi-sitio.com" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);" />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-weight: 600; display: block; margin-bottom: 12px;">✍️ Información de marca</label>
+        <textarea id="brandText" placeholder="Pega información: nombre, propuesta, misión, valores..." style="width: 100%; height: 100px; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary); resize: vertical;"></textarea>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button onclick="analyzeAllContent()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 14px 24px; font-weight: 600; flex: 1; color: white;">✨ Auto-Analizar</button>
+        <button onclick="closeUnifiedBrandLoader()" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 14px 24px; font-weight: 600; flex: 1;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Review Modal -->
+  <div id="reviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 998; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 16px; padding: 32px; max-width: 700px; max-height: 90vh; overflow-y: auto; width: 100%; position: relative;">
+      <button onclick="closeReviewModal()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-tertiary); border: 1px solid var(--border-light); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;">✕</button>
+
+      <h2 style="margin-bottom: 4px;">👁️ Revisa los datos detectados</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Ajusta o confirma antes de cargar en el Brain</p>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px;">
+        <button class="review-tab-btn active" onclick="switchReviewTab('colors', this)" style="padding: 8px 16px; background: var(--color-brand); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">🎨 Colores</button>
+        <button class="review-tab-btn" onclick="switchReviewTab('typography', this)" style="padding: 8px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">📝 Tipografía</button>
+        <button class="review-tab-btn" onclick="switchReviewTab('basic', this)" style="padding: 8px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">📋 Datos</button>
+        <button class="review-tab-btn" onclick="switchReviewTab('social', this)" style="padding: 8px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">📱 Redes</button>
+      </div>
+
+      <div id="tab-colors" style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 16px;">Colores detectados</h3>
+        <div id="colorsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+          <div style="text-align: center;">
+            <div style="width: 100%; height: 60px; background: linear-gradient(135deg, #6860EE 0%, #8B7FFF 100%); border-radius: 8px; margin-bottom: 8px;"></div>
+            <small style="color: var(--text-secondary);">Primario</small>
+            <div style="font-weight: 600; font-size: 12px;">#6860EE</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="width: 100%; height: 60px; background: linear-gradient(135deg, #F5A623 0%, #FFB84D 100%); border-radius: 8px; margin-bottom: 8px;"></div>
+            <small style="color: var(--text-secondary);">Secundario</small>
+            <div style="font-weight: 600; font-size: 12px;">#F5A623</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-typography" style="display: none; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 16px;">Tipografía detectada</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px;">
+          <div style="margin-bottom: 12px;">
+            <small style="color: var(--text-secondary);">Principal:</small>
+            <div style="font-weight: 600; font-size: 18px;">Gotham</div>
+            <small style="color: var(--text-tertiary);">Confianza: 92%</small>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-basic" style="display: none; margin-bottom: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nombre</label>
+            <input type="text" id="reviewNombre" placeholder="Nombre de la marca" style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Rubro</label>
+            <input type="text" id="reviewRubro" placeholder="Ej: Tecnología, E-commerce..." style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Propuesta</label>
+            <textarea placeholder="Qué hace única a esta marca..." style="width: 100%; height: 80px; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary); resize: vertical;" id="reviewPropuesta"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-social" style="display: none; margin-bottom: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Instagram</label>
+            <div id="reviewInstagramData" style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); color: var(--text-secondary); font-size: 14px;">No detectado</div>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Sitio web</label>
+            <div id="reviewWebsiteData" style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); color: var(--text-secondary); font-size: 14px;">No detectado</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border-light); padding-top: 20px;">
+        <button onclick="confirmAndLoadBrain()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 12px 24px; font-weight: 600; flex: 1; color: white;">✅ Confirmar</button>
+        <button onclick="backToLoader()" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 12px 24px; font-weight: 600; flex: 1;">← Volver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAN 6 Integration Functions -->
+  <script>
+    let loaderState = { files: [], instagramData: null, websiteData: null, brandText: '', analysisInProgress: false };
+
+    function showBrandSelectionModal() {
+      const modal = document.getElementById('brandSelectionModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        loadBrandSelectionCards();
+      }
+    }
+
+    function closeBrandSelectionModal() {
+      const modal = document.getElementById('brandSelectionModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function loadBrandSelectionCards() {
+      const grid = document.getElementById('existingBrandsGrid');
+      const emptyMsg = document.getElementById('noBrandsMessage');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      try {
+        const response = await fetch('/api/brands');
+        const data = await response.json();
+
+        if (!data.brands || data.brands.length === 0) {
+          emptyMsg.style.display = 'block';
+          return;
+        }
+
+        emptyMsg.style.display = 'none';
+        data.brands.forEach(brand => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background: var(--bg-tertiary); border: 2px solid var(--border-light); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;';
+          card.innerHTML = `
+            <div style="width: 100%; height: 60px; background: ${brand.thumbnail || '#6860EE'}; border-radius: 8px; margin-bottom: 12px;"></div>
+            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">${brand.name}</div>
+            <div style="display: flex; gap: 8px;">
+              <button onclick="selectBrandFromModal(${brand.id})" class="btn" style="flex: 1; padding: 8px; font-size: 12px; background: var(--color-brand); color: white; border: none;">Cargar</button>
+              <button onclick="deleteBrandFromModal(${brand.id})" class="btn" style="flex: 1; padding: 8px; font-size: 12px; background: rgba(239,68,68,0.1); color: #FF6B6B; border: none;">Eliminar</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error cargando marcas:', error);
+        emptyMsg.style.display = 'block';
+      }
+    }
+
+    async function selectBrandFromModal(brandId) {
+      try {
+        const response = await fetch(`/api/brands?id=${brandId}`);
+        const data = await response.json();
+        if (data.brand) {
+          currentBrand = data.brand;
+          console.log('✅ Marca cargada:', currentBrand.nombre);
+          closeBrandSelectionModal();
+          if (fillBrandFields) fillBrandFields(currentBrand);
+          updateBrandSummary();
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar la marca');
+      }
+    }
+
+    async function deleteBrandFromModal(brandId) {
+      if (!confirm('¿Eliminar esta marca? No se puede deshacer.')) return;
+      try {
+        const response = await fetch(`/api/brands?id=${brandId}`, { method: 'DELETE' });
+        if (response.ok) {
+          console.log('✅ Marca eliminada');
+          loadBrandSelectionCards();
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar');
+      }
+    }
+
+    function startCreateBrand() {
+      currentBrand = null;
+      closeBrandSelectionModal();
+      showUnifiedBrandLoader();
+    }
+
+    function showUnifiedBrandLoader() {
+      const loader = document.getElementById('unifiedBrandLoader');
+      if (loader) {
+        loader.style.display = 'flex';
+        setupDropZone();
+      }
+    }
+
+    function closeUnifiedBrandLoader() {
+      const loader = document.getElementById('unifiedBrandLoader');
+      if (loader) loader.style.display = 'none';
+    }
+
+    function setupDropZone() {
+      const dropZone = document.getElementById('dropZone');
+      if (!dropZone) return;
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--color-brand)';
+        dropZone.style.background = 'rgba(104, 96, 238, 0.1)';
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = 'var(--border-light)';
+        dropZone.style.background = 'rgba(104, 96, 238, 0.02)';
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border-light)';
+        dropZone.style.background = 'rgba(104, 96, 238, 0.02)';
+        handleFileInput(e.dataTransfer.files);
+      });
+    }
+
+    function handleFileInput(files) {
+      loaderState.files = Array.from(files).slice(0, 10);
+      console.log(`📁 ${loaderState.files.length} archivos cargados`);
+    }
+
+    async function analyzeAllContent() {
+      if (loaderState.analysisInProgress) return;
+      const hasInput = (loaderState.files.length > 0) ||
+                      document.getElementById('instagramHandle')?.value?.trim() ||
+                      document.getElementById('websiteUrl')?.value?.trim() ||
+                      document.getElementById('brandText')?.value?.trim();
+      if (!hasInput) {
+        alert('Por favor carga al menos una fuente de información');
+        return;
+      }
+
+      loaderState.analysisInProgress = true;
+      loaderState.brandText = document.getElementById('brandText')?.value || '';
+
+      try {
+        console.log('🚀 Llamando a /api/auto-populate-brand...');
+        const response = await fetch('/api/auto-populate-brand', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            files: loaderState.files || [],
+            instagramHandle: document.getElementById('instagramHandle')?.value || '',
+            websiteUrl: document.getElementById('websiteUrl')?.value || '',
+            brandText: loaderState.brandText
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Error en análisis');
+
+        window.brandAnalysisData = data;
+        console.log('✅ Análisis completado');
+        showReviewModal();
+        closeUnifiedBrandLoader();
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+        loaderState.analysisInProgress = false;
+      }
+    }
+
+    function showReviewModal() {
+      const modal = document.getElementById('reviewModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeReviewModal() {
+      const modal = document.getElementById('reviewModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function switchReviewTab(tabName, btn) {
+      document.querySelectorAll('.review-tab-btn').forEach(b => {
+        b.style.background = 'var(--bg-tertiary)';
+        b.style.color = 'inherit';
+        b.style.border = '1px solid var(--border-light)';
+      });
+      btn.style.background = 'var(--color-brand)';
+      btn.style.color = 'white';
+      btn.style.border = 'none';
+
+      document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.style.display = 'none');
+      const tab = document.getElementById(`tab-${tabName}`);
+      if (tab) tab.style.display = 'block';
+    }
+
+    function confirmAndLoadBrain() {
+      if (!window.brandAnalysisData?.brand) {
+        alert('Error: Sin datos de marca');
+        return;
+      }
+
+      currentBrand = window.brandAnalysisData.brand;
+      console.log('✅ Marca cargada:', currentBrand.nombre);
+
+      if (fillBrandFields) fillBrandFields(currentBrand);
+      updateBrandSummary();
+      closeReviewModal();
+      showToast('✅ Marca cargada exitosamente', 'success');
+    }
+
+    function backToLoader() {
+      closeReviewModal();
+      showUnifiedBrandLoader();
+    }
+
+    // Inicializar Brand Selection en app load
+    function initPlan6() {
+      if (!currentBrand) {
+        setTimeout(() => {
+          showBrandSelectionModal();
+        }, 500);
+      }
+    }
+
+    // Llamar en DOMContentLoaded (ya existe, solo agregamos la inicialización)
+    // Al final del DOMContentLoaded existente, agregamos: initPlan6();
+  </script>
 </body>
 </html>
