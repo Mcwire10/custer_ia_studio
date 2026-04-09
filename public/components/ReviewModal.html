@@ -1,0 +1,378 @@
+<!--
+  Review Modal - PLAN 6 Phase 3
+  Usuario revisa datos detectados antes de poblar el Brain
+-->
+<div id="reviewModal" class="review-modal" style="display: none;">
+  <div class="review-overlay"></div>
+
+  <div class="review-container">
+    <div class="review-header">
+      <button onclick="closeReviewModal()" class="review-close">✕</button>
+      <h2>👁️ Revisa los datos detectados</h2>
+      <p style="color: var(--text-secondary);">Ajusta o confirma antes de cargar en el Brain</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="review-tabs">
+      <button class="review-tab-btn active" onclick="switchReviewTab('colors', this)">🎨 Colores</button>
+      <button class="review-tab-btn" onclick="switchReviewTab('typography', this)">📝 Tipografía</button>
+      <button class="review-tab-btn" onclick="switchReviewTab('basic', this)">📋 Datos Básicos</button>
+      <button class="review-tab-btn" onclick="switchReviewTab('social', this)">📱 Redes & Web</button>
+      <button class="review-tab-btn" onclick="switchReviewTab('style', this)">🎭 Estilo Visual</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="review-content">
+      <!-- Colors Tab -->
+      <div id="tab-colors" class="review-tab-content active">
+        <div style="margin-bottom: 20px;">
+          <h3 style="margin-bottom: 16px;">Colores detectados</h3>
+
+          <div id="colorsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+            <!-- Populated by JS -->
+          </div>
+
+          <div style="margin-top: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+              Color primario (editable)
+            </label>
+            <input
+              type="color"
+              id="reviewColorPrimario"
+              value="#6860EE"
+              style="width: 60px; height: 40px; border: 1px solid var(--border-light); border-radius: 8px; cursor: pointer;"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Typography Tab -->
+      <div id="tab-typography" class="review-tab-content" style="display: none;">
+        <div>
+          <h3 style="margin-bottom: 16px;">Tipografía detectada</h3>
+
+          <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+            <div style="margin-bottom: 12px;">
+              <small style="color: var(--text-secondary); display: block; margin-bottom: 4px;">Principal:</small>
+              <strong id="reviewTypoMain" style="font-size: 18px;">Gotham</strong>
+              <small style="color: var(--text-tertiary); display: block; margin-top: 4px;">Confianza: 92%</small>
+            </div>
+
+            <div style="padding-top: 12px; border-top: 1px solid var(--border-light);">
+              <small style="color: var(--text-secondary); display: block; margin-bottom: 4px;">Muestra:</small>
+              <div style="font-family: 'Gotham', sans-serif; font-size: 20px; font-weight: 600; color: var(--text-primary);">
+                Gotham Bold
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+              O selecciona otra:
+            </label>
+            <select id="reviewTypoSelect" style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);">
+              <option>Gotham</option>
+              <option>Montserrat</option>
+              <option>Inter</option>
+              <option>Poppins</option>
+              <option>Raleway</option>
+              <option>Roboto</option>
+              <option>Open Sans</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Basic Data Tab -->
+      <div id="tab-basic" class="review-tab-content" style="display: none;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nombre</label>
+            <input type="text" id="reviewNombre" placeholder="Nombre de la marca" style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);" />
+          </div>
+
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Rubro</label>
+            <input type="text" id="reviewRubro" placeholder="Ej: Tecnología, E-commerce..." style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);" />
+          </div>
+
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Propuesta de valor</label>
+            <textarea placeholder="Qué hace única a esta marca..." style="width: 100%; height: 80px; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary); resize: vertical;" id="reviewPropuesta"></textarea>
+          </div>
+
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Público objetivo</label>
+            <input type="text" id="reviewPublico" placeholder="Descripción del público..." style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary);" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Social & Web Tab -->
+      <div id="tab-social" class="review-tab-content" style="display: none;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Instagram (@usuario)</label>
+            <div id="reviewInstagramData" style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); color: var(--text-secondary); font-size: 14px;">
+              No detectado
+            </div>
+          </div>
+
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Sitio web</label>
+            <div id="reviewWebsiteData" style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); color: var(--text-secondary); font-size: 14px;">
+              No detectado
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style Tab -->
+      <div id="tab-style" class="review-tab-content" style="display: none;">
+        <div>
+          <h3 style="margin-bottom: 16px;">Estilo visual detectado</h3>
+
+          <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+            <div style="margin-bottom: 12px;">
+              <small style="color: var(--text-secondary);">Clasificación:</small>
+              <div style="font-weight: 600; font-size: 16px; color: var(--text-primary); margin-top: 4px;">
+                Moderno & Profesional
+              </div>
+            </div>
+
+            <div style="padding-top: 12px; border-top: 1px solid var(--border-light);">
+              <small style="color: var(--text-secondary); display: block; margin-bottom: 8px;">Elementos detectados:</small>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <span style="background: var(--color-brand); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Geométrico</span>
+                <span style="background: var(--color-brand); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Minimalista</span>
+                <span style="background: var(--color-brand); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Tipografía Bold</span>
+                <span style="background: var(--color-brand); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Colores Vibrantes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border-light); padding-top: 20px;">
+      <button onclick="confirmAndLoadBrain()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 12px 24px; font-weight: 600; flex: 1; color: white;">
+        ✅ Confirmar y cargar
+      </button>
+      <button onclick="backToLoader()" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 12px 24px; font-weight: 600; flex: 1;">
+        ← Volver
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .review-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .review-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .review-container {
+    position: relative;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 100%;
+  }
+
+  .review-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+    position: relative;
+  }
+
+  .review-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .review-close:hover {
+    background: var(--bg-elevated);
+  }
+
+  .review-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-display);
+    margin-bottom: 4px;
+  }
+
+  .review-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .review-tab-btn {
+    padding: 8px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .review-tab-btn:hover {
+    background: var(--bg-elevated);
+    border-color: var(--color-brand);
+  }
+
+  .review-tab-btn.active {
+    background: var(--color-brand);
+    color: white;
+    border-color: var(--color-brand);
+  }
+
+  .review-content {
+    margin-bottom: 24px;
+  }
+
+  .review-tab-content {
+    animation: fadeIn 0.2s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @media (max-width: 600px) {
+    .review-container {
+      padding: 20px;
+    }
+
+    .review-tabs {
+      margin-bottom: 16px;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Mostrar modal de revisión
+   */
+  function showReviewModal() {
+    const modal = document.getElementById('reviewModal')
+    if (modal) {
+      modal.style.display = 'flex'
+      populateReviewData()
+    }
+  }
+
+  /**
+   * Cerrar modal de revisión
+   */
+  function closeReviewModal() {
+    const modal = document.getElementById('reviewModal')
+    if (modal) {
+      modal.style.display = 'none'
+    }
+  }
+
+  /**
+   * Cambiar tab de revisión
+   */
+  function switchReviewTab(tabName, button) {
+    // Actualizar tabs activos
+    document.querySelectorAll('.review-tab-btn').forEach(btn => {
+      btn.classList.remove('active')
+    })
+    button.classList.add('active')
+
+    // Actualizar contenido
+    document.querySelectorAll('.review-tab-content').forEach(tab => {
+      tab.style.display = 'none'
+    })
+    const tab = document.getElementById(`tab-${tabName}`)
+    if (tab) {
+      tab.style.display = 'block'
+    }
+  }
+
+  /**
+   * Poblar datos de revisión (placeholder)
+   */
+  function populateReviewData() {
+    // Colores
+    const colorsGrid = document.getElementById('colorsGrid')
+    if (colorsGrid) {
+      colorsGrid.innerHTML = `
+        <div style="text-align: center;">
+          <div style="width: 100%; height: 60px; background: linear-gradient(135deg, #6860EE 0%, #8B7FFF 100%); border-radius: 8px; margin-bottom: 8px;"></div>
+          <small style="color: var(--text-secondary);">Primario</small>
+          <div style="font-weight: 600; font-size: 12px;">#6860EE</div>
+          <small style="color: var(--text-tertiary);">Confianza: 95%</small>
+        </div>
+        <div style="text-align: center;">
+          <div style="width: 100%; height: 60px; background: linear-gradient(135deg, #F5A623 0%, #FFB84D 100%); border-radius: 8px; margin-bottom: 8px;"></div>
+          <small style="color: var(--text-secondary);">Secundario</small>
+          <div style="font-weight: 600; font-size: 12px;">#F5A623</div>
+          <small style="color: var(--text-tertiary);">Confianza: 92%</small>
+        </div>
+      `
+    }
+  }
+
+  /**
+   * Confirmar y cargar en Brain
+   */
+  function confirmAndLoadBrain() {
+    console.log('✅ Datos confirmados, cargando Brain...')
+    closeReviewModal()
+    // Aquí se cargarían los datos en el Brain
+    // fillBrandFields(reviewData)
+  }
+
+  /**
+   * Volver al loader
+   */
+  function backToLoader() {
+    closeReviewModal()
+    showUnifiedBrandLoader()
+  }
+</script>

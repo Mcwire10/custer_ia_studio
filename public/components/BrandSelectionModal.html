@@ -1,0 +1,322 @@
+<!--
+  Brand Selection Modal
+  Aparece cuando se carga /app sin una marca seleccionada
+  Permite seleccionar marca existente o crear nueva
+-->
+<div id="brandSelectionModal" class="modal" style="display: none;">
+  <div class="modal-overlay"></div>
+
+  <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-header">
+      <h2>🎨 Selecciona o crea una marca</h2>
+      <p style="color: var(--text-secondary); margin-top: 8px;">Elige una marca existente para continuar o crea una nueva</p>
+    </div>
+
+    <!-- Existing Brands Grid -->
+    <div class="brand-selection-section">
+      <h3 style="margin-bottom: 16px; color: var(--text-primary);">📦 Tus marcas</h3>
+
+      <div id="existingBrandsGrid" class="brands-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <!-- Populated by JavaScript -->
+      </div>
+
+      <div id="noBrandsMessage" class="empty-state" style="text-align: center; padding: 32px; border: 2px dashed var(--border-light); border-radius: 12px; display: none;">
+        <div style="font-size: 48px; margin-bottom: 12px;">🚀</div>
+        <p style="color: var(--text-secondary);">No tienes marcas creadas aún</p>
+        <p style="font-size: 14px; color: var(--text-tertiary);">Crea tu primera marca para comenzar</p>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="border-top: 1px solid var(--border-light); margin: 32px 0;"></div>
+
+    <!-- Create New Brand Section -->
+    <div class="brand-creation-section">
+      <h3 style="margin-bottom: 16px; color: var(--text-primary);">✨ Crear nueva marca</h3>
+      <button onclick="startCreateBrand()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 16px 24px; font-size: 16px; font-weight: 600;">
+        + Nueva Marca
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    position: relative;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 32px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .modal-header {
+    margin-bottom: 24px;
+  }
+
+  .modal-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-display);
+    margin-bottom: 8px;
+  }
+
+  .brands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .brand-card {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .brand-card:hover {
+    border-color: var(--color-brand);
+    background: rgba(104, 96, 238, 0.05);
+    transform: translateY(-4px);
+  }
+
+  .brand-card-color {
+    width: 100%;
+    height: 60px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%);
+  }
+
+  .brand-card-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .brand-card-actions button {
+    flex: 1;
+    padding: 8px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .brand-card-load {
+    background: var(--color-brand);
+    color: white;
+    font-weight: 600;
+  }
+
+  .brand-card-load:hover {
+    background: var(--color-brand-hover);
+  }
+
+  .brand-card-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #FF6B6B;
+    font-weight: 600;
+  }
+
+  .brand-card-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    border: 2px dashed var(--border-light);
+    border-radius: 12px;
+    color: var(--text-secondary);
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .modal-content {
+      margin: 16px;
+      max-height: calc(100vh - 32px);
+    }
+
+    .brands-grid {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Mostrar modal de selección de marca
+   */
+  function showBrandSelectionModal() {
+    const modal = document.getElementById('brandSelectionModal')
+    if (modal) {
+      modal.style.display = 'flex'
+      loadBrandSelectionCards()
+    }
+  }
+
+  /**
+   * Cerrar modal de selección de marca
+   */
+  function closeBrandSelectionModal() {
+    const modal = document.getElementById('brandSelectionModal')
+    if (modal) {
+      modal.style.display = 'none'
+    }
+  }
+
+  /**
+   * Cargar tarjetas de marcas existentes
+   */
+  async function loadBrandSelectionCards() {
+    const grid = document.getElementById('existingBrandsGrid')
+    const emptyMessage = document.getElementById('noBrandsMessage')
+
+    if (!grid) return
+
+    grid.innerHTML = '' // Limpiar
+
+    try {
+      // Cargar marcas del usuario
+      const response = await fetch('/api/brands')
+      const data = await response.json()
+
+      if (!data.brands || data.brands.length === 0) {
+        emptyMessage.style.display = 'block'
+        return
+      }
+
+      emptyMessage.style.display = 'none'
+
+      // Crear tarjeta para cada marca
+      data.brands.forEach(brand => {
+        const card = document.createElement('div')
+        card.className = 'brand-card'
+        card.innerHTML = `
+          <div class="brand-card-color" style="background: linear-gradient(135deg, ${brand.thumbnail || '#6860EE'} 0%, ${brand.thumbnail || '#F5A623'} 100%);"></div>
+          <div class="brand-card-name" title="${brand.name}">${brand.name}</div>
+          <small style="color: var(--text-tertiary); font-size: 12px;">
+            Actualizado: ${new Date(brand.updated_at).toLocaleDateString('es-AR')}
+          </small>
+          <div class="brand-card-actions">
+            <button class="brand-card-load" onclick="selectBrandFromModal(${brand.id})">Cargar</button>
+            <button class="brand-card-delete" onclick="deleteBrandFromModal(${brand.id})">Eliminar</button>
+          </div>
+        `
+        grid.appendChild(card)
+      })
+
+    } catch (error) {
+      console.error('Error cargando marcas:', error)
+      emptyMessage.style.display = 'block'
+    }
+  }
+
+  /**
+   * Seleccionar marca desde modal
+   */
+  async function selectBrandFromModal(brandId) {
+    try {
+      const response = await fetch(`/api/brands?id=${brandId}`)
+      const data = await response.json()
+
+      if (data.brand) {
+        currentBrand = data.brand
+        console.log('✅ Marca cargada:', currentBrand.nombre)
+        closeBrandSelectionModal()
+        updateBrainWithBrand(currentBrand)
+      }
+    } catch (error) {
+      console.error('Error cargando marca:', error)
+      alert('Error al cargar la marca')
+    }
+  }
+
+  /**
+   * Eliminar marca desde modal
+   */
+  async function deleteBrandFromModal(brandId) {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta marca? No se puede deshacer.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/brands?id=${brandId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        console.log('✅ Marca eliminada')
+        loadBrandSelectionCards() // Refrescar lista
+      } else {
+        alert('Error al eliminar la marca')
+      }
+    } catch (error) {
+      console.error('Error eliminando marca:', error)
+      alert('Error al eliminar la marca')
+    }
+  }
+
+  /**
+   * Iniciar creación de nueva marca
+   */
+  function startCreateBrand() {
+    currentBrand = null
+    closeBrandSelectionModal()
+    showUnifiedBrandLoader()
+  }
+
+  /**
+   * Actualizar Brain UI con datos de marca
+   */
+  function updateBrainWithBrand(brand) {
+    // Poblate los campos del Brain con datos de la marca
+    if (fillBrandFields) {
+      fillBrandFields(brand)
+    }
+    updateBrandSummary()
+  }
+</script>

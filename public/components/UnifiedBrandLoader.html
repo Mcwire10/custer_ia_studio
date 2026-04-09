@@ -1,0 +1,473 @@
+<!--
+  Unified Brand Loader
+  Carga de marca centralizada: imágenes, Instagram, URL, texto
+  Auto-análisis paralelo sin bloquear UI
+-->
+<div id="unifiedBrandLoader" class="unified-loader" style="display: none;">
+  <div class="loader-container">
+    <div class="loader-header">
+      <button onclick="closeUnifiedBrandLoader()" class="close-btn" title="Cancelar">✕</button>
+      <h2>📥 Carga todo sobre tu marca</h2>
+      <p style="color: var(--text-secondary); margin-top: 8px;">
+        Sube imágenes, Instagram, sitio web o información de marca. Analizamos todo automáticamente.
+      </p>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="loader-section">
+      <label style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; display: block;">
+        🖼️ Imágenes, PDF, logo
+      </label>
+      <div id="dropZone" class="drop-zone">
+        <div style="text-align: center;">
+          <div style="font-size: 32px; margin-bottom: 12px;">📸</div>
+          <p style="font-weight: 600; margin-bottom: 4px;">Arrastra archivos aquí</p>
+          <p style="font-size: 14px; color: var(--text-secondary);">o</p>
+          <button type="button" onclick="document.getElementById('fileInput').click()" class="btn" style="margin-top: 8px;">
+            Seleccionar archivos
+          </button>
+          <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 8px;">
+            JPG, PNG, PDF, WebP (máx 5MB cada)
+          </p>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display: none;" onchange="handleFileInput(this.files)" />
+      </div>
+
+      <!-- File Preview -->
+      <div id="filePreview" style="display: none; margin-top: 12px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;" id="previewItems"></div>
+      </div>
+    </div>
+
+    <!-- Instagram Input -->
+    <div class="loader-section">
+      <label style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; display: block;">
+        📱 Instagram
+      </label>
+      <div style="display: flex; gap: 8px;">
+        <span style="display: flex; align-items: center; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-secondary);">@</span>
+        <input
+          type="text"
+          id="instagramHandle"
+          placeholder="usuario"
+          style="flex: 1; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary); font-family: var(--font-body);"
+          oninput="debounceInstagramFetch(this.value)"
+        />
+      </div>
+      <div id="instagramLoading" style="display: none; margin-top: 8px; color: var(--text-secondary); font-size: 14px;">
+        ⏳ Cargando Instagram...
+      </div>
+      <div id="instagramPreview" style="display: none; margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border-light);">
+        <!-- Populated by fetch -->
+      </div>
+    </div>
+
+    <!-- Website Input -->
+    <div class="loader-section">
+      <label style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; display: block;">
+        🌐 Sitio web
+      </label>
+      <input
+        type="text"
+        id="websiteUrl"
+        placeholder="https://mi-sitio.com"
+        style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary); font-family: var(--font-body);"
+        oninput="debounceWebsiteFetch(this.value)"
+      />
+      <div id="websiteLoading" style="display: none; margin-top: 8px; color: var(--text-secondary); font-size: 14px;">
+        ⏳ Analizando sitio...
+      </div>
+    </div>
+
+    <!-- Text Input -->
+    <div class="loader-section">
+      <label style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; display: block;">
+        ✍️ Información de marca
+      </label>
+      <textarea
+        id="brandText"
+        placeholder="Pega aquí información: nombre, propuesta, misión, valores, descripción..."
+        style="width: 100%; height: 100px; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary); font-family: var(--font-body); resize: vertical;"
+      ></textarea>
+    </div>
+
+    <!-- Progress Tracker -->
+    <div id="analysisProgress" style="display: none; margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border-light);">
+      <div style="font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Analizando...</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div id="progressImages" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary);">
+          <span id="progressImagesIcon">⏳</span> Imágenes
+        </div>
+        <div id="progressInstagram" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary);">
+          <span id="progressInstagramIcon">⏳</span> Instagram
+        </div>
+        <div id="progressWebsite" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary);">
+          <span id="progressWebsiteIcon">⏳</span> Sitio web
+        </div>
+        <div id="progressText" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary);">
+          <span id="progressTextIcon">⏳</span> Información
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="loader-actions">
+      <button onclick="analyzeAllContent()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 14px 24px; font-weight: 600; flex: 1;">
+        ✨ Auto-Analizar TODO
+      </button>
+      <button onclick="clearBrandLoader()" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 14px 24px; font-weight: 600; flex: 1;">
+        Limpiar
+      </button>
+      <button onclick="closeUnifiedBrandLoader()" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 14px 24px; font-weight: 600; flex: 1;">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .unified-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .loader-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 100%;
+    position: relative;
+  }
+
+  .loader-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .close-btn:hover {
+    background: var(--bg-elevated);
+  }
+
+  .loader-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-display);
+    margin-bottom: 8px;
+  }
+
+  .loader-section {
+    margin-bottom: 20px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border-light);
+    border-radius: 12px;
+    padding: 32px 16px;
+    text-align: center;
+    background: rgba(104, 96, 238, 0.02);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .drop-zone:hover {
+    border-color: var(--color-brand);
+    background: rgba(104, 96, 238, 0.05);
+  }
+
+  .drop-zone.dragover {
+    border-color: var(--color-brand);
+    background: rgba(104, 96, 238, 0.1);
+  }
+
+  .loader-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  @media (max-width: 600px) {
+    .loader-container {
+      padding: 20px;
+      max-height: calc(100vh - 40px);
+    }
+
+    .loader-actions {
+      flex-wrap: wrap;
+    }
+
+    .loader-actions .btn {
+      flex: 1 0 calc(50% - 6px);
+    }
+  }
+</style>
+
+<script>
+  let loaderState = {
+    files: [],
+    instagramData: null,
+    websiteData: null,
+    brandText: '',
+    analysisInProgress: false
+  };
+
+  /**
+   * Mostrar unified brand loader
+   */
+  function showUnifiedBrandLoader() {
+    const loader = document.getElementById('unifiedBrandLoader')
+    if (loader) {
+      loader.style.display = 'flex'
+      setupDropZone()
+    }
+  }
+
+  /**
+   * Cerrar loader
+   */
+  function closeUnifiedBrandLoader() {
+    const loader = document.getElementById('unifiedBrandLoader')
+    if (loader) {
+      loader.style.display = 'none'
+    }
+  }
+
+  /**
+   * Setup drag and drop
+   */
+  function setupDropZone() {
+    const dropZone = document.getElementById('dropZone')
+    if (!dropZone) return
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault()
+      dropZone.classList.add('dragover')
+    })
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover')
+    })
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault()
+      dropZone.classList.remove('dragover')
+      handleFileInput(e.dataTransfer.files)
+    })
+  }
+
+  /**
+   * Manejar entrada de archivos
+   */
+  function handleFileInput(files) {
+    loaderState.files = Array.from(files).slice(0, 10) // Máximo 10 archivos
+    showFilePreviews()
+  }
+
+  /**
+   * Mostrar previsualizaciones de archivos
+   */
+  function showFilePreviews() {
+    const preview = document.getElementById('filePreview')
+    const previewItems = document.getElementById('previewItems')
+
+    if (loaderState.files.length === 0) {
+      preview.style.display = 'none'
+      return
+    }
+
+    preview.style.display = 'block'
+    previewItems.innerHTML = loaderState.files.map((file, i) => `
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        font-size: 12px;
+      ">
+        <span>${file.name.endsWith('.pdf') ? '📄' : '🖼️'}</span>
+        <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${file.name}</span>
+        <button type="button" onclick="removeFile(${i})" style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: 0; font-size: 14px;">✕</button>
+      </div>
+    `).join('')
+  }
+
+  /**
+   * Remover archivo
+   */
+  function removeFile(index) {
+    loaderState.files.splice(index, 1)
+    showFilePreviews()
+  }
+
+  /**
+   * Debounce Instagram fetch
+   */
+  let instagramTimeout
+  function debounceInstagramFetch(value) {
+    clearTimeout(instagramTimeout)
+    instagramTimeout = setTimeout(() => {
+      if (value.trim()) {
+        fetchInstagramData(value)
+      }
+    }, 800)
+  }
+
+  /**
+   * Debounce Website fetch
+   */
+  let websiteTimeout
+  function debounceWebsiteFetch(value) {
+    clearTimeout(websiteTimeout)
+    websiteTimeout = setTimeout(() => {
+      if (value.trim()) {
+        fetchWebsiteData(value)
+      }
+    }, 800)
+  }
+
+  /**
+   * Fetch Instagram data (placeholder)
+   */
+  async function fetchInstagramData(handle) {
+    const loading = document.getElementById('instagramLoading')
+    const preview = document.getElementById('instagramPreview')
+
+    loading.style.display = 'block'
+    preview.style.display = 'none'
+
+    // Simular fetch
+    setTimeout(() => {
+      loaderState.instagramData = {
+        handle,
+        followers: '15.2K',
+        engagement: '3.2%',
+        bio: 'Somos una marca innovadora',
+        posts: 3
+      }
+
+      loading.style.display = 'none'
+      preview.style.display = 'block'
+      preview.innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <div><strong>@${handle}</strong></div>
+          <div style="color: var(--text-secondary); font-size: 12px;">Encontrado ✓</div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+          👥 ${loaderState.instagramData.followers} | 📊 ${loaderState.instagramData.engagement} engagement
+        </div>
+      `
+    }, 1000)
+  }
+
+  /**
+   * Fetch Website data (placeholder)
+   */
+  async function fetchWebsiteData(url) {
+    const loading = document.getElementById('websiteLoading')
+
+    loading.style.display = 'block'
+
+    // Simular fetch
+    setTimeout(() => {
+      loaderState.websiteData = {
+        url,
+        colors: ['#6860EE', '#F5A623'],
+        fonts: ['Inter', 'Montserrat']
+      }
+
+      loading.style.display = 'none'
+      console.log('✅ Sitio web analizado:', url)
+    }, 1000)
+  }
+
+  /**
+   * Limpiar loader
+   */
+  function clearBrandLoader() {
+    loaderState = {
+      files: [],
+      instagramData: null,
+      websiteData: null,
+      brandText: '',
+      analysisInProgress: false
+    }
+
+    document.getElementById('fileInput').value = ''
+    document.getElementById('instagramHandle').value = ''
+    document.getElementById('websiteUrl').value = ''
+    document.getElementById('brandText').value = ''
+    document.getElementById('filePreview').style.display = 'none'
+    document.getElementById('instagramPreview').style.display = 'none'
+    document.getElementById('websiteLoading').style.display = 'none'
+  }
+
+  /**
+   * Analizar TODO el contenido
+   */
+  async function analyzeAllContent() {
+    if (loaderState.analysisInProgress) return
+
+    const hasInput = loaderState.files.length > 0 ||
+                    document.getElementById('instagramHandle').value.trim() ||
+                    document.getElementById('websiteUrl').value.trim() ||
+                    document.getElementById('brandText').value.trim()
+
+    if (!hasInput) {
+      alert('Por favor carga al menos una fuente de información')
+      return
+    }
+
+    loaderState.analysisInProgress = true
+    loaderState.brandText = document.getElementById('brandText').value
+
+    // Mostrar progress tracker
+    document.getElementById('analysisProgress').style.display = 'block'
+
+    // Aquí iría la llamada a /api/auto-populate-brand
+    // Por ahora es un placeholder
+    showReviewModal()
+  }
+
+  /**
+   * Mostrar modal de revisión (próxima fase)
+   */
+  function showReviewModal() {
+    console.log('📝 Abriendo modal de revisión con:', loaderState)
+    // Implementar en Fase 3
+    alert('✅ Análisis completado! (Próxima: Modal de revisión)')
+    closeUnifiedBrandLoader()
+  }
+</script>
