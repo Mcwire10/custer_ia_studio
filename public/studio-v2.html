@@ -2976,6 +2976,12 @@
 
       // Inicializar resumen con valores actuales (si existen)
       updateBrandSummary()
+
+      // ============= PLAN 6: Inicializar Brand Selection Modal =============
+      // Si no hay marca seleccionada, mostrar modal de selección/creación
+      setTimeout(() => {
+        initPlan6()
+      }, 500)
     })
 
     // Función universal para rellenar campos desde cualquier fuente
