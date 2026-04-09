@@ -1393,6 +1393,175 @@
         padding: 8px;
       }
     }
+
+    /* PHASE 7: Toast Notifications Animations */
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    /* PHASE 7: Modal Responsive Design */
+    @media (max-width: 768px) {
+      /* Brand Selection Modal */
+      .modal {
+        padding: 12px !important;
+      }
+
+      .modal-content {
+        margin: 12px !important;
+        padding: 20px !important;
+        max-height: calc(100vh - 24px) !important;
+        border-radius: 12px;
+      }
+
+      .brands-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+        gap: 12px !important;
+      }
+
+      /* Unified Loader Modal */
+      .loader-container {
+        padding: 20px !important;
+        max-height: calc(100vh - 40px) !important;
+      }
+
+      .drop-zone {
+        padding: 20px 12px !important;
+      }
+
+      .loader-section {
+        margin-bottom: 16px !important;
+      }
+
+      .loader-section label {
+        font-size: 13px;
+      }
+
+      .loader-section input,
+      .loader-section textarea {
+        font-size: 16px !important; /* Prevenir zoom en iOS */
+        padding: 12px !important;
+      }
+
+      .loader-actions {
+        flex-direction: column !important;
+      }
+
+      .loader-actions .btn {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 13px;
+      }
+
+      /* Review Modal */
+      .review-container {
+        padding: 20px !important;
+        max-height: calc(100vh - 40px) !important;
+      }
+
+      .review-tabs {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        margin-bottom: 12px !important;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .review-tab-btn {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+        white-space: nowrap;
+      }
+
+      .review-header h2 {
+        font-size: 18px !important;
+      }
+
+      /* Toast Notifications */
+      #notificationToast {
+        bottom: 12px !important;
+        right: 12px !important;
+        left: 12px !important;
+        max-width: calc(100vw - 24px) !important;
+        font-size: 13px !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .modal-content,
+      .loader-container,
+      .review-container {
+        padding: 16px !important;
+        border-radius: 8px;
+      }
+
+      .loader-header h2,
+      .review-header h2 {
+        font-size: 16px !important;
+      }
+
+      .brand-card {
+        padding: 12px !important;
+      }
+
+      .brand-card-name {
+        font-size: 12px !important;
+      }
+
+      .review-tabs {
+        gap: 4px !important;
+      }
+
+      .review-tab-btn {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+      }
+    }
+
+    /* PHASE 7: Button Loading State */
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn[disabled] {
+      pointer-events: none;
+    }
+
+    /* Input Focus Improvements */
+    input:focus,
+    textarea:focus,
+    select:focus {
+      box-shadow: 0 0 0 3px rgba(104, 96, 238, 0.1);
+    }
+
+    /* Color Picker Styling */
+    input[type="color"] {
+      cursor: pointer;
+      height: 40px;
+      border: 1px solid var(--border-light) !important;
+      border-radius: 6px;
+    }
+
+    input[type="color"]:hover {
+      border-color: var(--color-brand) !important;
+    }
   </style>
 </head>
 <body>
@@ -6645,6 +6814,7 @@
       if (loader) {
         loader.style.display = 'flex';
         setupDropZone();
+        setupInputValidators(); // PHASE 7: Agregar validadores
       }
     }
 
@@ -6676,48 +6846,223 @@
     function handleFileInput(files) {
       loaderState.files = Array.from(files).slice(0, 10);
       console.log(`📁 ${loaderState.files.length} archivos cargados`);
+
+      // Validar tamaño de archivos (max 5MB por archivo)
+      const tooLarge = loaderState.files.filter(f => f.size > 5 * 1024 * 1024);
+      if (tooLarge.length > 0) {
+        showNotification(`⚠️ Algunos archivos superan 5MB. Se ignorarán.`, 'error');
+        loaderState.files = loaderState.files.filter(f => f.size <= 5 * 1024 * 1024);
+      }
     }
 
+    /**
+     * PHASE 7: Validar Instagram handle
+     */
+    function validateInstagramHandle(handle) {
+      if (!handle.trim()) return { valid: true, message: '' };
+
+      const cleaned = handle.replace('@', '').trim();
+      const isValid = /^[a-zA-Z0-9_.]{1,30}$/.test(cleaned);
+
+      return {
+        valid: isValid,
+        message: isValid ? '' : 'Instagram handle inválido. Usa solo letras, números, _ y .',
+        cleaned: cleaned
+      };
+    }
+
+    /**
+     * PHASE 7: Validar URL
+     */
+    function validateURL(url) {
+      if (!url.trim()) return { valid: true, message: '' };
+
+      try {
+        // Agregar protocolo si falta
+        let urlToCheck = url;
+        if (!url.startsWith('http')) {
+          urlToCheck = 'https://' + url;
+        }
+        new URL(urlToCheck);
+        return { valid: true, message: '', url: urlToCheck };
+      } catch (e) {
+        return { valid: false, message: 'URL inválida. Usa formato: https://ejemplo.com' };
+      }
+    }
+
+    /**
+     * PHASE 7: Setup input validators
+     */
+    function setupInputValidators() {
+      const igInput = document.getElementById('instagramHandle');
+      const urlInput = document.getElementById('websiteUrl');
+
+      if (igInput) {
+        igInput.addEventListener('blur', () => {
+          const validation = validateInstagramHandle(igInput.value);
+          if (igInput.value && !validation.valid) {
+            showNotification('⚠️ ' + validation.message, 'error');
+          }
+        });
+      }
+
+      if (urlInput) {
+        urlInput.addEventListener('blur', () => {
+          const validation = validateURL(urlInput.value);
+          if (urlInput.value && !validation.valid) {
+            showNotification('⚠️ ' + validation.message, 'error');
+          }
+        });
+      }
+    }
+
+    /**
+     * PHASE 7: Analyze all content with error handling + loading states
+     * Calls /api/auto-populate-brand with timeout and retry logic
+     */
     async function analyzeAllContent() {
       if (loaderState.analysisInProgress) return;
+
+      // Validar entrada
       const hasInput = (loaderState.files.length > 0) ||
                       document.getElementById('instagramHandle')?.value?.trim() ||
                       document.getElementById('websiteUrl')?.value?.trim() ||
                       document.getElementById('brandText')?.value?.trim();
       if (!hasInput) {
-        alert('Por favor carga al menos una fuente de información');
+        showNotification('⚠️ Por favor carga al menos una fuente de información', 'error');
         return;
       }
 
       loaderState.analysisInProgress = true;
       loaderState.brandText = document.getElementById('brandText')?.value || '';
 
+      // Mostrar loading state
+      const analyzeBtn = document.querySelector('[onclick="analyzeAllContent()"]');
+      const originalText = analyzeBtn?.textContent;
+      if (analyzeBtn) {
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = '⏳ Analizando...'
+      }
+
+      // Mostrar progress tracker
+      const progressEl = document.getElementById('analysisProgress');
+      if (progressEl) {
+        progressEl.style.display = 'block';
+      }
+
       try {
-        console.log('🚀 Llamando a /api/auto-populate-brand...');
-        const response = await fetch('/api/auto-populate-brand', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            files: loaderState.files || [],
-            instagramHandle: document.getElementById('instagramHandle')?.value || '',
-            websiteUrl: document.getElementById('websiteUrl')?.value || '',
-            brandText: loaderState.brandText
-          })
-        });
+        console.log('🚀 Iniciando análisis paralelo...');
+        showNotification('🔍 Analizando marca desde múltiples fuentes...', 'info');
+
+        // Timeout de 30 segundos
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Análisis tardó demasiado (30s)')), 30000)
+        );
+
+        const response = await Promise.race([
+          fetch('/api/auto-populate-brand', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              files: loaderState.files || [],
+              instagramHandle: document.getElementById('instagramHandle')?.value || '',
+              websiteUrl: document.getElementById('websiteUrl')?.value || '',
+              brandText: loaderState.brandText
+            })
+          }),
+          timeoutPromise
+        ]);
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Error en análisis');
+        if (!response.ok) {
+          throw new Error(data.error || 'Error en análisis de marca');
+        }
 
         window.brandAnalysisData = data;
-        console.log('✅ Análisis completado');
-        showReviewModal();
-        closeUnifiedBrandLoader();
+        console.log('✅ Análisis completado exitosamente');
+        showNotification('✅ ¡Análisis completado! Revisa los datos...', 'success');
+
+        // Pequeña pausa antes de mostrar review modal
+        setTimeout(() => {
+          closeUnifiedBrandLoader();
+          showReviewModal();
+        }, 600);
 
       } catch (error) {
-        console.error('Error:', error);
-        alert('Error: ' + error.message);
+        console.error('❌ Error en análisis:', error);
+
+        // Error handling específicos
+        let errorMsg = error.message;
+        if (error.message.includes('fetch')) {
+          errorMsg = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
+        } else if (error.message.includes('tardó')) {
+          errorMsg = 'El análisis tardó demasiado. Intenta con menos fuentes.';
+        } else if (error.message.includes('401')) {
+          errorMsg = 'Sesión expirada. Por favor, vuelve a iniciar sesión.';
+        }
+
+        showNotification('❌ ' + errorMsg, 'error');
         loaderState.analysisInProgress = false;
+
+      } finally {
+        // Restaurar estado del botón
+        if (analyzeBtn) {
+          analyzeBtn.disabled = false;
+          analyzeBtn.textContent = originalText || '✨ Auto-Analizar TODO';
+        }
+
+        // Ocultar progress tracker
+        if (progressEl) {
+          progressEl.style.display = 'none';
+        }
       }
+    }
+
+    /**
+     * PHASE 7: Show notification toast
+     */
+    function showNotification(message, type = 'info') {
+      // Crear toast si no existe
+      let toast = document.getElementById('notificationToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'notificationToast';
+        toast.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          padding: 16px 24px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          z-index: 10000;
+          animation: slideIn 0.3s ease;
+          max-width: 300px;
+          word-wrap: break-word;
+        `;
+        document.body.appendChild(toast);
+      }
+
+      // Estilos por tipo
+      const styles = {
+        success: { background: 'rgba(34, 197, 94, 0.9)', color: '#fff' },
+        error: { background: 'rgba(239, 68, 68, 0.9)', color: '#fff' },
+        info: { background: 'rgba(104, 96, 238, 0.9)', color: '#fff' }
+      };
+
+      const style = styles[type] || styles.info;
+      toast.style.background = style.background;
+      toast.style.color = style.color;
+      toast.textContent = message;
+
+      // Auto-dismiss después de 5 segundos
+      clearTimeout(toast.dismissTimeout);
+      toast.dismissTimeout = setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 300);
+      }, 5000);
     }
 
     function showReviewModal() {
