@@ -1678,78 +1678,21 @@
             <h3>1️⃣ Cargar marca</h3>
             <p class="slide-description">Carga tu marca desde cero, archivo o análisis de redes.</p>
 
-            <!-- LOAD METHODS SECTION -->
+            <!-- BRAND STATUS SECTION -->
             <div class="form-group">
-              <label>🔄 4 formas de cargar tu marca:</label>
-              <div style="display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--border-light); padding-bottom: 15px; flex-wrap: wrap;">
-                <button class="tag active" data-method="archivo" onclick="switchLoadMethod('archivo', this)">📁 Archivo</button>
-                <button class="tag" data-method="texto" onclick="switchLoadMethod('texto', this)">📝 Pegar texto</button>
-                <button class="tag" data-method="url" onclick="switchLoadMethod('url', this)">🌐 URL web</button>
-                <button class="tag" data-method="manual" onclick="switchLoadMethod('manual', this)">✏️ Manual</button>
-              </div>
-              <div id="method-archivo" class="method-container">
-                <div class="file-upload" id="brandDropZone"
-                  ondragover="event.preventDefault(); event.stopPropagation(); this.classList.add('drag-active')"
-                  ondragleave="this.classList.remove('drag-active')"
-                  ondrop="event.preventDefault(); event.stopPropagation(); this.classList.remove('drag-active'); handleBrandFileDrop(event)">
-                  <input type="file" id="brandFile" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadBrandFile(event)">
-                  <label class="file-upload-label" for="brandFile" id="brandFileLabel">
-                    📁 Arrastra o selecciona un archivo<br>
-                    <small style="color: var(--text-tertiary);">PDF de marca · JPG/PNG corporativo · Se auto-analiza con IA</small>
-                  </label>
+              <div id="brainBrandStatus" style="background: rgba(104, 96, 238, 0.06); border: 1px solid rgba(104, 96, 238, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <div>
+                  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px;">Marca activa</div>
+                  <div id="brainBrandName" style="font-weight: 700; font-size: 1.05rem; color: var(--text-primary);">Sin marca cargada</div>
+                  <div id="brainBrandRubro" style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;"></div>
                 </div>
-                <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.6;">
-                  <strong style="color: var(--text-secondary); font-family: var(--font-mono); text-transform: uppercase; font-size: 0.75rem;">ℹ️ Información:</strong><br>
-                  <span style="color: var(--text-disabled);">✓ PDFs de marca: brand guidelines, brochures, presentaciones<br>✓ Imágenes corporativas: logos, piezas, capturas del sitio<br>✓ Claude extrae todos los campos automáticamente</span>
-                </div>
-              </div>
-              <div id="method-texto" class="method-container" style="display: none;">
-                <label style="display: block; margin-bottom: 10px;">Pega el resumen o texto extraído del PDF</label>
-                <textarea id="brandText" placeholder="Haz un resumen en Acrobat (File → Export as Text) y pegalo aquí..." style="min-height: 250px; resize: vertical; padding: 16px;"></textarea>
-                <button class="btn" style="width: 100%; margin-top: 15px;" onclick="procesarTextoMarca()">
-                  <span id="textLoading"></span>
-                  🔍 Extraer datos del texto
+                <button onclick="document.getElementById('unifiedBrandLoader').style.display = 'flex'" class="btn" style="white-space: nowrap; background: linear-gradient(135deg, var(--color-brand), var(--color-accent)); border: none; color: white; font-weight: 600; padding: 10px 16px;">
+                  📥 Cargar marca
                 </button>
               </div>
-              <div id="method-url" class="method-container" style="display: none;">
-                <label style="display: block; margin-bottom: 10px;">Ingresa la URL de tu sitio web</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                  <input type="text" id="brandUrl" placeholder="https://tudominio.com" style="flex: 1;">
-                  <button class="btn" onclick="fetchBrandFromUrl()" style="white-space: nowrap;">
-                    <span id="urlLoading"></span>
-                    🔗 Cargar
-                  </button>
-                </div>
-                <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.6;">
-                  <strong style="color: var(--text-secondary); font-family: var(--font-mono); text-transform: uppercase; font-size: 0.75rem;">ℹ️ Información:</strong><br>
-                  <span style="color: var(--text-disabled);">✓ Se extraerán textos, colores y estructura de tu sitio<br>✓ Se analizará el contenido para obtener datos de marca</span>
-                </div>
-              </div>
-              <div id="method-manual" class="method-container" style="display: none;">
-                <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem; color: var(--text-disabled);">
-                  ✅ Completa directamente los campos en las siguientes diapositivas
-                </div>
-                <label style="display: block; margin-bottom: 10px;">📱 Perfil de Instagram (opcional)</label>
-                <div style="display: flex; gap: 8px;">
-                  <input type="text" id="instagramHandle" placeholder="@tuusuario o usuário" style="flex: 1;">
-                  <button class="btn" onclick="loadInstagramMetrics()" style="white-space: nowrap;">
-                    <span id="igLoading"></span>
-                    📊 Cargar métricas
-                  </button>
-                </div>
-                <div id="instagramMetrics" style="display: none; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-top: 12px; font-size: 0.85rem;">
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                      <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Seguidores</span><br>
-                      <span id="igFollowers" style="color: var(--text-primary); font-weight: 600;">-</span>
-                    </div>
-                    <div>
-                      <span style="color: var(--text-disabled); font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono);">Engagement</span><br>
-                      <span id="igEngagement" style="color: var(--text-primary); font-weight: 600;">-</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <p style="font-size: 0.82rem; color: var(--text-muted); text-align: center; margin: 0;">
+                Los campos de abajo se autocompletan al analizar tu marca.<br>Podés editarlos manualmente en cualquier momento.
+              </p>
             </div>
 
             <!-- RESUMEN DE DATOS EXTRAÍDOS -->
@@ -1808,6 +1751,7 @@
                         🔗 Buscar
                       </button>
                     </div>
+                    <div id="igScrapeInstructions" style="display: none; margin-top: 8px;"></div>
                   </div>
 
                   <!-- Opción 2: Por URLs directas -->
@@ -3057,6 +3001,12 @@
       const colorPrimario = document.getElementById('bbColorPrimario').value
       const imagesCount = document.querySelectorAll('#visualImagesPreview img').length
 
+      // Actualizar status del slide 1
+      const brainBrandName = document.getElementById('brainBrandName')
+      const brainBrandRubro = document.getElementById('brainBrandRubro')
+      if (brainBrandName) brainBrandName.textContent = nombre || 'Sin marca cargada'
+      if (brainBrandRubro) brainBrandRubro.textContent = rubro || ''
+
       // Actualizar campos de resumen
       document.getElementById('summaryBrand').textContent = nombre || '-'
       document.getElementById('summaryRubro').textContent = rubro || '-'
@@ -3486,8 +3436,20 @@
         return
       }
 
+      // Detectar tipo de URL
+      const parsedUrl = new URL(url)
+      const isInstagram = parsedUrl.hostname.includes('instagram.com')
+      const isReel = isInstagram && (url.includes('/reel/') || url.includes('/p/'))
+      const isTikTok = parsedUrl.hostname.includes('tiktok.com')
+      const isYoutube = parsedUrl.hostname.includes('youtube.com') || parsedUrl.hostname.includes('youtu.be')
+
+      let loadingMsg = '🌐 Analizando sitio web con IA... puede tomar 20-30 seg'
+      if (isReel) loadingMsg = '📱 Extrayendo contenido del reel... (solo metadata, sin audio)'
+      else if (isTikTok) loadingMsg = '📱 Analizando TikTok... (metadata del perfil)'
+      else if (isYoutube) loadingMsg = '▶️ Analizando canal de YouTube...'
+
       showLoading('urlLoading', true)
-      showToast('🌐 Analizando sitio web con IA... puede tomar 20-30 seg', 'info')
+      showToast(loadingMsg, 'info')
 
       try {
         // El nuevo endpoint scrape-brand-url hace TODO: scraping + extracción con Claude
@@ -3507,13 +3469,17 @@
         fillBrandFields(data.brand)
 
         const nombre = data.brand?.basico?.nombre || url
-        showToast(`✅ Marca "${nombre}" analizada y cargada automáticamente`, 'success')
 
-        // Avanzar al siguiente slide del Brain si es posible
-        setTimeout(() => {
-          const nextBtn = document.querySelector('.brain-nav-next')
-          if (nextBtn) nextBtn.click()
-        }, 800)
+        if (isReel || isTikTok || isYoutube) {
+          showToast(`✅ Contenido del video analizado — se extrajo metadata y temática para enriquecer la marca`, 'success')
+        } else {
+          showToast(`✅ "${nombre}" analizada y cargada automáticamente`, 'success')
+          // Solo avanzar al siguiente slide para sitios web (no para videos)
+          setTimeout(() => {
+            const nextBtn = document.querySelector('.brain-nav-next')
+            if (nextBtn) nextBtn.click()
+          }, 800)
+        }
 
       } catch (error) {
         showToast(`❌ Error: ${error.message}`, 'error')
@@ -4348,19 +4314,22 @@
 
         // Si no tiene éxito, mostrar instrucciones
         if (!data.success || !data.images || data.images.length === 0) {
-          showToast('⚠️ No se pudieron scrapear imágenes automáticamente', 'warning')
-
-          // Mostrar instrucciones detalladas
-          const instructions = data.instructions || [
-            '1. Ve a https://www.instagram.com/' + cleanHandle,
-            '2. Abre DevTools (F12) → Network',
-            '3. Filtra por "jpg" o "png"',
-            '4. Haz click derecho en una imagen → "Copiar URL"',
-            '5. Pega las URLs en la opción "Pegar URLs directas"'
-          ]
-
-          let msg = 'Instrucciones: ' + instructions.slice(0, 2).join(' → ')
-          showToast(msg, 'info')
+          // Mostrar instrucciones inline debajo del campo (no como toast)
+          const igInstructions = document.getElementById('igScrapeInstructions')
+          if (igInstructions) {
+            igInstructions.innerHTML = `
+              <div style="background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.3); border-radius: 8px; padding: 12px; font-size: 0.82rem; line-height: 1.6; color: var(--text-secondary);">
+                <strong style="color: #F5A623;">⚠️ Instagram bloqueó el acceso automático</strong><br>
+                Para cargar imágenes de @${cleanHandle}, seguí estos pasos:<br>
+                <ol style="margin: 8px 0 0 16px; padding: 0;">
+                  <li>Abrí <a href="https://www.instagram.com/${cleanHandle}" target="_blank" style="color: #6860EE;">instagram.com/${cleanHandle}</a></li>
+                  <li>Click derecho en una imagen → "Copiar URL de imagen"</li>
+                  <li>Pegá las URLs en "Pegar URLs directas" aquí abajo</li>
+                </ol>
+              </div>
+            `
+            igInstructions.style.display = 'block'
+          }
           return
         }
 
@@ -4511,66 +4480,98 @@
 
     async function analyzeVisualIdentity() {
       if (currentBrandImages.length === 0) {
-        showToast('❌ Carga al menos 1 imagen', 'error')
+        showToast('❌ Carga al menos 1 imagen primero', 'error')
         return
       }
 
       showLoading('visualLoading', true)
+      showToast(`🔍 Analizando ${currentBrandImages.length} imágenes...`, 'info')
       try {
-        // Crear FormData con las imágenes en base64
-        const formData = new FormData()
-
-        for (const image of currentBrandImages) {
-          // Convertir base64 a Blob
-          const arr = image.data.split(',')
-          const mime = arr[0].match(/:(.*?);/)[1]
-          const bstr = atob(arr[1])
-          const n = bstr.length
-          const u8arr = new Uint8Array(n)
-          for (let i = 0; i < n; i++) {
-            u8arr[i] = bstr.charCodeAt(i)
+        // Preparar imágenes como JSON (no FormData — evita errores de atob)
+        const imagesPayload = currentBrandImages.map(img => {
+          // image.data puede ser: "data:image/jpeg;base64,/9j/..." o solo el base64
+          let base64 = img.data || ''
+          if (base64.includes(',')) {
+            base64 = base64.split(',')[1]
           }
-          const blob = new Blob([u8arr], { type: mime })
-          formData.append('images', blob, image.name)
+          // Detectar tipo
+          let type = img.type || 'image/jpeg'
+          if (!type.startsWith('image/')) type = 'image/jpeg'
+          return { data: base64, name: img.name || 'image.jpg', type }
+        }).filter(img => img.data && img.data.length > 0)
+
+        if (imagesPayload.length === 0) {
+          throw new Error('Las imágenes no tienen datos válidos')
         }
 
-        const response = await fetch('/api/analyze-visual-assets', {
+        const response = await fetch('/api/analyze-visual-identity', {
           method: 'POST',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            images: imagesPayload,
+            brandName: currentBrand?.nombre || 'Marca'
+          })
         })
 
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)
 
-        currentVisualAnalysis = data.visualAssets.analysis
+        currentVisualAnalysis = data.analysis
 
         // Guardar en localStorage
-        localStorage.setItem('visualAssets', JSON.stringify(data.visualAssets))
+        localStorage.setItem('visualAssets', JSON.stringify({ analysis: data.analysis, totalImages: imagesPayload.length }))
 
-        // Mostrar resultado
-        const resultDiv = document.getElementById('visualAnalysisResult')
-        document.getElementById('visualAnalysisContent').textContent = JSON.stringify(data.visualAssets.analysis, null, 2)
-        resultDiv.style.display = 'block'
+        // Rellenar campos automáticamente con datos extraídos
+        if (data.analysis?.colores?.length > 0) {
+          const primario = data.analysis.colores.find(c => c.uso === 'primario') || data.analysis.colores[0]
+          const secundario = data.analysis.colores.find(c => c.uso === 'secundario') || data.analysis.colores[1]
+          if (primario?.hex) document.getElementById('bbColorPrimario').value = primario.hex
+          if (secundario?.hex) document.getElementById('bbColorSecundario').value = secundario.hex
 
-        // Llenar campos automáticamente si existen
-        if (data.visualAssets.analysis.colores && data.visualAssets.analysis.colores.length > 0) {
-          const primario = data.visualAssets.analysis.colores.find(c => c.uso === 'primario')
-          if (primario) {
-            document.getElementById('bbColorPrimario').value = primario.hex
+          const colorSummary = data.analysis.colores.slice(0, 3).map(c => `${c.nombre || ''} (${c.hex})`).join(', ')
+          const summaryEl = document.getElementById('summaryColors')
+          if (summaryEl) summaryEl.innerHTML = colorSummary
+        }
+
+        if (data.analysis?.tipografia?.length > 0) {
+          const mainFont = data.analysis.tipografia[0]
+          if (mainFont?.familia) {
+            const tipEl = document.getElementById('bbTipoPrincipal')
+            if (tipEl && !tipEl.value) tipEl.value = mainFont.familia
           }
         }
 
-        // Mostrar colores extraídos
-        const colorSummary = data.visualAssets.analysis.colores
-          .slice(0, 3)
-          .map(c => `${c.nombre} (${c.hex})`)
-          .join(', ')
-        document.getElementById('summaryColors').textContent = colorSummary || '-'
-        document.getElementById('summaryImages').textContent = data.visualAssets.totalImages
+        if (data.analysis?.sistema_visual?.estilo) {
+          const estiloEl = document.getElementById('bbEstiloVisual')
+          if (estiloEl && !estiloEl.value) estiloEl.value = data.analysis.sistema_visual.estilo
+        }
 
-        showToast(`✅ Análisis visual completado (${data.visualAssets.totalImages} imágenes)`, 'success')
+        // Mostrar resultado como resumen legible (no JSON crudo)
+        const resultDiv = document.getElementById('visualAnalysisResult')
+        const resumen = data.analysis?.resumen || 'Análisis completado'
+        const coloresStr = (data.analysis?.colores || []).slice(0, 5).map(c =>
+          `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:8px;">
+            <span style="width:12px;height:12px;border-radius:50%;background:${c.hex};display:inline-block;border:1px solid rgba(255,255,255,0.2);"></span>
+            ${c.hex}
+          </span>`
+        ).join('')
+        const fontsStr = (data.analysis?.tipografia || []).slice(0, 3).map(f => f.familia).join(', ')
+
+        document.getElementById('visualAnalysisContent').innerHTML = `
+          <div style="line-height: 1.8; font-size: 0.85rem;">
+            <div style="margin-bottom: 8px;"><strong>🎨 Colores:</strong> ${coloresStr || '-'}</div>
+            <div style="margin-bottom: 8px;"><strong>📝 Tipografías:</strong> ${fontsStr || '-'}</div>
+            <div style="margin-bottom: 8px;"><strong>📸 Fotografía:</strong> ${data.analysis?.fotografia?.estilo || '-'}</div>
+            <div><strong>📋 Resumen:</strong> ${resumen}</div>
+          </div>
+        `
+        resultDiv.style.display = 'block'
+
+        updateBrandSummary()
+        showToast(`✅ Identidad visual analizada (${imagesPayload.length} imágenes)`, 'success')
       } catch (error) {
         showToast(`❌ Error: ${error.message}`, 'error')
+        console.error('analyzeVisualIdentity error:', error)
       } finally {
         showLoading('visualLoading', false)
       }
