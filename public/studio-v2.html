@@ -670,6 +670,14 @@
       transition: all var(--transition-normal);
     }
 
+    .file-upload.drag-active .file-upload-label,
+    .file-upload.drag-active {
+      background: rgba(94, 106, 210, 0.22) !important;
+      border-color: #6860EE !important;
+      box-shadow: 0 0 0 3px rgba(104, 96, 238, 0.3) !important;
+      transform: scale(1.01);
+    }
+
     .file-upload-label:hover {
       background: rgba(94, 106, 210, 0.15);
       border-color: var(--color-accent-light);
@@ -1680,16 +1688,19 @@
                 <button class="tag" data-method="manual" onclick="switchLoadMethod('manual', this)">✏️ Manual</button>
               </div>
               <div id="method-archivo" class="method-container">
-                <div class="file-upload">
+                <div class="file-upload" id="brandDropZone"
+                  ondragover="event.preventDefault(); event.stopPropagation(); this.classList.add('drag-active')"
+                  ondragleave="this.classList.remove('drag-active')"
+                  ondrop="event.preventDefault(); event.stopPropagation(); this.classList.remove('drag-active'); handleBrandFileDrop(event)">
                   <input type="file" id="brandFile" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadBrandFile(event)">
-                  <label class="file-upload-label" for="brandFile">
+                  <label class="file-upload-label" for="brandFile" id="brandFileLabel">
                     📁 Arrastra o selecciona un archivo<br>
-                    <small style="color: var(--text-tertiary);">Se extraerán los datos automáticamente</small>
+                    <small style="color: var(--text-tertiary);">PDF de marca · JPG/PNG corporativo · Se auto-analiza con IA</small>
                   </label>
                 </div>
                 <div style="background: transparent; border: 1px solid var(--border-light); border-radius: 0px; padding: 12px; margin-top: 12px; font-size: 0.85rem; line-height: 1.6;">
                   <strong style="color: var(--text-secondary); font-family: var(--font-mono); text-transform: uppercase; font-size: 0.75rem;">ℹ️ Información:</strong><br>
-                  <span style="color: var(--text-disabled);">✓ Tamaño máximo: 3 MB<br>✓ Formatos: JPG, PNG, PDF</span>
+                  <span style="color: var(--text-disabled);">✓ PDFs de marca: brand guidelines, brochures, presentaciones<br>✓ Imágenes corporativas: logos, piezas, capturas del sitio<br>✓ Claude extrae todos los campos automáticamente</span>
                 </div>
               </div>
               <div id="method-texto" class="method-container" style="display: none;">
@@ -3248,9 +3259,44 @@
       }
     }
 
+    // Handler para drag-and-drop de archivos al drop zone
+    function handleBrandFileDrop(event) {
+      const files = event.dataTransfer?.files
+      if (!files || files.length === 0) return
+      const file = files[0]
+
+      // Verificar formato
+      const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
+      if (!allowed.includes(file.type) && !file.name.toLowerCase().endsWith('.pdf')) {
+        showToast('❌ Formato no soportado. Usa JPG, PNG o PDF', 'error')
+        return
+      }
+
+      // Actualizar el input file para consistencia
+      try {
+        const dataTransfer = new DataTransfer()
+        dataTransfer.items.add(file)
+        document.getElementById('brandFile').files = dataTransfer.files
+      } catch {}
+
+      // Actualizar label visualmente
+      const label = document.getElementById('brandFileLabel')
+      if (label) {
+        label.innerHTML = `📄 ${file.name}<br><small style="color: var(--text-tertiary);">Analizando con IA...</small>`
+      }
+
+      sendBrandFile(file)
+    }
+
     async function uploadBrandFile(event) {
       const file = event.target.files[0]
       if (!file) return
+
+      // Actualizar label visualmente
+      const label = document.getElementById('brandFileLabel')
+      if (label) {
+        label.innerHTML = `📄 ${file.name}<br><small style="color: var(--text-tertiary);">Analizando con IA...</small>`
+      }
 
       // Verificar tamaño
       const maxSize = 3 * 1024 * 1024 // 3 MB
@@ -3398,8 +3444,24 @@
         if (b.publico || b.audiencia?.publico_objetivo) document.getElementById('bbPublico').value = b.publico || b.audiencia?.publico_objetivo
         if (b.registro) document.getElementById('bbRegistro').value = b.registro
 
-        showToast('✅ Datos extraídos correctamente', 'success')
+        // Contar campos completados
+        const filled = [
+          b.basico?.nombre, b.basico?.rubro, b.estrategico?.mision, b.identidad?.voz_tono,
+          b.visual?.colores?.primario, b.audiencia?.publico_objetivo, b.posicionamiento?.propuesta_unica
+        ].filter(Boolean).length
+
+        // Actualizar label
+        const label = document.getElementById('brandFileLabel')
+        if (label) {
+          const nombre = b.basico?.nombre || 'Marca'
+          label.innerHTML = `✅ ${nombre} analizada<br><small style="color: #4ADE80;">${filled}/7 secciones clave completadas</small>`
+        }
+
+        updateBrandSummary()
+        showToast(`✅ Archivo analizado — ${filled}/7 secciones clave completadas`, 'success')
       } catch (error) {
+        const label = document.getElementById('brandFileLabel')
+        if (label) label.innerHTML = `❌ Error procesando archivo<br><small style="color: var(--text-tertiary);">Intentá con otro formato o pegá el texto manualmente</small>`
         showToast(`❌ Error: ${error.message}`, 'error')
       } finally {
         showLoading('upLoading', false)
@@ -3408,45 +3470,51 @@
 
     // ========== CARGAR DESDE URL ==========
     async function fetchBrandFromUrl() {
-      const url = document.getElementById('brandUrl').value.trim()
+      let url = document.getElementById('brandUrl').value.trim()
       if (!url) {
         showToast('❌ Ingresa una URL válida', 'error')
         return
       }
 
-      showLoading('urlLoading', true)
+      // Normalizar URL
+      if (!url.startsWith('http')) url = 'https://' + url
+
       try {
-        // Validar que sea una URL válida
         new URL(url) // Lanzará error si no es válida
+      } catch {
+        showToast('❌ URL no válida. Ej: https://tumarca.com', 'error')
+        return
+      }
 
-        // Crear un FormData para enviar la URL
-        const formData = new FormData()
-        formData.append('url', url)
+      showLoading('urlLoading', true)
+      showToast('🌐 Analizando sitio web con IA... puede tomar 20-30 seg', 'info')
 
+      try {
+        // El nuevo endpoint scrape-brand-url hace TODO: scraping + extracción con Claude
         const response = await fetch('/api/scrape-brand-url', {
           method: 'POST',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
         })
 
         const data = await response.json()
-        if (!response.ok) throw new Error(data.error || 'Error al cargar desde URL')
+        if (!response.ok) throw new Error(data.error || 'Error al analizar el sitio')
 
-        // Enviar el contenido extraído al proceso de texto
-        const extractedText = data.content || data.text
-        if (!extractedText) throw new Error('No se pudo extraer contenido de la URL')
+        // data.brand ya tiene la estructura completa del Brain
+        if (!data.brand) throw new Error('No se pudo extraer información de marca del sitio')
 
-        // Procesar el texto extraído
-        const processResponse = await fetch('/api/process-brand-text', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: extractedText })
-        })
+        // Rellenar todos los campos del formulario
+        fillBrandFields(data.brand)
 
-        const brandData = await processResponse.json()
-        if (!processResponse.ok) throw new Error(brandData.error)
+        const nombre = data.brand?.basico?.nombre || url
+        showToast(`✅ Marca "${nombre}" analizada y cargada automáticamente`, 'success')
 
-        fillBrandFields(brandData.brand)
-        showToast('✅ Datos extraídos de la URL correctamente', 'success')
+        // Avanzar al siguiente slide del Brain si es posible
+        setTimeout(() => {
+          const nextBtn = document.querySelector('.brain-nav-next')
+          if (nextBtn) nextBtn.click()
+        }, 800)
+
       } catch (error) {
         showToast(`❌ Error: ${error.message}`, 'error')
       } finally {
@@ -3454,47 +3522,73 @@
       }
     }
 
-    // ========== CARGAR MÉTRICAS DE INSTAGRAM ==========
+    // ========== CARGAR DESDE INSTAGRAM ==========
     async function loadInstagramMetrics() {
-      const handle = document.getElementById('instagramHandle').value.trim()
+      let handle = document.getElementById('instagramHandle').value.trim()
       if (!handle) {
         showToast('❌ Ingresa un usuario de Instagram', 'error')
         return
       }
 
+      // Limpiar @
+      handle = handle.replace(/^@/, '').replace(/^https?:\/\/(?:www\.)?instagram\.com\//, '').replace(/\/$/, '')
+
       showLoading('igLoading', true)
+      showToast('📱 Analizando perfil de Instagram...', 'info')
+
       try {
-        // Por ahora, simular datos (en producción usar Instagram Graph API)
-        // En el futuro integrar con API oficial de Instagram
-        const metrics = await getInstagramMetrics(handle)
+        // Intentar scrape del perfil público de Instagram como sitio web
+        const igUrl = `https://www.instagram.com/${handle}/`
 
-        // Mostrar métricas
-        document.getElementById('instagramMetrics').style.display = 'grid'
-        document.getElementById('igFollowers').textContent = metrics.followers || 'N/A'
-        document.getElementById('igEngagement').textContent = metrics.engagement || 'N/A'
+        const response = await fetch('/api/scrape-brand-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: igUrl })
+        })
 
-        // Guardar en localStorage
+        const data = await response.json()
+
+        if (response.ok && data.brand) {
+          // Hay datos de Instagram — rellenar campos que estén vacíos
+          const brand = data.brand
+
+          // Solo rellenar campos vacíos (no pisar lo que ya se cargó desde el sitio web)
+          const fillIfEmpty = (id, value) => {
+            const el = document.getElementById(id)
+            if (el && !el.value && value) el.value = value
+          }
+
+          fillIfEmpty('bbNombre', brand.basico?.nombre)
+          fillIfEmpty('bbRubro', brand.basico?.rubro)
+          fillIfEmpty('bbPropuesta', brand.basico?.propuesta)
+          fillIfEmpty('bbVozTono', brand.identidad?.voz_tono)
+          fillIfEmpty('bbClaim', brand.identidad?.claim)
+          fillIfEmpty('bbAudienciaDemografica', brand.audiencia?.publico_objetivo)
+
+          // Guardar handle en el campo correspondiente del Brain
+          const igHandleField = document.getElementById('bbInstagramHandle')
+          if (igHandleField) igHandleField.value = '@' + handle
+
+          // Mostrar panel de métricas con datos reales si los hay
+          document.getElementById('instagramMetrics').style.display = 'grid'
+          document.getElementById('igFollowers').textContent = '(ver perfil)'
+          document.getElementById('igEngagement').textContent = '(ver perfil)'
+
+          showToast(`✅ Información de @${handle} analizada y cargada`, 'success')
+        } else {
+          // Instagram bloqueó el scrape — es normal, dar instrucciones alternativas
+          showToast(`⚠️ Instagram bloqueó el acceso directo. Usá "URL Web" con el sitio oficial de la marca`, 'warning')
+
+          // Guardar el handle de todas formas
+          const igHandleField = document.getElementById('bbInstagramHandle')
+          if (igHandleField) igHandleField.value = '@' + handle
+        }
+
         localStorage.setItem('instagramHandle', handle)
-        localStorage.setItem('instagramMetrics', JSON.stringify(metrics))
-
-        showToast('✅ Métricas de Instagram cargadas', 'success')
       } catch (error) {
-        showToast(`❌ Error: ${error.message}`, 'error')
+        showToast(`⚠️ Instagram no permite scraping directo. Usá la URL del sitio web de la marca en cambio.`, 'warning')
       } finally {
         showLoading('igLoading', false)
-      }
-    }
-
-    // Helper para obtener métricas de Instagram (placeholder)
-    async function getInstagramMetrics(handle) {
-      // Este es un placeholder. En producción, usaría Instagram Graph API
-      // Por ahora, retorna datos de ejemplo
-      return {
-        followers: '5.2K',
-        engagement: '3.8%',
-        lastPost: new Date().toLocaleDateString(),
-        avgLikes: '250',
-        avgComments: '15'
       }
     }
 

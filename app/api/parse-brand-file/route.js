@@ -50,6 +50,7 @@ export async function POST(request) {
 
     // Determinar tipo de archivo
     const isImage = file.type.startsWith('image/')
+    const isPDF = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf')
 
     let messageContent = []
 
@@ -64,12 +65,41 @@ export async function POST(request) {
           data: base64
         }
       })
+    } else if (isPDF) {
+      // Para PDFs, usar document API de Claude (soporta PDF nativamente)
+      messageContent.push({
+        type: 'document',
+        source: {
+          type: 'base64',
+          media_type: 'application/pdf',
+          data: base64
+        }
+      })
     }
+
+    const extractionPrompt = `Analiza este archivo (puede ser una guía de marca, brochure, catálogo, presentación o imagen corporativa) y extrae TODA la información de marca posible.
+
+Devuelve SOLO este JSON sin markdown:
+{
+  "basico": {"nombre": null, "rubro": null, "ciudad": null, "propuesta": null},
+  "estrategico": {"mision": null, "vision": null, "valores": [], "beneficios_funcionales": null, "beneficios_emocionales": null},
+  "audiencia": {"publico_objetivo": null, "audiencia_real": null, "pain_points": [], "gains": [], "motivaciones": null, "comportamiento_digital": null},
+  "identidad": {"voz_tono": null, "claim": null, "narrativa": null, "territorio_creativo": null},
+  "visual": {"tipografia": null, "colores": {"primario": null, "secundario": null, "acentos": []}, "estilo_visual": null, "recursos_graficos": null, "sistema_grafico": null, "mood_board": null},
+  "posicionamiento": {"competencia": [], "diferenciadores": [], "propuesta_unica": null},
+  "implementacion": {"canales": [], "formatos": [], "frecuencia": null},
+  "comunicacion": {"keywords": [], "avoid": [], "tonalidad": [], "ejemplos": null}
+}
+
+Para colores: devuelve HEX (#RRGGBB). Para campos sin información clara: null.`
 
     messageContent.push({
       type: 'text',
-      text: `Extract ALL brand information from this file exhaustively. ${COMPACT_SCHEMA_INSTRUCTION} Respond ONLY JSON without markdown.`
+      text: extractionPrompt
     })
+
+    // Usar sonnet para PDFs (más capaz con documentos complejos), haiku para imágenes simples
+    const model = isPDF ? 'claude-sonnet-4-5' : 'claude-haiku-4-5'
 
     // Llamar a Claude
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -77,11 +107,12 @@ export async function POST(request) {
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'anthropic-beta': isPDF ? 'pdfs-2024-09-25' : undefined
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: getMaxTokens('parse-brand-file'),
+        model,
+        max_tokens: isPDF ? 4000 : getMaxTokens('parse-brand-file'),
         system: 'Eres experto en branding estratégico. Responde SOLO JSON válido sin markdown ni explicaciones.',
         messages: [
           {
