@@ -5119,36 +5119,47 @@
           funnelStage = 'consideration'
         }
 
-        // ============= GENERAR DISEÑOS PROFESIONALES CON MARCA =============
+        // ============= RENDERIZAR SLIDES GENERADOS POR CLAUDE =============
+        // Usar slides con HTML completo generado por Claude (diseñador gráfico)
+        const slides = data.slides || ads.map((ad, i) => ({
+          index: i,
+          label: ad.headline || `Slide ${i + 1}`,
+          design_rationale: ad.body || '',
+          html: ad.html || ''
+        }))
+
         let adsHTML = ''
-        for (let idx = 0; idx < ads.length; idx++) {
-          const ad = ads[idx]
+        for (let idx = 0; idx < slides.length; idx++) {
+          const slide = slides[idx]
 
-          // Generar diseño profesional con identidad visual de la marca
-          const brandedDesign = await generateDesignWithBranding({
-            titulo: ad.headline || 'Título',
-            texto: ad.body || 'Descripción',
-            cta: ad.cta || 'Descubre más',
-            type: ad.type || 'post',
-            funnelStage: funnelStage
-          })
+          // Claude genera HTML completo — usar directamente sin reemplazar con templates locales
+          const designHtml = slide.html || ads[idx]?.html || ''
 
-          // Usar diseño con marca si se generó, sino usar HTML básico
-          const designHtml = brandedDesign || ad.html
+          const slideLabel = slide.label || `Slide ${idx + 1}`
+          const slideRationale = slide.design_rationale || ''
 
           adsHTML += `
-            <div style="margin-bottom: 30px; display: flex; justify-content: center;">
-              ${designHtml}
+            <div style="margin-bottom: 40px;">
+              <div style="text-align: center; margin-bottom: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-primary); opacity: 0.8;">
+                Slide ${idx + 1} · ${slideLabel}
+              </div>
+              <div style="display: flex; justify-content: center; overflow: hidden; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                ${designHtml}
+              </div>
+              ${slideRationale ? `
+              <div style="text-align: center; margin-top: 10px; font-size: 0.78rem; color: var(--text-muted); font-style: italic; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                💡 ${slideRationale}
+              </div>` : ''}
             </div>
           `
         }
 
         let html = createResultsContainer(
-          `${data.topic || 'Anuncios generados'} 🎨`,
+          `${data.topic || 'Diseño generado'} 🎨`,
           SVG_ICONS.sparkles,
           `<div style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 20px;">
-            ${ads.length} diseños profesionales con identidad de marca '${currentBrand.nombre}'
-            <br><span style="font-size: 0.85rem; color: #F5A623;">Funnel Stage: ${funnelStage === 'awareness' ? '🚀 Awareness' : funnelStage === 'consideration' ? '🔍 Consideration' : '💰 Conversion'}</span>
+            ${slides.length} slide${slides.length !== 1 ? 's' : ''} generados para <strong>${currentBrand.nombre}</strong>
+            ${data.imageUrl ? '<br><span style="font-size: 0.8rem; color: #4ADE80;">✅ Imagen generada con Replicate Flux</span>' : ''}
           </div>`
         ) + adsHTML
 
