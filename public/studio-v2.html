@@ -6956,14 +6956,98 @@
     }
 
     function handleFileInput(files) {
-      loaderState.files = Array.from(files).slice(0, 10);
-      console.log(`📁 ${loaderState.files.length} archivos cargados`);
+      const fileArray = Array.from(files).slice(0, 10)
+      const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
-      // Validar tamaño de archivos (max 5MB por archivo)
-      const tooLarge = loaderState.files.filter(f => f.size > 5 * 1024 * 1024);
-      if (tooLarge.length > 0) {
-        showNotification(`⚠️ Algunos archivos superan 5MB. Se ignorarán.`, 'error');
-        loaderState.files = loaderState.files.filter(f => f.size <= 5 * 1024 * 1024);
+      // Reset
+      loaderState.files = []
+      const dropZone = document.getElementById('dropZone')
+
+      // Feedback visual en dropzone
+      if (dropZone) {
+        dropZone.innerHTML = `<div style="padding: 16px; text-align:center; color: var(--text-secondary);">
+          <span style="font-size:24px;">⏳</span><br>
+          <span style="font-size:0.85rem;">Cargando ${fileArray.length} archivo(s)...</span>
+        </div>`
+      }
+
+      let loaded = 0
+      const results = []
+
+      fileArray.forEach((file) => {
+        if (file.size > MAX_SIZE) {
+          showToast(`⚠️ ${file.name} supera 10MB y será ignorado`, 'warning')
+          loaded++
+          if (loaded === fileArray.length) finalizeFileLoad(results)
+          return
+        }
+
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const dataUrl = e.target.result
+          // Extraer solo el base64 sin el prefijo data:...;base64,
+          const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl
+
+          // Guardar en loaderState para enviar al backend
+          results.push({ name: file.name, type: file.type, data: base64 })
+
+          // Si es imagen, agregar también a currentBrandImages para análisis visual
+          if (file.type.startsWith('image/') && currentBrandImages.length < 15) {
+            currentBrandImages.push({ name: file.name, data: dataUrl, type: file.type })
+            const preview = document.getElementById('visualImagesPreview')
+            if (preview) {
+              const imgEl = document.createElement('img')
+              imgEl.src = dataUrl
+              imgEl.style.cssText = 'width:100%;height:72px;object-fit:cover;border-radius:4px;border:1px solid var(--border-light);'
+              preview.appendChild(imgEl)
+            }
+          }
+
+          loaded++
+          if (loaded === fileArray.length) finalizeFileLoad(results)
+        }
+        reader.onerror = () => { loaded++; if (loaded === fileArray.length) finalizeFileLoad(results) }
+        reader.readAsDataURL(file)
+      })
+    }
+
+    function finalizeFileLoad(files) {
+      loaderState.files = files
+      const dropZone = document.getElementById('dropZone')
+      const imgs = files.filter(f => f.type?.startsWith('image/'))
+      const pdfs = files.filter(f => f.type === 'application/pdf' || f.name?.endsWith('.pdf'))
+
+      if (dropZone) {
+        const parts = []
+        if (imgs.length > 0) parts.push(`🖼️ ${imgs.length} imagen(es)`)
+        if (pdfs.length > 0) parts.push(`📄 ${pdfs.length} PDF(s)`)
+        dropZone.innerHTML = `
+          <div style="padding: 16px; text-align:center;">
+            <div style="font-size:28px; margin-bottom:6px;">✅</div>
+            <div style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">${parts.join(' + ')}</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary);">${files.map(f=>f.name).join(', ')}</div>
+            <button type="button" onclick="resetDropZone()" style="margin-top:8px; font-size:0.75rem; background:transparent; border:1px solid var(--border-light); border-radius:4px; padding:4px 10px; cursor:pointer; color:var(--text-secondary);">Cambiar archivos</button>
+          </div>
+        `
+      }
+
+      console.log(`✅ ${files.length} archivo(s) listos para analizar`)
+      if (files.length > 0) showToast(`✅ ${files.length} archivo(s) cargado(s) — listo para analizar`, 'success')
+    }
+
+    function resetDropZone() {
+      loaderState.files = []
+      const dropZone = document.getElementById('dropZone')
+      if (dropZone) {
+        dropZone.innerHTML = `
+          <div style="font-size: 32px; margin-bottom: 12px;">📸</div>
+          <p style="font-weight: 600; margin-bottom: 4px;">Arrastra archivos aquí</p>
+          <p style="font-size: 14px; color: var(--text-secondary);">o</p>
+          <button type="button" onclick="document.getElementById('fileInput').click()" class="btn" style="margin-top: 8px;">Seleccionar</button>
+          <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 8px;">JPG, PNG, PDF (máx 10MB)</p>
+          <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display: none;" onchange="handleFileInput(this.files)" />
+        `
+        setupDropZone()
       }
     }
 
@@ -7029,105 +7113,318 @@
     }
 
     /**
-     * PHASE 7: Analyze all content with error handling + loading states
-     * Calls /api/auto-populate-brand with timeout and retry logic
+     * Auto-análisis completo de marca con Claude
+     * Envía todos los archivos (ya convertidos a base64) + URLs + texto
+     * y muestra el Brand Brief organizado por departamento
      */
     async function analyzeAllContent() {
-      if (loaderState.analysisInProgress) return;
+      if (loaderState.analysisInProgress) return
 
-      // Validar entrada
-      const hasInput = (loaderState.files.length > 0) ||
-                      document.getElementById('instagramHandle')?.value?.trim() ||
-                      document.getElementById('websiteUrl')?.value?.trim() ||
-                      document.getElementById('brandText')?.value?.trim();
+      const instagramVal = document.getElementById('instagramHandle')?.value?.trim()
+      const websiteVal = document.getElementById('websiteUrl')?.value?.trim()
+      const textVal = document.getElementById('brandText')?.value?.trim()
+
+      const hasInput = loaderState.files.length > 0 || instagramVal || websiteVal || textVal
       if (!hasInput) {
-        showNotification('⚠️ Por favor carga al menos una fuente de información', 'error');
-        return;
+        showToast('⚠️ Cargá al menos una fuente: archivo, URL, Instagram o texto', 'warning')
+        return
       }
 
-      loaderState.analysisInProgress = true;
-      loaderState.brandText = document.getElementById('brandText')?.value || '';
+      loaderState.analysisInProgress = true
 
-      // Mostrar loading state
-      const analyzeBtn = document.querySelector('[onclick="analyzeAllContent()"]');
-      const originalText = analyzeBtn?.textContent;
+      const analyzeBtn = document.querySelector('[onclick="analyzeAllContent()"]')
       if (analyzeBtn) {
-        analyzeBtn.disabled = true;
-        analyzeBtn.textContent = '⏳ Analizando...'
-      }
-
-      // Mostrar progress tracker
-      const progressEl = document.getElementById('analysisProgress');
-      if (progressEl) {
-        progressEl.style.display = 'block';
+        analyzeBtn.disabled = true
+        analyzeBtn.innerHTML = '<span style="opacity:0.7">⏳ Analizando con IA... (30-60 seg)</span>'
       }
 
       try {
-        console.log('🚀 Iniciando análisis paralelo...');
-        showNotification('🔍 Analizando marca desde múltiples fuentes...', 'info');
+        showToast('🧠 Analizando tu marca como un equipo creativo senior...', 'info')
 
-        // Timeout de 30 segundos
+        // Timeout más generoso para análisis con Claude Opus (puede tardar)
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Análisis tardó demasiado (30s)')), 30000)
-        );
+          setTimeout(() => reject(new Error('El análisis tardó demasiado — intentá con menos archivos')), 90000)
+        )
 
         const response = await Promise.race([
           fetch('/api/auto-populate-brand', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              files: loaderState.files || [],
-              instagramHandle: document.getElementById('instagramHandle')?.value || '',
-              websiteUrl: document.getElementById('websiteUrl')?.value || '',
-              brandText: loaderState.brandText
+              files: loaderState.files,   // ya son {name, type, data: base64}
+              instagramHandle: instagramVal || '',
+              websiteUrl: websiteVal || '',
+              brandText: textVal || ''
             })
           }),
           timeoutPromise
-        ]);
+        ])
 
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || 'Error en análisis de marca');
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Error en análisis')
+
+        const brand = data.brand
+        if (!brand) throw new Error('No se obtuvo respuesta de la IA')
+
+        // Guardar la marca como currentBrand
+        currentBrand = {
+          ...brand,
+          id: brand.id,
+          nombre: brand.basico?.nombre || brand.nombre,
+          rubro: brand.basico?.rubro || brand.rubro,
+          color_primario: brand.visual?.colores?.primario,
+          color_secundario: brand.visual?.colores?.secundario,
+          tipografia_principal: brand.visual?.tipografia,
+          estilo_visual: brand.visual?.estilo_visual,
+          voz_tono: brand.identidad?.voz_tono,
+          registro: brand.comunicacion?.tonalidad?.[0],
+          keywords: brand.comunicacion?.keywords || [],
+          tonalidad: brand.comunicacion?.tonalidad || [],
+          visualAssets: { images: currentBrandImages, analysis: currentVisualAnalysis }
         }
 
-        window.brandAnalysisData = data;
-        console.log('✅ Análisis completado exitosamente');
-        showNotification('✅ ¡Análisis completado! Revisa los datos...', 'success');
+        // Rellenar todos los campos del Brain
+        fillBrandFields(brand)
 
-        // Pequeña pausa antes de mostrar review modal
-        setTimeout(() => {
-          closeUnifiedBrandLoader();
-          showReviewModal();
-        }, 600);
+        // Actualizar dropdown y localStorage
+        localStorage.setItem('currentBrand', JSON.stringify(currentBrand))
+        updateBrandSummary()
+
+        // Cerrar popup y mostrar el Brand Brief
+        closeUnifiedBrandLoader()
+        showToast(`✅ Brand Brain completo para "${brand.basico?.nombre}"`, 'success')
+
+        // Mostrar Brand Brief en el tab del Brain
+        setTimeout(() => renderBrandBrief(brand), 300)
 
       } catch (error) {
-        console.error('❌ Error en análisis:', error);
-
-        // Error handling específicos
-        let errorMsg = error.message;
-        if (error.message.includes('fetch')) {
-          errorMsg = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
-        } else if (error.message.includes('tardó')) {
-          errorMsg = 'El análisis tardó demasiado. Intenta con menos fuentes.';
-        } else if (error.message.includes('401')) {
-          errorMsg = 'Sesión expirada. Por favor, vuelve a iniciar sesión.';
-        }
-
-        showNotification('❌ ' + errorMsg, 'error');
-        loaderState.analysisInProgress = false;
-
+        console.error('❌ Error en análisis:', error)
+        let msg = error.message
+        if (msg.includes('fetch')) msg = 'Error de red. Verificá tu conexión.'
+        else if (msg.includes('401')) msg = 'Sesión expirada — volvé a iniciar sesión.'
+        showToast('❌ ' + msg, 'error')
+        loaderState.analysisInProgress = false
       } finally {
-        // Restaurar estado del botón
         if (analyzeBtn) {
-          analyzeBtn.disabled = false;
-          analyzeBtn.textContent = originalText || '✨ Auto-Analizar TODO';
+          analyzeBtn.disabled = false
+          analyzeBtn.innerHTML = '✨ Auto-Analizar todo'
         }
-
-        // Ocultar progress tracker
-        if (progressEl) {
-          progressEl.style.display = 'none';
-        }
+        loaderState.analysisInProgress = false
       }
+    }
+
+    /**
+     * Renderiza el Brand Brief por departamentos en el Brain
+     */
+    function renderBrandBrief(brand) {
+      // Navegar al tab del Brain
+      const brainTab = document.querySelector('[data-tab="brain"]') || document.querySelector('.tab-btn[onclick*="brain"]')
+      if (brainTab) brainTab.click()
+
+      // Buscar o crear el contenedor del brief
+      let briefContainer = document.getElementById('brandBriefPanel')
+      if (!briefContainer) {
+        briefContainer = document.createElement('div')
+        briefContainer.id = 'brandBriefPanel'
+        briefContainer.style.cssText = 'margin-top: 24px;'
+        const brainPanel = document.querySelector('#brain .panel')
+        if (brainPanel) brainPanel.insertBefore(briefContainer, brainPanel.querySelector('.brain-slider-container'))
+      }
+
+      const dep = brand.departamentos || {}
+      const b = brand.basico || {}
+      const vis = brand.visual || {}
+      const id = brand.identidad || {}
+      const aud = brand.audiencia || {}
+      const pos = brand.posicionamiento || {}
+      const com = brand.comunicacion || {}
+
+      const colorPrimario = vis.colores?.primario || '#6860EE'
+      const colorSecundario = vis.colores?.secundario || '#F5A623'
+      const acentos = vis.colores?.acentos || []
+
+      const pill = (text, color = colorPrimario) =>
+        `<span style="display:inline-block;background:${color}22;border:1px solid ${color}44;color:${color};border-radius:20px;padding:2px 10px;font-size:0.78rem;font-weight:600;margin:2px;">${text}</span>`
+
+      const colorDot = (hex) =>
+        `<span title="${hex}" style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;font-size:0.82rem;">
+          <span style="width:18px;height:18px;border-radius:4px;background:${hex};border:1px solid rgba(255,255,255,0.2);display:inline-block;flex-shrink:0;"></span>${hex}
+        </span>`
+
+      const section = (icon, title, content) =>
+        `<div style="margin-bottom:24px;">
+          <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:6px;">${icon} ${title}</div>
+          <div style="font-size:0.88rem;color:var(--text-primary);line-height:1.7;">${content}</div>
+        </div>`
+
+      const card = (label, body, accent = colorPrimario) =>
+        `<div style="background:var(--bg-tertiary);border-left:3px solid ${accent};border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:10px;">
+          <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:4px;">${label}</div>
+          <div style="font-size:0.87rem;color:var(--text-primary);line-height:1.6;">${body}</div>
+        </div>`
+
+      const tabs = [
+        { id: 'overview', icon: '🏠', label: 'Overview' },
+        { id: 'design', icon: '🎨', label: 'Diseño' },
+        { id: 'social', icon: '📱', label: 'Social Media' },
+        { id: 'paid', icon: '🎯', label: 'Paid Media' },
+        { id: 'content', icon: '✍️', label: 'Content' },
+        { id: 'video', icon: '🎬', label: 'Video' },
+        { id: 'community', icon: '👥', label: 'Community' }
+      ]
+
+      const tabBtns = tabs.map(t =>
+        `<button onclick="switchBriefTab('${t.id}')" id="briefTab_${t.id}" style="padding:8px 14px;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid var(--border-light);background:var(--bg-tertiary);color:var(--text-secondary);transition:all 0.2s;" data-brief-tab="${t.id}">${t.icon} ${t.label}</button>`
+      ).join('')
+
+      // ---- PANELS ----
+      const overviewPanel = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+          <div style="grid-column:1/-1;">${card('Propuesta de valor', b.propuesta || id.narrativa || '—', colorPrimario)}</div>
+          ${card('Misión', brand.estrategico?.mision || '—', colorPrimario)}
+          ${card('Visión', brand.estrategico?.vision || '—', colorSecundario)}
+          <div style="grid-column:1/-1;">${card('Claim', id.claim || '—', '#F5A623')}</div>
+        </div>
+        ${section('🎯', 'Valores', (brand.estrategico?.valores || []).map(v => pill(v)).join(''))}
+        ${section('👤', 'Audiencia objetivo', aud.publico_objetivo || '—')}
+        ${section('💡', 'UVP — Propuesta única', pos.propuesta_unica || '—')}
+        ${section('🏆', 'Diferenciadores', (pos.diferenciadores || []).map(d => `• ${d}`).join('<br>'))}
+      `
+
+      const designPanel = `
+        ${section('🎨', 'Paleta de color', `
+          <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;">
+            <div style="text-align:center;">
+              <div style="width:48px;height:48px;border-radius:8px;background:${colorPrimario};border:1px solid rgba(255,255,255,0.2);margin-bottom:4px;"></div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Primario<br>${colorPrimario}</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="width:48px;height:48px;border-radius:8px;background:${colorSecundario};border:1px solid rgba(255,255,255,0.2);margin-bottom:4px;"></div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Secundario<br>${colorSecundario}</div>
+            </div>
+            ${acentos.map(a => `<div style="text-align:center;"><div style="width:48px;height:48px;border-radius:8px;background:${a};border:1px solid rgba(255,255,255,0.2);margin-bottom:4px;"></div><div style="font-size:0.72rem;color:var(--text-muted);">Acento<br>${a}</div></div>`).join('')}
+          </div>
+          ${dep.diseno_grafico?.paleta_completa ? `<div style="margin-top:10px;font-size:0.83rem;color:var(--text-secondary);">${dep.diseno_grafico.paleta_completa}</div>` : ''}
+        `)}
+        ${section('🔤', 'Tipografía', dep.diseno_grafico?.tipografia_guia || vis.tipografia || '—')}
+        ${section('📸', 'Fotografía y estilo visual', dep.diseno_grafico?.estilo_fotografia || vis.estilo_visual || '—')}
+        ${section('🔷', 'Iconografía y recursos gráficos', dep.diseno_grafico?.iconografia || vis.recursos_graficos || '—')}
+        ${section('✅❌', 'Do\'s & Don\'ts', (dep.diseno_grafico?.dos_and_donts || []).map(d =>
+          `<div style="margin:3px 0;font-size:0.84rem;">${d}</div>`).join('') || '—')}
+        ${dep.diseno_grafico?.referencias_visuales ? section('🔗', 'Referencias visuales', dep.diseno_grafico.referencias_visuales) : ''}
+      `
+
+      const socialPanel = `
+        ${section('📌', 'Pilares de contenido', (dep.social_media?.pilares_contenido || []).map((p, i) =>
+          card(`Pilar ${i + 1}`, p, [colorPrimario, colorSecundario, '#4ADE80', '#F59E0B'][i % 4])
+        ).join(''))}
+        ${section('📅', 'Estructura de la semana', dep.social_media?.calendario_sugerido || '—')}
+        ${section('📊', 'Formatos por plataforma', dep.social_media?.formatos_por_plataforma || '—')}
+        ${section('✍️', 'Estilo de copy para captions', dep.social_media?.copy_style || '—')}
+        ${section('🔥', 'Tendencias aplicables', dep.social_media?.tendencias_aplicables || '—')}
+        ${section('📈', 'Métricas clave a medir', dep.social_media?.metricas_clave || '—')}
+      `
+
+      const paidPanel = `
+        ${section('🎯', 'Audiencias en Meta/Facebook', dep.paid_media?.audiencias_facebook || '—')}
+        ${section('🔍', 'Keywords para Google Ads', dep.paid_media?.audiencias_google || '—')}
+        ${section('📣', 'Mensajes por etapa del funnel',
+          dep.paid_media?.mensajes_por_objetivo ? `
+            ${card('🚀 Awareness', dep.paid_media.mensajes_por_objetivo.awareness || '—', colorPrimario)}
+            ${card('🔍 Consideración', dep.paid_media.mensajes_por_objetivo.consideracion || '—', colorSecundario)}
+            ${card('💰 Conversión', dep.paid_media.mensajes_por_objetivo.conversion || '—', '#4ADE80')}
+          ` : '—'
+        )}
+        ${section('📐', 'Formatos de anuncios recomendados', dep.paid_media?.formatos_ads || '—')}
+        ${section('💲', 'Distribución de presupuesto sugerida', dep.paid_media?.presupuesto_sugerido || '—')}
+        ${dep.paid_media?.copy_ads ? section('✏️', 'Ejemplo de copy para anuncio', `<div style="background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:8px;padding:12px;font-style:italic;font-size:0.84rem;">${dep.paid_media.copy_ads}</div>`) : ''}
+      `
+
+      const contentPanel = `
+        ${section('📝', 'Tópicos y temáticas principales', (dep.content?.topicos_principales || []).map(t => `• ${t}`).join('<br>') || '—')}
+        ${section('🔎', 'Keywords SEO', (dep.content?.seo_keywords || com.keywords || []).map(k => pill(k)).join('') || '—')}
+        ${section('📐', 'Estructura de contenido', dep.content?.estructura_contenido || '—')}
+        ${section('🗣️', 'Voz escrita — cómo redactar', dep.content?.voz_escrita || id.voz_tono || '—')}
+        ${section('🔥', 'Qué tiene potencial viral', dep.content?.contenido_viral || '—')}
+        ${com.ejemplos ? section('💬', 'Ejemplos de copy aprobado', `<div style="background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:8px;padding:12px;font-style:italic;font-size:0.84rem;">${com.ejemplos}</div>`) : ''}
+      `
+
+      const videoPanel = `
+        ${section('🎬', 'Estilo de edición', dep.video?.estilo_visual || '—')}
+        ${section('🎵', 'Música y mood sonoro', dep.video?.musica_mood || '—')}
+        ${section('⏱️', 'Duración por formato', dep.video?.duracion_formato || '—')}
+        ${section('⚡', 'Hook visual (primeros 3 segundos)', dep.video?.hook_visual || '—')}
+        ${section('💬', 'Texto en pantalla / subtítulos', dep.video?.texto_en_pantalla || '—')}
+        ${section('🔗', 'Referencias de video', dep.video?.referencias_videos || '—')}
+      `
+
+      const communityPanel = `
+        ${section('💬', 'Tono para responder comentarios', dep.community_management?.tono_respuestas || '—')}
+        ${section('🚨', 'Protocolo ante comentarios negativos', dep.community_management?.protocolo_crisis || '—')}
+        ${section('✅', 'Frases aprobadas',
+          (dep.community_management?.frases_aprobadas || []).map(f => card('', f)).join('') || '—'
+        )}
+        ${section('🔍', 'Keywords a monitorear',
+          (dep.community_management?.palabras_clave_monitorear || []).map(k => pill(k, '#F59E0B')).join('') || '—'
+        )}
+        ${section('🎯', 'Estrategia de engagement proactivo', dep.community_management?.engagement_proactivo || '—')}
+        ${section('🕐', 'Horarios óptimos', dep.community_management?.horarios_optimos || '—')}
+      `
+
+      briefContainer.innerHTML = `
+        <div style="border:1px solid var(--border-light);border-radius:16px;overflow:hidden;background:var(--bg-secondary);margin-bottom:24px;">
+          <!-- Header del Brief -->
+          <div style="padding:24px 24px 16px;background:linear-gradient(135deg,${colorPrimario}22,${colorSecundario}11);border-bottom:1px solid var(--border-light);">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:4px;">Brand Brain</div>
+                <h2 style="margin:0;font-size:1.6rem;font-weight:800;">${b.nombre || '—'}</h2>
+                <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:2px;">${b.rubro || ''} ${b.ciudad ? '· ' + b.ciudad : ''}</div>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                ${colorDot(colorPrimario)}${colorDot(colorSecundario)}
+                ${acentos.slice(0,2).map(a => colorDot(a)).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div style="display:flex;gap:6px;padding:12px 16px;overflow-x:auto;border-bottom:1px solid var(--border-light);background:var(--bg-tertiary);">
+            ${tabBtns}
+          </div>
+
+          <!-- Tab Content -->
+          <div style="padding:20px 24px;" id="briefContent">
+            <div id="brief_overview">${overviewPanel}</div>
+            <div id="brief_design" style="display:none;">${designPanel}</div>
+            <div id="brief_social" style="display:none;">${socialPanel}</div>
+            <div id="brief_paid" style="display:none;">${paidPanel}</div>
+            <div id="brief_content" style="display:none;">${contentPanel}</div>
+            <div id="brief_video" style="display:none;">${videoPanel}</div>
+            <div id="brief_community" style="display:none;">${communityPanel}</div>
+          </div>
+        </div>
+      `
+
+      // Activar primer tab
+      switchBriefTab('overview')
+
+      // Scroll al brief
+      briefContainer.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
+    function switchBriefTab(tabId) {
+      const panels = ['overview', 'design', 'social', 'paid', 'content', 'video', 'community']
+      panels.forEach(id => {
+        const el = document.getElementById('brief_' + id)
+        const btn = document.getElementById('briefTab_' + id)
+        if (el) el.style.display = id === tabId ? 'block' : 'none'
+        if (btn) {
+          btn.style.background = id === tabId ? 'var(--color-brand)' : 'var(--bg-tertiary)'
+          btn.style.color = id === tabId ? 'white' : 'var(--text-secondary)'
+          btn.style.borderColor = id === tabId ? 'var(--color-brand)' : 'var(--border-light)'
+        }
+      })
     }
 
     /**
