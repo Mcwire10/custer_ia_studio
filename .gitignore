@@ -54,3 +54,4 @@ build/
 .cache/
 temp/
 .vercel
+.env*.local
