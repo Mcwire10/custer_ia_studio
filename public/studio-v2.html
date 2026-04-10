@@ -6739,15 +6739,10 @@
           <div id="visualAnalysisContent" style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7;"></div>
         </div>
 
-        <!-- Botón analizar -->
-        <button class="btn" style="width: 100%; margin-top: 10px; background: rgba(104,96,238,0.15); border: 1px solid rgba(104,96,238,0.3); color: var(--text-primary);" onclick="analyzeVisualIdentity()">
-          <span id="visualLoading"></span>
-          🔍 Analizar identidad visual
-        </button>
       </div>
 
       <div style="display: flex; gap: 12px;">
-        <button onclick="analyzeAllContent()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 14px 24px; font-weight: 600; flex: 1; color: white;">✨ Auto-Analizar todo</button>
+        <button onclick="analyzeAllContent()" class="btn" style="background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-accent) 100%); border: none; padding: 14px 24px; font-weight: 600; flex: 1; color: white;">✨ Analizar marca completa</button>
         <button onclick="closeUnifiedBrandLoader()" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-light); padding: 14px 24px; font-weight: 600; flex: 1;">Cancelar</button>
       </div>
     </div>
@@ -7124,7 +7119,7 @@
       const websiteVal = document.getElementById('websiteUrl')?.value?.trim()
       const textVal = document.getElementById('brandText')?.value?.trim()
 
-      const hasInput = loaderState.files.length > 0 || instagramVal || websiteVal || textVal
+      const hasInput = loaderState.files.length > 0 || currentBrandImages.length > 0 || instagramVal || websiteVal || textVal
       if (!hasInput) {
         showToast('⚠️ Cargá al menos una fuente: archivo, URL, Instagram o texto', 'warning')
         return
@@ -7152,6 +7147,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               files: loaderState.files,   // ya son {name, type, data: base64}
+              visualImages: currentBrandImages.map(img => ({
+                name: img.name,
+                type: img.type,
+                data: img.data && img.data.includes(',') ? img.data.split(',')[1] : (img.data || '')
+              })).filter(img => img.data),
               instagramHandle: instagramVal || '',
               websiteUrl: websiteVal || '',
               brandText: textVal || ''
