@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
+    "@vercel/config": "^0.1.0",
     "eslint": "^8",
     "eslint-config-next": "^14.0.0"
   }

@@ -53,3 +53,4 @@ build/
 # Cache y temporal
 .cache/
 temp/
+.vercel
