@@ -8,6 +8,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { createStandardSystemPrompt, getMaxTokens } from '@/app/lib/prompt-schemas'
 import { getCurrentUser } from '@/lib/auth'
+import { getContextoValidador } from '@/lib/cerebro'
 
 function getApiKey() {
   let apiKey = process.env.ANTHROPIC_API_KEY
@@ -280,11 +281,11 @@ export async function POST(request) {
     const marketingTips = getMarketingTips(funnelStage)
 
     // ============= CONSTRUCCIÓN DEL PROMPT =============
-    const brandContext = brain?.nombre ? `Brand: ${brain.nombre}${brain.propuesta ? ` (${brain.propuesta})` : ''}${brain.registro ? `, Tono: ${brain.registro}` : ''}` : ''
+    // El Mentor Ácido del vault reemplaza al validador genérico
+    const cerebroContext = getContextoValidador(brain?.nombre)
 
-    const systemPrompt = `Eres un experto validador de mensajes de marca, especialista en diseño gráfico, marketing digital y copywriting.
-
-${brandContext}
+    const systemPrompt = `${cerebroContext ? cerebroContext + '\n\n---\n\n' : ''}Eres un experto validador de mensajes de marca, especialista en diseño gráfico, marketing digital y copywriting.
+`
 
 Tu tarea:
 1. Validar si el contenido está alineado con la identidad de marca

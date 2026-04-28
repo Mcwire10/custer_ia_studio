@@ -7,6 +7,7 @@
  */
 
 import { getCurrentUser } from '@/lib/auth'
+import { getContextoGenerador } from '@/lib/cerebro'
 
 // ─────────────────────────────────────────────
 // DESIGN SYSTEM PROMPT — Teoría de diseño real
@@ -275,7 +276,10 @@ export async function POST(request) {
     const imageUrl = await generateImage(topic, brain)
     if (imageUrl) console.log('✅ Imagen generada con Replicate')
 
-    const system = DESIGN_SYSTEM_PROMPT + '\n\n' + buildBrandContext(brain)
+    // Inyectar el Mentor Ácido + biblioteca teórica + ADN del vault
+    const cerebroContext = getContextoGenerador(brain.nombre)
+    const system = (cerebroContext ? cerebroContext + '\n\n---\n\n' : '') +
+      DESIGN_SYSTEM_PROMPT + '\n\n' + buildBrandContext(brain)
     const userPrompt = buildUserPrompt({ topic, format, qty, brand: brain, imageUrl, conversationHistory })
 
     // Claude genera los slides completos
