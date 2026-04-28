@@ -2644,8 +2644,9 @@
         const option = document.createElement('option')
         option.value = brand.id
         option.textContent = brand.name
-        // Marcar la primera como seleccionada
-        if (brand === allBrands[0]) {
+        // Marcar currentBrand como seleccionada, o la primera si no hay currentBrand
+        const isCurrent = currentBrand && currentBrand.id === brand.id;
+        if (isCurrent || (!currentBrand && brand === allBrands[0])) {
           option.selected = true
         }
         brandSelect.appendChild(option)
@@ -3881,7 +3882,11 @@
         return
       }
 
-      currentBrand = allBrands.find(b => (b.id || b.nombre.toLowerCase().replace(/\s+/g, '-')) === brandId)
+      const brandIdStr = brandId.toString();
+      currentBrand = allBrands.find(b => {
+        const idStr = b.id ? b.id.toString() : b.nombre.toLowerCase().replace(/\s+/g, '-');
+        return idStr === brandIdStr;
+      });
       if (currentBrand) {
         localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
 
@@ -6019,7 +6024,7 @@
 
     // ============= INICIALIZACIÓN =============
     window.addEventListener('load', () => {
-      allBrands = JSON.parse(localStorage.getItem('custer_brands') || '[]')
+      // no sobreescribir allBrands desde localStorage para evitar pisar los datos de la base de datos
       currentBrand = JSON.parse(localStorage.getItem('custer_current_brand') || 'null')
 
       // Restaurar imágenes y análisis visual de la marca actual
