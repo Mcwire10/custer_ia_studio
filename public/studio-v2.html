@@ -3858,21 +3858,7 @@
       showToast('✅ Briefing descargado', 'success')
     }
 
-    function updateBrandSelector() {
-      const select = document.getElementById('brandSelect')
-      select.innerHTML = '<option value="">-- Selecciona una marca --</option>'
 
-      allBrands.forEach(brand => {
-        const option = document.createElement('option')
-        option.value = brand.id || brand.nombre.toLowerCase().replace(/\s+/g, '-')
-        option.textContent = brand.nombre
-        select.appendChild(option)
-      })
-
-      if (currentBrand) {
-        select.value = currentBrand.id || currentBrand.nombre.toLowerCase().replace(/\s+/g, '-')
-      }
-    }
 
     function selectBrand(brandId) {
       if (!brandId) {
