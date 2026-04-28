@@ -4,30 +4,50 @@
  * con recomendaciones slide-by-slide y aplicación completa de identidad visual
  */
 
-import { readFileSync } from 'fs'
-import { join } from 'path'
-import { createStandardSystemPrompt, getMaxTokens } from '@/app/lib/prompt-schemas'
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoValidador } from '@/lib/cerebro'
 
 function getApiKey() {
-  let apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    try {
-      const envPath = join(process.cwd(), '.env.local')
-      const envContent = readFileSync(envPath, 'utf8')
-      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
-      if (match) apiKey = match[1].trim()
-    } catch (e) {
-      try {
-        const envPath = join(process.cwd(), '.env')
-        const envContent = readFileSync(envPath, 'utf8')
-        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
-        if (match) apiKey = match[1].trim()
-      } catch (e2) {}
-    }
+  return process.env.ANTHROPIC_API_KEY || null
+}
+
+// Busca tendencias del sector + eventos masivos culturales/deportivos en paralelo
+async function buscarContextoActual(apiKey, brain) {
+  const sector = brain?.rubro || 'marketing y comunicación'
+
+  const buscar = async (query) => {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 600,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: `Buscá info actualizada sobre: "${query}". Resumí en 150 palabras máx, solo hechos concretos.` }]
+      })
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || null
   }
-  return apiKey
+
+  const [tendencias, eventos] = await Promise.allSettled([
+    buscar(`tendencias actuales ${sector} Argentina 2025 comunicación`),
+    buscar('eventos masivos globales culturales deportivos 2025 oportunidades de marca')
+  ])
+
+  const partes = []
+  if (tendencias.status === 'fulfilled' && tendencias.value)
+    partes.push(`## TENDENCIAS EN ${sector.toUpperCase()}\n${tendencias.value}`)
+  if (eventos.status === 'fulfilled' && eventos.value)
+    partes.push(`## EVENTOS Y MOMENTOS CULTURALES DISPONIBLES\n${eventos.value}`)
+
+  return partes.join('\n\n') || null
 }
 
 /**
@@ -281,11 +301,18 @@ export async function POST(request) {
     const marketingTips = getMarketingTips(funnelStage)
 
     // ============= CONSTRUCCIÓN DEL PROMPT =============
-    // El Mentor Ácido del vault reemplaza al validador genérico
     const cerebroContext = getContextoValidador(brain?.nombre)
 
-    const systemPrompt = `${cerebroContext ? cerebroContext + '\n\n---\n\n' : ''}Eres un experto validador de mensajes de marca, especialista en diseño gráfico, marketing digital y copywriting.
-`
+    // Buscar actualidad: tendencias del sector + eventos masivos culturales/deportivos
+    const contextualActual = await buscarContextoActual(apiKey, brain).catch(() => null)
+
+    const systemPrompt = [
+      cerebroContext,
+      contextualActual
+        ? `---\n\n# CONTEXTO DE ACTUALIDAD\nUsá esto para evaluar si el copy está desactualizado o si hay oportunidades culturales que no se están aprovechando.\n\n${contextualActual}`
+        : null,
+      `---\n\nEres un experto validador de mensajes de marca, especialista en diseño gráfico, marketing digital y copywriting.`
+    ].filter(Boolean).join('\n\n')
 
 Tu tarea:
 1. Validar si el contenido está alineado con la identidad de marca
@@ -507,7 +534,8 @@ CRÍTICO: Responde SIEMPRE en JSON válido. No agregues texto fuera del JSON. Ca
         typographyScales: typographyScales,
         funnelStage: funnelStage,
         marketingTips: marketingTips,
-        slideStructureDetails: slideStructure
+        slideStructureDetails: slideStructure,
+        contexto_actual_usado: !!contextualActual
       }
     })
   } catch (error) {
