@@ -84,6 +84,4 @@ export const config: VercelConfig = {
   // Rewrites (if needed)
   rewrites: [],
 
-  // Ignore patterns
-  ignoreCommand: 'git diff --quiet HEAD^ HEAD -- . || exit 0',
 }
