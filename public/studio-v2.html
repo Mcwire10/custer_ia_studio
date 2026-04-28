@@ -2644,8 +2644,9 @@
         const option = document.createElement('option')
         option.value = brand.id
         option.textContent = brand.name
-        // Marcar la primera como seleccionada
-        if (brand === allBrands[0]) {
+        // Marcar currentBrand como seleccionada, o la primera si no hay currentBrand
+        const isCurrent = currentBrand && currentBrand.id === brand.id;
+        if (isCurrent || (!currentBrand && brand === allBrands[0])) {
           option.selected = true
         }
         brandSelect.appendChild(option)
@@ -3857,21 +3858,7 @@
       showToast('✅ Briefing descargado', 'success')
     }
 
-    function updateBrandSelector() {
-      const select = document.getElementById('brandSelect')
-      select.innerHTML = '<option value="">-- Selecciona una marca --</option>'
 
-      allBrands.forEach(brand => {
-        const option = document.createElement('option')
-        option.value = brand.id || brand.nombre.toLowerCase().replace(/\s+/g, '-')
-        option.textContent = brand.nombre
-        select.appendChild(option)
-      })
-
-      if (currentBrand) {
-        select.value = currentBrand.id || currentBrand.nombre.toLowerCase().replace(/\s+/g, '-')
-      }
-    }
 
     function selectBrand(brandId) {
       if (!brandId) {
@@ -3881,7 +3868,11 @@
         return
       }
 
-      currentBrand = allBrands.find(b => (b.id || b.nombre.toLowerCase().replace(/\s+/g, '-')) === brandId)
+      const brandIdStr = brandId.toString();
+      currentBrand = allBrands.find(b => {
+        const idStr = b.id ? b.id.toString() : b.nombre.toLowerCase().replace(/\s+/g, '-');
+        return idStr === brandIdStr;
+      });
       if (currentBrand) {
         localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
 
@@ -5481,41 +5472,25 @@
         const objetivo = document.getElementById('valObjetivo')?.value || 'general'
         const targetPlatform = document.getElementById('valPlataforma')?.value || 'instagram'
 
-        // Llamar al Validador (usa endpoint simple que no requiere API keys)
-        const response = await fetch('/api/validate-simple', {
+        // Llamar al Mentor Ácido con el cerebro completo
+        const response = await fetch('/api/validate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: copy,
-            content_type: contentType,
-            brand: currentBrand,
+            message: copy,
+            brain: currentBrand,
+            tipo: contentType,
             objetivo: objetivo,
-            target_platform: targetPlatform
+            plataforma: targetPlatform
           })
         })
 
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)
 
-        const coachAnalysis = data.coach_analysis
-        const metadata = data.metadata || {}
         const canvas = document.getElementById('valCanvas')
-
-        // Renderizar análisis del Coach
-        const coachHTML = renderCoachAnalysis(coachAnalysis, currentBrand, metadata)
-
-        let html = createResultsContainer('Análisis del Coach completado ✨', '🎯', '') + coachHTML
-
-        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarCoachAnalisis()">' + SVG_ICONS.send.replace('currentColor', 'white') + ' 📥 Descargar análisis completo</button>'
-
-        canvas.innerHTML = html
-        localStorage.setItem('lastCoachAnalysis', JSON.stringify({
-          content: copy,
-          analysis: coachAnalysis,
-          metadata: metadata,
-          timestamp: new Date().toISOString()
-        }))
-        showToast('✅ Análisis Coach completado', 'success')
+        canvas.innerHTML = renderMentorValidacion(data)
+        showToast('✅ El Mentor analizó tu contenido', 'success')
       } catch (error) {
         showToast(`❌ ${error.message}`, 'error')
       } finally {
@@ -5689,6 +5664,64 @@
       return html
     }
 
+    function renderMentorValidacion(data) {
+      const { diagnostico, estrategia, opciones, momento_cultural_usado, score_original } = data
+
+      const scoreColor = score_original >= 70 ? '#4ADE80' : score_original >= 40 ? '#F5A623' : '#EF4444'
+
+      const opcionCard = (titulo, emoji, opcion, color) => {
+        if (!opcion) return ''
+        const textoCompleto = [opcion.headline, opcion.body, opcion.cta].filter(Boolean).join('\n\n')
+        const textoEscape = textoCompleto.replace(/`/g, '\\`').replace(/\$/g, '\\$')
+        return `
+          <div style="background: var(--bg-secondary); border: 1px solid ${color}33; border-left: 4px solid ${color}; border-radius: 8px; padding: 20px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+              <span style="font-size: 1.2rem;">${emoji}</span>
+              <span style="font-size: 0.75rem; font-weight: 800; color: ${color}; text-transform: uppercase; letter-spacing: 1px;">${titulo}</span>
+            </div>
+            ${opcion.headline ? `<div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; line-height: 1.3;">${opcion.headline}</div>` : ''}
+            ${opcion.body ? `<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; white-space: pre-wrap;">${opcion.body}</div>` : ''}
+            ${opcion.cta ? `<div style="font-size: 0.85rem; font-weight: 700; color: ${color}; margin-bottom: 14px;">→ ${opcion.cta}</div>` : ''}
+            ${opcion.referencia ? `<div style="font-size: 0.75rem; color: var(--text-disabled); font-style: italic; margin-bottom: 14px; padding-top: 10px; border-top: 1px solid var(--border-light);">${opcion.referencia}</div>` : ''}
+            <button class="btn" style="width: 100%; padding: 10px; font-size: 0.85rem; background: ${color}22; color: ${color}; border: 1px solid ${color}44;"
+              onclick="navigator.clipboard.writeText(\`${textoEscape}\`).then(() => showToast('✅ Copiado', 'success'))">
+              📋 Copiar esta versión
+            </button>
+          </div>`
+      }
+
+      return `
+        <!-- SCORE Y DIAGNÓSTICO -->
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+            <div style="text-align: center;">
+              <div style="font-size: 2.5rem; font-weight: 900; color: ${scoreColor}; line-height: 1;">${score_original}</div>
+              <div style="font-size: 0.7rem; color: var(--text-disabled); text-transform: uppercase;">Score original</div>
+            </div>
+            <div style="flex: 1; border-left: 1px solid var(--border-light); padding-left: 16px;">
+              <div style="font-size: 0.7rem; font-weight: 700; color: #EF4444; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">⚡ El Diagnóstico</div>
+              <div style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.6;">${diagnostico || ''}</div>
+            </div>
+          </div>
+          ${estrategia ? `
+          <div style="background: rgba(104,96,238,0.08); border-radius: 6px; padding: 12px; border-left: 3px solid #6860EE;">
+            <span style="font-size: 0.7rem; font-weight: 700; color: #6860EE; text-transform: uppercase; letter-spacing: 1px;">🎯 Ángulo estratégico</span>
+            <div style="font-size: 0.9rem; color: var(--text-primary); margin-top: 6px; font-style: italic;">${estrategia}</div>
+          </div>` : ''}
+          ${momento_cultural_usado ? `
+          <div style="background: rgba(245,166,35,0.08); border-radius: 6px; padding: 10px 12px; margin-top: 10px; border-left: 3px solid #F5A623;">
+            <span style="font-size: 0.75rem; color: #F5A623;">🌍 Momento cultural usado: <strong>${momento_cultural_usado}</strong></span>
+          </div>` : ''}
+        </div>
+
+        <!-- 3 OPCIONES -->
+        <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-disabled); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Las 3 versiones del Mentor</div>
+        ${opcionCard('Opción Directa — Enfocada en la venta', '🎯', opciones?.directa, '#4ADE80')}
+        ${opcionCard('Opción Narrativa — Storytelling', '📖', opciones?.narrativa, '#6860EE')}
+        ${opcionCard('Opción Disruptiva — La que da miedo aprobar', '⚡', opciones?.disruptiva, '#EF4444')}
+      `
+    }
+
     function descargarCoachAnalisis() {
       const contentStr = localStorage.getItem('lastCoachAnalysis')
       if (!contentStr) {
@@ -5790,19 +5823,55 @@
 
         const canvas = document.getElementById('cpyCanvas')
 
+        const opciones = [
+          { key: 'opcion_directa',    label: 'Directa',     emoji: '🎯', color: '#4ADE80' },
+          { key: 'opcion_narrativa',  label: 'Narrativa',   emoji: '📖', color: '#6860EE' },
+          { key: 'opcion_disruptiva', label: 'Disruptiva',  emoji: '⚡', color: '#EF4444' },
+        ]
+
         let platformsHTML = ''
-        for (const [plat, content] of Object.entries(data.copies || {})) {
-          const copyText = content.body || content
-          platformsHTML += `
-            <div style="padding: 18px; background: white; border: 1px solid rgba(104, 96, 238, 0.15); border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #F5A623;">
-              <div style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">${plat}</div>
-              <div style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.7; margin-bottom: 12px;">${copyText}</div>
-              <button class="btn" onclick="navigator.clipboard.writeText('${copyText.replace(/'/g, "\\'")}'); showToast('✅ Copiado al portapapeles', 'success')" style="width: 100%; padding: 8px; font-size: 0.85rem;">📋 Copiar</button>
-            </div>
-          `
+
+        // Banner de momento cultural si existe
+        if (data.momento_cultural_usado) {
+          platformsHTML += `<div style="background: rgba(245,166,35,0.1); border-left: 4px solid #F5A623; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.85rem; color: var(--text-primary);">
+            🌍 <strong>Momento cultural conectado:</strong> ${data.momento_cultural_usado}
+          </div>`
+        }
+        if (data.estrategia_general) {
+          platformsHTML += `<div style="background: rgba(104,96,238,0.08); border-left: 4px solid #6860EE; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.85rem; color: var(--text-primary); font-style: italic;">
+            🎯 ${data.estrategia_general}
+          </div>`
         }
 
-        let html = createResultsContainer('Copy generado', '✍️', '') + platformsHTML
+        for (const [plat, contenido] of Object.entries(data.copies || {})) {
+          platformsHTML += `<div style="margin-bottom: 28px;">
+            <div style="font-size: 0.8rem; font-weight: 800; color: #F5A623; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">📱 ${plat}</div>`
+
+          for (const op of opciones) {
+            const version = contenido[op.key]
+            if (!version) continue
+            const texto = [version.headline, version.body, version.cta].filter(Boolean).join('\n\n')
+            const textoEscape = texto.replace(/`/g, '\\`').replace(/\$/g, '\\$')
+            platformsHTML += `
+              <div style="border: 1px solid ${op.color}33; border-left: 4px solid ${op.color}; border-radius: 8px; padding: 16px; margin-bottom: 12px; background: var(--bg-secondary);">
+                <div style="font-size: 0.7rem; font-weight: 700; color: ${op.color}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">${op.emoji} ${op.label}</div>
+                ${version.headline ? `<div style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">${version.headline}</div>` : ''}
+                ${version.body ? `<div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 8px; white-space: pre-wrap;">${version.body}</div>` : ''}
+                ${version.cta ? `<div style="font-size: 0.8rem; font-weight: 700; color: ${op.color}; margin-bottom: 10px;">→ ${version.cta}</div>` : ''}
+                ${version.referencia ? `<div style="font-size: 0.72rem; color: var(--text-disabled); font-style: italic; margin-bottom: 10px;">${version.referencia}</div>` : ''}
+                <button class="btn" style="width:100%; padding:8px; font-size:0.82rem; background:${op.color}22; color:${op.color}; border:1px solid ${op.color}44;"
+                  onclick="navigator.clipboard.writeText(\`${textoEscape}\`).then(() => showToast('✅ Copiado', 'success'))">📋 Copiar</button>
+              </div>`
+          }
+
+          if (contenido.insight_creativo) {
+            platformsHTML += `<div style="font-size: 0.78rem; color: var(--text-disabled); font-style: italic; padding: 8px 12px; margin-bottom: 4px;">💡 ${contenido.insight_creativo}</div>`
+          }
+
+          platformsHTML += '</div>'
+        }
+
+        let html = createResultsContainer('Copy del Mentor', '✍️', '') + platformsHTML
 
         canvas.innerHTML = html
         showToast('✅ Copy generado', 'success')
@@ -6019,7 +6088,7 @@
 
     // ============= INICIALIZACIÓN =============
     window.addEventListener('load', () => {
-      allBrands = JSON.parse(localStorage.getItem('custer_brands') || '[]')
+      // no sobreescribir allBrands desde localStorage para evitar pisar los datos de la base de datos
       currentBrand = JSON.parse(localStorage.getItem('custer_current_brand') || 'null')
 
       // Restaurar imágenes y análisis visual de la marca actual
