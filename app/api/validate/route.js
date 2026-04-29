@@ -63,7 +63,7 @@ export async function POST(request) {
 
     const result = JSON.parse(responseText.slice(jsonStart, jsonEnd + 1))
 
-    return Response.json({ success: true, ...result })
+    return Response.json({ success: true, coach_analysis: result, ...result })
 
   } catch (error) {
     console.error('Error en /api/validate:', error)
