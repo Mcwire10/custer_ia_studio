@@ -13,54 +13,7 @@ function getApiKey() {
   return process.env.ANTHROPIC_API_KEY || null
 }
 
-// Busca tendencias del sector + eventos masivos culturales/deportivos en paralelo
-async function buscarContextoActual(apiKey, brain) {
-  const sector = brain?.rubro || 'marketing y comunicación'
 
-  const buscar = async (query) => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 segundos max
-
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-beta': 'web-search-2025-03-05',
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-haiku-20241022', // usar modelo real de haiku
-          max_tokens: 600,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-          messages: [{ role: 'user', content: `Buscá info actualizada sobre: "${query}". Resumí en 150 palabras máx, solo hechos concretos.` }]
-        })
-      })
-      clearTimeout(timeoutId)
-      if (!res.ok) return null
-      const data = await res.json()
-      return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || null
-    } catch (e) {
-      clearTimeout(timeoutId)
-      return null
-    }
-  }
-
-  const [tendencias, eventos] = await Promise.allSettled([
-    buscar(`tendencias actuales ${sector} Argentina comunicación`),
-    buscar('eventos masivos globales culturales oportunidades marca')
-  ])
-
-  const partes = []
-  if (tendencias.status === 'fulfilled' && tendencias.value)
-    partes.push(`## TENDENCIAS EN ${sector.toUpperCase()}\n${tendencias.value}`)
-  if (eventos.status === 'fulfilled' && eventos.value)
-    partes.push(`## EVENTOS Y MOMENTOS CULTURALES DISPONIBLES\n${eventos.value}`)
-
-  return partes.join('\n\n') || null
-}
 
 /**
  * Detecta automáticamente la estructura de slides del contenido
@@ -316,9 +269,7 @@ export async function POST(request) {
     // ============= CONSTRUCCIÓN DEL PROMPT =============
     const cerebroContext = getContextoValidador(brain?.nombre)
 
-    // Buscar actualidad solo si NO es validación en tiempo real (PERF-02)
-    // En tiempo real omitimos el web search para no lanzar 2 requests a Anthropic por tecla
-    const contextualActual = realtime ? null : await buscarContextoActual(apiKey, brain).catch(() => null)
+    const contextualActual = null
 
     const systemPrompt = [
       cerebroContext,

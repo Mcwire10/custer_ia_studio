@@ -23,7 +23,15 @@ export const config: VercelConfig = {
       maxDuration: 60,
       memory: 512,
     },
+    'app/api/validate/route': {
+      maxDuration: 60,
+      memory: 512,
+    },
     'app/api/copy/**': {
+      maxDuration: 60,
+      memory: 512,
+    },
+    'app/api/copy/route': {
       maxDuration: 60,
       memory: 512,
     },
