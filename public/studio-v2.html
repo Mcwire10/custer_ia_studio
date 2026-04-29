@@ -1605,9 +1605,12 @@
       <div class="brand-selector" style="min-width: 350px;">
         <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
           <label style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; letter-spacing: 0.5px;">MARCA ACTIVA</label>
-          <select id="brandSelect" onchange="selectBrand(this.value)" style="font-size: 1rem; font-weight: 700; padding: 12px 16px;">
-            <option value="">-- Selecciona una marca --</option>
-          </select>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <select id="brandSelect" onchange="selectBrand(this.value)" style="font-size: 1rem; font-weight: 700; padding: 12px 16px;flex:1;">
+              <option value="">-- Selecciona una marca --</option>
+            </select>
+            <span id="syncBadge" title="Marca no guardada en la nube" style="display:none;background:rgba(245,166,35,0.15);border:1px solid #F5A623;color:#F5A623;font-size:0.7rem;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;">💾 No sincronizado</span>
+          </div>
         </div>
         <button onclick="openBrandManager()" style="padding: 12px 20px; height: fit-content; align-self: flex-end;">+ Nueva</button>
       </div>
@@ -2322,7 +2325,7 @@
         </div>
 
         <div class="btn-group">
-          <button class="btn" onclick="validarContenido()">
+          <button class="btn" data-requires-brand onclick="validarContenido()">
             <span id="valLoading"></span>
             🎯 Analizar con Coach
           </button>
@@ -2393,7 +2396,7 @@
         </div>
 
         <div class="btn-group">
-          <button class="btn" onclick="generarCopy()">
+          <button class="btn" data-requires-brand onclick="generarCopy()">
             <span id="cpyLoading"></span>
             ✍️ Generar Copy
           </button>
@@ -2566,6 +2569,13 @@
     let imageStorage = {} // Almacenamiento temporal de imágenes
     let currentUser = null // Usuario autenticado
 
+    // ============= UTILIDAD DE DEBUG (solo en localhost) =============
+    const debug = (...args) => {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log(...args)
+      }
+    }
+
     // ============= FUNCIONES DE AUTENTICACIÓN =============
 
     /**
@@ -2613,14 +2623,18 @@
         const data = await response.json()
 
         if (response.ok && data.brands) {
-          allBrands = data.brands
-          console.log('📦 Marcas cargadas:', allBrands.length)
+          // BUG-02: Normalizar nombre/name — la DB devuelve "name", el resto del código usa "nombre"
+          allBrands = data.brands.map(b => ({ ...b, nombre: b.nombre || b.name }))
+          debug('📦 Marcas cargadas:', allBrands.length)
 
           // Actualizar dropdown de marcas
           updateBrandSelector()
 
-          // Cargar la primera marca si existe
-          if (allBrands.length > 0) {
+          // Restaurar última marca usada desde localStorage como caché de sesión
+          const cached = JSON.parse(localStorage.getItem('custer_current_brand') || 'null')
+          if (cached && cached.id && allBrands.find(b => b.id === cached.id)) {
+            selectBrand(cached.id)
+          } else if (allBrands.length > 0) {
             selectBrand(allBrands[0].id)
           }
         }
@@ -3576,7 +3590,7 @@
       }
     }
 
-    function saveBrand() {
+    async function saveBrand() {
       const brand = {
         // BÁSICO
         nombre: document.getElementById('bbNombre').value,
@@ -3682,32 +3696,73 @@
         return
       }
 
-      // Buscar si la marca ya existe
-      const existingIndex = allBrands.findIndex(b => b.nombre.toLowerCase() === brand.nombre.toLowerCase())
+      // BUG-01: Persistir en DB vía POST (crear) o PUT (actualizar)
+      // BUG-04: El ID siempre viene de la DB, nunca se genera localmente
+      const saveBrandBtn = document.querySelector('[onclick="saveBrand()"]')
+      if (saveBrandBtn) saveBrandBtn.disabled = true
 
-      if (existingIndex !== -1) {
-        // Actualizar (mantener createdAt)
-        brand.createdAt = allBrands[existingIndex].createdAt
-        allBrands[existingIndex] = { ...allBrands[existingIndex], ...brand }
-        currentBrand = allBrands[existingIndex]
-        showToast('✅ Marca actualizada', 'success')
-      } else {
-        // Crear nueva
-        brand.id = brand.nombre.toLowerCase().replace(/\s+/g, '-')
-        allBrands.push(brand)
-        currentBrand = brand
-        showToast('✅ Marca guardada', 'success')
+      try {
+        // Buscar si ya existe (por ID numérico en la DB)
+        const existingBrand = allBrands.find(b => b.nombre?.toLowerCase() === brand.nombre.toLowerCase())
+        const isUpdate = !!(existingBrand && existingBrand.id && Number.isInteger(existingBrand.id))
+
+        let response, data
+        if (isUpdate) {
+          // PUT — actualizar marca existente en la DB
+          brand.createdAt = existingBrand.createdAt
+          response = await fetch('/api/brands', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: existingBrand.id, ...brand })
+          })
+          data = await response.json()
+          if (!response.ok) throw new Error(data.error || 'Error actualizando marca')
+        } else {
+          // POST — crear nueva marca en la DB
+          response = await fetch('/api/brands', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ brand })
+          })
+          data = await response.json()
+          if (!response.ok) throw new Error(data.error || 'Error guardando marca')
+        }
+
+        // Recargar marcas desde la DB (fuente de verdad)
+        await loadUserBrands()
+
+        // Seleccionar la marca recién guardada
+        const savedId = data.id || data.brand?.id
+        if (savedId) {
+          selectBrand(savedId)
+          document.getElementById('brandSelect').value = savedId
+        }
+
+        // Ocultar badge de no sincronizado
+        setSyncBadge(false)
+        showToast(isUpdate ? '✅ Marca actualizada en la nube' : '✅ Marca guardada en la nube', 'success')
+      } catch (error) {
+        showToast(`❌ ${error.message}`, 'error')
+      } finally {
+        if (saveBrandBtn) saveBrandBtn.disabled = false
       }
 
-      localStorage.setItem('custer_brands', JSON.stringify(allBrands))
-      localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
-      updateBrandSelector()
-
-      // Auto-seleccionar la marca guardada
-      const brandId = currentBrand.id || currentBrand.nombre.toLowerCase().replace(/\s+/g, '-')
-      document.getElementById('brandSelect').value = brandId
-
       updateBrainPreview()
+    }
+
+    // UX-01: Badge de sincronización
+    function setSyncBadge(show) {
+      const badge = document.getElementById('syncBadge')
+      if (badge) badge.style.display = show ? 'inline-flex' : 'none'
+    }
+
+    // UX-02: Habilitar/deshabilitar botones que requieren marca activa
+    function syncActionButtons() {
+      const hasBrand = !!currentBrand
+      document.querySelectorAll('[data-requires-brand]').forEach(btn => {
+        btn.disabled = !hasBrand
+        btn.style.opacity = hasBrand ? '1' : '0.45'
+      })
     }
 
     // ========== GENERAR Y REVISAR REPORTE DE MARCA ==========
@@ -3865,6 +3920,7 @@
         currentBrand = null
         currentBrandImages = []
         currentVisualAnalysis = null
+        syncActionButtons()
         return
       }
 
@@ -3900,7 +3956,10 @@
           })
         }
 
+        // Persistir en localStorage como caché de sesión (ARCH-01)
+        localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
         updateBrainPreview()
+        syncActionButtons()
       }
     }
 
@@ -5112,6 +5171,8 @@
         const sessionId = Date.now().toString()
         if (window.currentBrandImages && window.currentBrandImages.length > 0) {
           imageStorage[sessionId] = window.currentBrandImages
+          // PERF-03: Limpiar imageStorage después de 30s para evitar memory leak
+          setTimeout(() => delete imageStorage[sessionId], 30000)
         }
 
         // Cargar contexto de conversaciones previas para enriquecer la generación
@@ -5245,7 +5306,7 @@
         const response = await fetch('/api/validate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, brain: currentBrand })
+          body: JSON.stringify({ message: text, brain: currentBrand, realtime: true })
         })
 
         const data = await response.json()
@@ -5726,7 +5787,28 @@
 
         // Descargar como JSON formateado
         const downloadData = {
-     async function generarCopy() {
+          timestamp: content.timestamp,
+          brand: currentBrand?.nombre || 'Sin marca',
+          content: content.content,
+          validation: content.validation || content.analysis,
+          metadata: content.metadata
+        }
+
+        const json = JSON.stringify(downloadData, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `validacion-${currentBrand?.nombre || 'marca'}-${new Date().getTime()}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+        showToast('✅ Validación descargada', 'success')
+      } catch (error) {
+        showToast('❌ Error al descargar: ' + error.message, 'error')
+      }
+    }
+
+    async function generarCopy() {
       if (!currentBrand) {
         showToast('❌ Selecciona una marca primero', 'error')
         return
@@ -5798,12 +5880,13 @@
               `
             })
           } else {
-            // Fallback: formato plano
+            // Fallback: formato plano — BUG-03: usar data-copy attribute correctamente
             const copyText = typeof content === 'string' ? content : (content.body || JSON.stringify(content))
+            const escapedCopy = copyText.replace(/\\/g, '\\\\').replace(/`/g, '\\`')
             platformsHTML += `
               <div style="padding:16px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-left:4px solid #F5A623;border-radius:8px;margin-bottom:12px;">
                 <div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;white-space:pre-wrap;">${copyText}</div>
-                <button class="btn" onclick="navigator.clipboard.writeText(this.dataset.copy); showToast('✅ Copiado', 'success')" style="width:100%;padding:8px;font-size:0.82rem;margin-top:10px;">📋 Copiar</button>
+                <button class="btn" onclick="navigator.clipboard.writeText(\`${escapedCopy}\`); showToast('✅ Copiado', 'success')" style="width:100%;padding:8px;font-size:0.82rem;margin-top:10px;">📋 Copiar</button>
               </div>
             `
           }
@@ -6031,8 +6114,11 @@
 
     // ============= INICIALIZACIÓN =============
     window.addEventListener('load', () => {
-      // no sobreescribir allBrands desde localStorage para evitar pisar los datos de la base de datos
+      // ARCH-01: localStorage es solo caché de sesión — la DB es fuente de verdad
+      // currentBrand se rehidrata desde localStorage para UI inmediata, pero se revalida con la DB
       currentBrand = JSON.parse(localStorage.getItem('custer_current_brand') || 'null')
+      // Inicializar estado de botones (deshabilitados hasta que haya marca)
+      syncActionButtons()
 
       // Restaurar imágenes y análisis visual de la marca actual
       if (currentBrand && currentBrand.visualAssets) {

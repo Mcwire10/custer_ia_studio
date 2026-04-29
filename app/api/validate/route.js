@@ -283,7 +283,8 @@ export async function POST(request) {
       )
     }
 
-    const { message, brain } = await request.json()
+    // PERF-02: leer flag realtime — si true, saltar web search para no quemar tokens mientras escribe
+    const { message, brain, realtime = false } = await request.json()
 
     if (!message?.trim()) {
       return Response.json({ error: 'Mensaje vacío' }, { status: 400 })
@@ -303,8 +304,9 @@ export async function POST(request) {
     // ============= CONSTRUCCIÓN DEL PROMPT =============
     const cerebroContext = getContextoValidador(brain?.nombre)
 
-    // Buscar actualidad: tendencias del sector + eventos masivos culturales/deportivos
-    const contextualActual = await buscarContextoActual(apiKey, brain).catch(() => null)
+    // Buscar actualidad solo si NO es validación en tiempo real (PERF-02)
+    // En tiempo real omitimos el web search para no lanzar 2 requests a Anthropic por tecla
+    const contextualActual = realtime ? null : await buscarContextoActual(apiKey, brain).catch(() => null)
 
     const systemPrompt = [
       cerebroContext,
