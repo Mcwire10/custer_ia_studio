@@ -19,6 +19,14 @@ export const config: VercelConfig = {
       maxDuration: 60,
       memory: 1024,
     },
+    'app/api/validate/**': {
+      maxDuration: 60,
+      memory: 512,
+    },
+    'app/api/copy/**': {
+      maxDuration: 60,
+      memory: 512,
+    },
     'app/api/auto-populate-brand/**': {
       maxDuration: 30,
       memory: 512,
