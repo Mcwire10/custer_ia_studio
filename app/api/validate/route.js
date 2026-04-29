@@ -25,7 +25,7 @@ async function buscarContextoActual(apiKey, brain) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 600,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: `Buscá info actualizada sobre: "${query}". Resumí en 150 palabras máx, solo hechos concretos.` }]
