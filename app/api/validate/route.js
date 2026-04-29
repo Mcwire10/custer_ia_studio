@@ -328,7 +328,7 @@ export async function POST(request) {
         max_tokens: 4000,
         system: systemPrompt,
         messages: [
-          { role: 'user', content: `Analizá y mejorá este contenido para la marca. Slides detectados: ${slideStructure.numSlides}.\n\nCONTENIDO A VALIDAR:\n"${message}"\n\nRespondé SOLO con JSON válido con esta estructura exacta (sin markdown, sin explicaciones extra):\n{"aligned":true,"score":75,"feedback":"...","slides":[{"numero":1,"titulo":"...","contenido_original":"...","contenido_mejorado":"...","cambios":["..."],"rationale":"..."}],"resumenGlobal":{"fortalezas":["..."],"mejoras_criticas":["..."],"nuevoScore":85}}` }
+          { role: 'user', content: `Analizá y mejorá este contenido para la marca. Slides detectados: ${slideStructure.numSlides}.\n\nCONTENIDO A VALIDAR:\n"${message}"\n\nRespondé SOLO con JSON válido con esta estructura exacta (sin markdown, sin explicaciones extra):\n{"aligned":true,"score":75,"feedback":"...","slides":[{"numero":1,"titulo":"...","contenido_original":"...","contenido_mejorado":"...","cambios":["..."],"rationale":"..."}],"resumenGlobal":{"fortalezas":["..."],"mejoras_criticas":["..."],"nuevoScore":85,"aprendizaje_clave":"[Párrafo de 3-5 oraciones explicando qué aprendió el análisis y qué debería mejorar en la próxima pieza]"}}` }
         ]
       })
     })
@@ -377,7 +377,8 @@ export async function POST(request) {
         resumenGlobal: {
           fortalezas: ['Estructura clara y lógica', 'Contenido enfocado en beneficios'],
           mejoras_criticas: [`Optimizar para fase ${funnelStage}`, 'Agregar urgencia según contexto'],
-          nuevoScore: Math.min(100, 60 + 15)
+          nuevoScore: Math.min(100, 60 + 15),
+          aprendizaje_clave: 'Mantené la estructura clara y seguí optimizando para tu etapa del funnel actual. Reforzá el llamado a la acción y probá iterar sobre los mensajes que más resuenan con tu audiencia.'
         }
       }
     }
@@ -414,7 +415,8 @@ export async function POST(request) {
       result.resumenGlobal = {
         fortalezas: ['Mensaje claro', 'Estructura lógica'],
         mejoras_criticas: ['Optimizar para ' + funnelStage],
-        nuevoScore: Math.min(100, (result.score || 75) + 20)
+        nuevoScore: Math.min(100, (result.score || 75) + 20),
+        aprendizaje_clave: 'Mantené la estructura clara y seguí optimizando para tu etapa del funnel actual. Reforzá el llamado a la acción y probá iterar sobre los mensajes que más resuenan con tu audiencia.'
       }
     }
 
@@ -436,9 +438,7 @@ export async function POST(request) {
         score: result.score || 75
       })),
       estrategia_futura: {
-        siguiente_paso: result.resumenGlobal?.mejoras_criticas?.[0] || 'Continuar optimizando',
-        patrones_exitosos: result.resumenGlobal?.fortalezas || [],
-        testing_recomendado: result.resumenGlobal?.mejoras_criticas || []
+        aprendizaje: result.resumenGlobal?.aprendizaje_clave || 'Mantené la estructura clara y seguí optimizando para tu etapa del funnel actual. Reforzá el llamado a la acción y probá iterar sobre los mensajes que más resuenan con tu audiencia.'
       },
       recomendaciones_video: null,
       // también exponer la estructura de slides por si el frontend la usa

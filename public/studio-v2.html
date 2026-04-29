@@ -5596,29 +5596,6 @@
       const videoRecs = analysis.recomendaciones_video || null
 
       let html = `
-        <!-- ANÁLISIS ESTRATÉGICO -->
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <span style="font-size: 1.5rem;">📊</span>
-            <h3 style="margin: 0; color: var(--text-primary); font-size: 1.2rem;">Análisis Estratégico</h3>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-            <div style="background: rgba(104, 96, 238, 0.05); border-left: 3px solid #6860EE; padding: 12px; border-radius: 4px;">
-              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Objetivo</div>
-              <div style="color: var(--text-primary); font-size: 1rem; font-weight: 600;">${strategic.objetivo_detectado || 'general'}</div>
-            </div>
-            <div style="background: rgba(245, 166, 35, 0.05); border-left: 3px solid #F5A623; padding: 12px; border-radius: 4px;">
-              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Stage del Funnel</div>
-              <div style="color: var(--text-primary); font-size: 1rem; font-weight: 600;">${strategic.stage_funnel || 'general'}</div>
-            </div>
-            <div style="background: rgba(74, 222, 128, 0.05); border-left: 3px solid #4ADE80; padding: 12px; border-radius: 4px;">
-              <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Emociones a Generar</div>
-              <div style="color: var(--text-primary); font-size: 0.95rem;">${(strategic.emociones_a_generar || []).join(', ') || 'N/A'}</div>
-            </div>
-          </div>
-        </div>
-
         <!-- VERSIÓN OPTIMIZADA -->
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
@@ -5630,7 +5607,10 @@
             ${optimized.split('\n').map(line => `<div style="margin-bottom: 8px;">${line || '&nbsp;'}</div>`).join('')}
           </div>
 
-          <button class="btn" onclick="navigator.clipboard.writeText(\`${optimized.replace(/`/g, '\\`')}\`); showToast('✅ Copiado al portapapeles', 'success')" style="width: 100%; padding: 12px; font-size: 0.95rem;">📋 Copiar todo</button>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn" onclick="navigator.clipboard.writeText(\`${optimized.replace(/`/g, '\\`')}\`); showToast('✅ Copiado al portapapeles', 'success')" style="flex: 1; padding: 12px; font-size: 0.95rem;">📋 Copiar todo</button>
+            <button class="btn" onclick="iterarConCoach(\`${optimized.replace(/`/g, '\\`')}\`)" style="flex: 1; padding: 12px; font-size: 0.95rem; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-light);">🔄 Iterar con Coach</button>
+          </div>
         </div>
 
         <!-- POR QUÉ CADA CAMBIO (Secciones Educativas) -->
@@ -5648,15 +5628,9 @@
                   <div style="color: var(--text-primary); font-size: 1rem; font-weight: 600;">${exp.cambio}</div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
-                  <div>
-                    <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">💡 Principio de Marketing</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${exp.principio_marketing}</div>
-                  </div>
-                  <div>
-                    <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">🎯 Emoción que genera</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${exp.emocion}</div>
-                  </div>
+                <div style="margin-top: 12px;">
+                  <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">💡 Principio de Marketing</div>
+                  <div style="color: var(--text-secondary); font-size: 0.9rem;">${exp.principio_marketing}</div>
                 </div>
 
                 <div style="margin-top: 12px;">
@@ -5676,28 +5650,14 @@
         ` : ''}
 
         <!-- ESTRATEGIA FUTURA (COACHING) -->
-        ${futureStrategy.siguiente_paso ? `
+        ${futureStrategy.aprendizaje ? `
           <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
               <span style="font-size: 1.5rem;">🔮</span>
               <h3 style="margin: 0; color: var(--text-primary); font-size: 1.2rem;">Estrategia Futura (Coaching)</h3>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-              <div style="background: rgba(104, 96, 238, 0.05); border-left: 3px solid #6860EE; padding: 12px; border-radius: 4px;">
-                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">1️⃣ Siguiente paso</div>
-                <div style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.6;">${futureStrategy.siguiente_paso}</div>
-              </div>
-
-              <div style="background: rgba(245, 166, 35, 0.05); border-left: 3px solid #F5A623; padding: 12px; border-radius: 4px;">
-                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">2️⃣ Cómo testear</div>
-                <div style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.6;">${futureStrategy.como_testear}</div>
-              </div>
-
-              <div style="background: rgba(74, 222, 128, 0.05); border-left: 3px solid #4ADE80; padding: 12px; border-radius: 4px;">
-                <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">3️⃣ Métrica clave</div>
-                <div style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.6;">${futureStrategy.metrica_clave}</div>
-              </div>
+            <div style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.7;">
+              ${futureStrategy.aprendizaje}
             </div>
           </div>
         ` : ''}
@@ -5748,6 +5708,16 @@
       `
 
       return html
+    }
+
+    function iterarConCoach(texto) {
+      const input = document.getElementById('valCopy')
+      if (input) {
+        input.value = texto
+        input.placeholder = '¿Qué querés ajustar de esta versión?'
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        showToast('Listo para iterar', 'info')
+      }
     }
 
     function descargarCoachAnalisis() {
