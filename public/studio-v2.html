@@ -5548,8 +5548,15 @@
           })
         })
 
-        const data = await response.json()
-        if (!response.ok) throw new Error(data.error || 'Error en el servidor')
+        let data
+        try {
+          const text = await response.text()
+          data = JSON.parse(text)
+        } catch (e) {
+          throw new Error(`Error del servidor (${response.status}): Tiempos de espera excedidos (Timeout) o respuesta inválida. Por favor, intentá de nuevo.`)
+        }
+
+        if (!response.ok) throw new Error(data?.error || `Error en el servidor: ${response.status}`)
 
         const coachAnalysis = data.coach_analysis
         const metadata = data.metadata || {}
@@ -5812,8 +5819,15 @@
           })
         })
 
-        const data = await response.json()
-        if (!response.ok) throw new Error(data.error || 'Error en el servidor')
+        let data
+        try {
+          const text = await response.text()
+          data = JSON.parse(text)
+        } catch (e) {
+          throw new Error(`Error del servidor (${response.status}): Tiempos de espera excedidos (Timeout) o respuesta inválida. Por favor, intentá de nuevo.`)
+        }
+
+        if (!response.ok) throw new Error(data?.error || `Error en el servidor: ${response.status}`)
 
         if (!data.copies || Object.keys(data.copies).length === 0) {
           throw new Error('No se generaron copys')

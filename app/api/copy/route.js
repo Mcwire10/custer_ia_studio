@@ -8,6 +8,8 @@
  * 3. Claude genera copy alineado a la marca, con referencias bibliográficas y anclado a la actualidad
  */
 
+export const maxDuration = 60 // Aumentar timeout en Vercel a 60s
+
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoGenerador } from '@/lib/cerebro'
 

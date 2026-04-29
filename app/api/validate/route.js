@@ -4,6 +4,8 @@
  * con recomendaciones slide-by-slide y aplicación completa de identidad visual
  */
 
+export const maxDuration = 60 // Aumentar timeout en Vercel a 60s
+
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoValidador } from '@/lib/cerebro'
 
