@@ -18,29 +18,39 @@ async function buscarContextoActual(apiKey, brain) {
   const sector = brain?.rubro || 'marketing y comunicación'
 
   const buscar = async (query) => {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'web-search-2025-03-05',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: `Buscá info actualizada sobre: "${query}". Resumí en 150 palabras máx, solo hechos concretos.` }]
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 segundos max
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'web-search-2025-03-05',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-haiku-20241022', // usar modelo real de haiku
+          max_tokens: 600,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          messages: [{ role: 'user', content: `Buscá info actualizada sobre: "${query}". Resumí en 150 palabras máx, solo hechos concretos.` }]
+        })
       })
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || null
+      clearTimeout(timeoutId)
+      if (!res.ok) return null
+      const data = await res.json()
+      return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || null
+    } catch (e) {
+      clearTimeout(timeoutId)
+      return null
+    }
   }
 
   const [tendencias, eventos] = await Promise.allSettled([
-    buscar(`tendencias actuales ${sector} Argentina 2025 comunicación`),
-    buscar('eventos masivos globales culturales deportivos 2025 oportunidades de marca')
+    buscar(`tendencias actuales ${sector} Argentina comunicación`),
+    buscar('eventos masivos globales culturales oportunidades marca')
   ])
 
   const partes = []

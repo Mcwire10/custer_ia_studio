@@ -34,32 +34,42 @@ async function buscarContextoActual(apiKey, marca) {
   const queryEventos = `eventos masivos globales culturales deportivos 2025 oportunidades de marca`
 
   const buscar = async (query) => {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'web-search-2025-03-05',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 800,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{
-          role: 'user',
-          content: `Buscá información actualizada sobre: "${query}". Resumí los 3-5 hallazgos más relevantes en máximo 200 palabras. Solo hechos concretos y fechas cuando las tengas.`
-        }]
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'web-search-2025-03-05',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-haiku-20241022',
+          max_tokens: 800,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          messages: [{
+            role: 'user',
+            content: `Buscá información actualizada sobre: "${query}". Resumí los 3-5 hallazgos más relevantes en máximo 200 palabras. Solo hechos concretos y fechas cuando las tengas.`
+          }]
+        })
       })
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    // Extraer el texto final de la respuesta (puede haber tool_use + text)
-    const textos = (data.content || [])
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('\n')
-    return textos || null
+      clearTimeout(timeoutId)
+      if (!res.ok) return null
+      const data = await res.json()
+      // Extraer el texto final de la respuesta (puede haber tool_use + text)
+      const textos = (data.content || [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('\n')
+      return textos || null
+    } catch (e) {
+      clearTimeout(timeoutId)
+      return null
+    }
   }
 
   const [tendencias, eventos] = await Promise.allSettled([
