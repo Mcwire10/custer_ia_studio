@@ -5554,12 +5554,18 @@
         const coachAnalysis = data.coach_analysis
         const metadata = data.metadata || {}
 
-        if (!coachAnalysis) throw new Error('Respuesta inesperada del servidor')
+        if (!coachAnalysis) throw new Error('El servidor no devolvió coach_analysis')
 
-        // Renderizar análisis del Coach
-        const coachHTML = renderCoachAnalysis(coachAnalysis, currentBrand, metadata)
-        let html = createResultsContainer('Análisis del Coach completado ✨', '🎯', '') + coachHTML
-        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarCoachAnalisis()">📥 Descargar análisis completo</button>'
+        // Renderizar análisis del Coach — envuelto en try/catch para exponer errores reales
+        let html
+        try {
+          const coachHTML = renderCoachAnalysis(coachAnalysis, currentBrand, metadata)
+          html = createResultsContainer('Análisis del Coach completado ✨', '🎯', '') + coachHTML
+          html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarCoachAnalisis()">📥 Descargar análisis completo</button>'
+        } catch (renderErr) {
+          console.error('Validate render error:', renderErr, 'data:', data)
+          throw new Error(`Error al renderizar análisis: ${renderErr.message}`)
+        }
 
         canvas.innerHTML = html
         localStorage.setItem('lastCoachAnalysis', JSON.stringify({
@@ -5570,6 +5576,7 @@
         }))
         showToast('✅ Análisis completado', 'success')
       } catch (error) {
+        console.error('Validate error:', error)
         canvas.innerHTML = `<div style="padding:24px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#FF6B6B;">❌ <strong>Error:</strong> ${error.message}<br><small style="opacity:0.7">Revisá que la marca tenga ADN cargado y que haya conexión con la API.</small></div>`
         showToast(`❌ ${error.message}`, 'error')
       } finally {

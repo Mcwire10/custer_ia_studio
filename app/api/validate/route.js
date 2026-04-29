@@ -325,7 +325,7 @@ export async function POST(request) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 2000,
+        max_tokens: 4000,
         system: systemPrompt,
         messages: [
           { role: 'user', content: `Analizá y mejorá este contenido para la marca. Slides detectados: ${slideStructure.numSlides}.\n\nCONTENIDO A VALIDAR:\n"${message}"\n\nRespondé SOLO con JSON válido con esta estructura exacta (sin markdown, sin explicaciones extra):\n{"aligned":true,"score":75,"feedback":"...","slides":[{"numero":1,"titulo":"...","contenido_original":"...","contenido_mejorado":"...","cambios":["..."],"rationale":"..."}],"resumenGlobal":{"fortalezas":["..."],"mejoras_criticas":["..."],"nuevoScore":85}}` }
@@ -342,89 +342,42 @@ export async function POST(request) {
     const responseText = data.content[0].text
 
     // ============= PARSING DE RESPUESTA JSON =============
+    // Extracción robusta con indexOf: funciona aunque Claude anteponga texto al JSON
     let result = null
     try {
-      // Intentar parsear directo
-      result = JSON.parse(responseText)
+      const jsonStart = responseText.indexOf('{')
+      const jsonEnd = responseText.lastIndexOf('}')
+      if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
+        throw new Error('Claude no devolvió JSON válido')
+      }
+      result = JSON.parse(responseText.slice(jsonStart, jsonEnd + 1))
     } catch (e) {
-      // Si falla, limpiar markdown y buscar JSON en la respuesta
-      let cleanedText = responseText
-        .replace(/```json\s*/g, '')        // Remover ```json
-        .replace(/```\s*$/g, '')           // Remover ``` final
-        .replace(/[\x00-\x1F\x7F]/g, '')   // Remover caracteres de control
-        .replace(/\n/g, ' ')               // Reemplazar saltos de línea
-        .replace(/,\s*\]/g, ']')           // Remover comas antes de ]
-        .replace(/,\s*\}/g, '}')           // Remover comas antes de }
-        .trim()
-
-      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
-        // Fallback: crear respuesta parseada manualmente con versiones mejoradas REALES
-        const paragraphs = message.split(/\n\n+/).filter(p => p.trim().length > 0)
-        result = {
-          aligned: responseText.includes('alineado') || responseText.includes('correcto'),
-          score: responseText.match(/\d+/) ? parseInt(responseText.match(/\d+/)[0]) : 60,
-          funnelStage: funnelStage,
-          feedback: 'Contenido analizado. Revisa las recomendaciones slide-by-slide.',
-          slideStructure: slideStructure,
-          slides: slideStructure.structure.map((title, idx) => {
-            const paraIdx = idx % paragraphs.length
-            const originalPara = paragraphs[paraIdx] || message.substring(0, 150)
-            return {
-              numero: idx + 1,
-              titulo: title,
-              contenido_original: originalPara.substring(0, 150),
-              contenido_mejorado: generateOptimizedContent(originalPara, title, funnelStage),
-              cambios: generateSpecificMarketingTips(originalPara, funnelStage).slice(0, 3),
-              rationale: `Optimizado para fase de ${funnelStage}: aumenta claridad y conversión`,
-              tipografia: typographyScales,
-              marketingTips: generateSpecificMarketingTips(originalPara, funnelStage)
-            }
-          }),
-          resumenGlobal: {
-            fortalezas: ['Estructura clara y lógica', 'Contenido enfocado en beneficios'],
-            mejoras_criticas: [`Optimizar para fase ${funnelStage}`, 'Agregar urgencia según contexto'],
-            nuevoScore: Math.min(100, (responseText.match(/\d+/) ? parseInt(responseText.match(/\d+/)[0]) : 60) + 15)
+      // Fallback: Claude no devolvió JSON parseable — construir respuesta estructurada
+      console.error('[validate] JSON parse error:', e.message, '| raw snippet:', responseText.slice(0, 200))
+      const paragraphs = message.split(/\n\n+/).filter(p => p.trim().length > 0)
+      result = {
+        aligned: responseText.includes('alineado') || responseText.includes('correcto'),
+        score: responseText.match(/\d+/) ? parseInt(responseText.match(/\d+/)[0]) : 60,
+        funnelStage: funnelStage,
+        feedback: 'Contenido analizado. Revisá las recomendaciones slide-by-slide.',
+        slideStructure: slideStructure,
+        slides: slideStructure.structure.map((title, idx) => {
+          const originalPara = paragraphs[idx % paragraphs.length] || message.substring(0, 150)
+          return {
+            numero: idx + 1,
+            titulo: title,
+            contenido_original: originalPara.substring(0, 150),
+            contenido_mejorado: generateOptimizedContent(originalPara, title, funnelStage),
+            cambios: generateSpecificMarketingTips(originalPara, funnelStage).slice(0, 3),
+            rationale: `Optimizado para fase de ${funnelStage}: claridad y conversión`,
+            tipografia: typographyScales,
+            marketingTips: generateSpecificMarketingTips(originalPara, funnelStage)
           }
-        }
-      } else {
-        // Limpiar y parsear JSON extraído - más agresivo
-        let jsonStr = jsonMatch[0]
-        jsonStr = jsonStr
-          .replace(/[\x00-\x1F\x7F]/g, '') // Caracteres de control
-          .replace(/,(\s*[}\]])/g, '$1')   // Comas antes de } o ]
-
-        try {
-          result = JSON.parse(jsonStr)
-        } catch (parseError) {
-          // Fallback: estructura mínima válida con versiones mejoradas REALES
-          const paragraphs = message.split(/\n\n+/).filter(p => p.trim().length > 0)
-          result = {
-            aligned: true,
-            score: 75,
-            funnelStage: funnelStage,
-            feedback: 'Contenido analizado y optimizado. Revisa los cambios recomendados abajo.',
-            slideStructure: slideStructure,
-            slides: slideStructure.structure.map((title, idx) => {
-              const paraIdx = idx % paragraphs.length
-              const originalPara = paragraphs[paraIdx] || message.substring(0, 150)
-              return {
-                numero: idx + 1,
-                titulo: title,
-                contenido_original: originalPara.substring(0, 150),
-                contenido_mejorado: generateOptimizedContent(originalPara, title, funnelStage),
-                cambios: generateSpecificMarketingTips(originalPara, funnelStage).slice(0, 3),
-                rationale: `Optimizado para ${funnelStage}: claridad + conversión`,
-                tipografia: typographyScales,
-                marketingTips: generateSpecificMarketingTips(originalPara, funnelStage)
-              }
-            }),
-            resumenGlobal: {
-              fortalezas: ['Mensaje claro', 'Estructura lógica'],
-              mejoras_criticas: [`Optimizar para ${funnelStage}`, 'Reforzar CTA'],
-              nuevoScore: 80
-            }
-          }
+        }),
+        resumenGlobal: {
+          fortalezas: ['Estructura clara y lógica', 'Contenido enfocado en beneficios'],
+          mejoras_criticas: [`Optimizar para fase ${funnelStage}`, 'Agregar urgencia según contexto'],
+          nuevoScore: Math.min(100, 60 + 15)
         }
       }
     }
