@@ -431,7 +431,9 @@ export async function POST(request) {
         fortalezas: result.resumenGlobal?.fortalezas || ['Contenido analizado'],
         score_alignment: result.score || 75
       },
-      version_optimizada: result.slides?.[0]?.contenido_mejorado || result.feedback || message,
+      version_optimizada: (result.slides && result.slides.length > 0)
+        ? result.slides.map(s => s.contenido_mejorado).filter(Boolean).join('\n\n') || result.feedback || message
+        : result.feedback || message,
       explicaciones: (result.slides || []).map(slide => ({
         cambio: slide.titulo || 'Mejora detectada',
         principio_marketing: slide.rationale || 'Optimización basada en análisis',

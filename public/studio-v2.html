@@ -5718,12 +5718,20 @@
     }
 
     function iterarConCoach(texto) {
-      const input = document.getElementById('valCopy')
+      // Configurar el contexto del chat para el validador
+      initializeFloatingChat('validador')
+      
+      // Abrir el panel de chat si está cerrado
+      const panel = document.getElementById('floating-chat-panel')
+      if (panel.style.display === 'none') {
+        panel.style.display = 'flex'
+      }
+      
+      // Pre-llenar el input con el contexto
+      const input = document.getElementById('floating-chat-input')
       if (input) {
-        input.value = texto
-        input.placeholder = '¿Qué querés ajustar de esta versión?'
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        showToast('Listo para iterar', 'info')
+        input.value = `Sobre la versión optimizada:\n"${texto.substring(0, 80)}..."\nQuiero ajustar: `
+        input.focus()
       }
     }
 
