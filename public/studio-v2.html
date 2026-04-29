@@ -5466,38 +5466,39 @@
       }
 
       showLoading('valLoading', true)
+      const canvas = document.getElementById('valCanvas')
+      canvas.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary);"><span class="loading"></span><p style="margin-top:16px;">Analizando con IA y buscando contexto cultural actual…</p></div>'
+
       try {
-        // Detectar tipo de contenido y objetivo
         const contentType = document.getElementById('valTipo')?.value || 'copy'
         const objetivo = document.getElementById('valObjetivo')?.value || 'general'
         const targetPlatform = document.getElementById('valPlataforma')?.value || 'instagram'
 
-        // Llamar al Validador (usa endpoint simple que no requiere API keys)
-        const response = await fetch('/api/validate-simple', {
+        // Llamar al endpoint real con Claude (incluye web search de contexto cultural)
+        const response = await fetch('/api/validate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: copy,
-            content_type: contentType,
-            brand: currentBrand,
+            message: copy,
+            brain: currentBrand,
+            tipo: contentType,
             objetivo: objetivo,
-            target_platform: targetPlatform
+            plataforma: targetPlatform
           })
         })
 
         const data = await response.json()
-        if (!response.ok) throw new Error(data.error)
+        if (!response.ok) throw new Error(data.error || 'Error en el servidor')
 
         const coachAnalysis = data.coach_analysis
         const metadata = data.metadata || {}
-        const canvas = document.getElementById('valCanvas')
+
+        if (!coachAnalysis) throw new Error('Respuesta inesperada del servidor')
 
         // Renderizar análisis del Coach
         const coachHTML = renderCoachAnalysis(coachAnalysis, currentBrand, metadata)
-
         let html = createResultsContainer('Análisis del Coach completado ✨', '🎯', '') + coachHTML
-
-        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarCoachAnalisis()">' + SVG_ICONS.send.replace('currentColor', 'white') + ' 📥 Descargar análisis completo</button>'
+        html += '<button class="btn" style="width: 100%; margin-top: 20px;" onclick="descargarCoachAnalisis()">📥 Descargar análisis completo</button>'
 
         canvas.innerHTML = html
         localStorage.setItem('lastCoachAnalysis', JSON.stringify({
@@ -5506,8 +5507,9 @@
           metadata: metadata,
           timestamp: new Date().toISOString()
         }))
-        showToast('✅ Análisis Coach completado', 'success')
+        showToast('✅ Análisis completado', 'success')
       } catch (error) {
+        canvas.innerHTML = `<div style="padding:24px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#FF6B6B;">❌ <strong>Error:</strong> ${error.message}<br><small style="opacity:0.7">Revisá que la marca tenga ADN cargado y que haya conexión con la API.</small></div>`
         showToast(`❌ ${error.message}`, 'error')
       } finally {
         showLoading('valLoading', false)
@@ -5724,35 +5726,7 @@
 
         // Descargar como JSON formateado
         const downloadData = {
-          timestamp: new Date().toISOString(),
-          brand: currentBrand?.nombre || 'Sin marca',
-          validation: content.validation || content,
-          metadata: {
-            slides: content.validation?.slideStructure || {},
-            funnelStage: content.validation?.funnelStage || 'general',
-            score: {
-              actual: content.validation?.score || 0,
-              mejorado: content.validation?.resumenGlobal?.nuevoScore || 0
-            }
-          }
-        }
-
-        const json = JSON.stringify(downloadData, null, 2)
-        const blob = new Blob([json], { type: 'application/json' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `validacion-${currentBrand?.nombre || 'analisis'}-${new Date().getTime()}.json`
-        a.click()
-        URL.revokeObjectURL(url)
-        showToast('✅ Análisis descargado', 'success')
-      } catch (error) {
-        showToast('❌ Error al descargar: ' + error.message, 'error')
-      }
-    }
-
-    // ============= COPY RELAJADO =============
-    async function generarCopy() {
+     async function generarCopy() {
       if (!currentBrand) {
         showToast('❌ Selecciona una marca primero', 'error')
         return
@@ -5764,7 +5738,10 @@
         return
       }
 
+      const canvas = document.getElementById('cpyCanvas')
       showLoading('cpyLoading', true)
+      canvas.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary);"><span class="loading"></span><p style="margin-top:16px;">Generando copy con IA… Buscando contexto cultural actual…</p></div>'
+
       try {
         const response = await fetch('/api/copy', {
           method: 'POST',
@@ -5777,27 +5754,71 @@
         })
 
         const data = await response.json()
-        if (!response.ok) throw new Error(data.error)
+        if (!response.ok) throw new Error(data.error || 'Error en el servidor')
 
-        const canvas = document.getElementById('cpyCanvas')
-
-        let platformsHTML = ''
-        for (const [plat, content] of Object.entries(data.copies || {})) {
-          const copyText = content.body || content
-          platformsHTML += `
-            <div style="padding: 18px; background: white; border: 1px solid rgba(104, 96, 238, 0.15); border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #F5A623;">
-              <div style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">${plat}</div>
-              <div style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.7; margin-bottom: 12px;">${copyText}</div>
-              <button class="btn" onclick="navigator.clipboard.writeText('${copyText.replace(/'/g, "\\'")}'); showToast('✅ Copiado al portapapeles', 'success')" style="width: 100%; padding: 8px; font-size: 0.85rem;">📋 Copiar</button>
-            </div>
-          `
+        if (!data.copies || Object.keys(data.copies).length === 0) {
+          throw new Error('No se generaron copys')
         }
 
-        let html = createResultsContainer('Copy generado', '✍️', '') + platformsHTML
+        let platformsHTML = ''
 
-        canvas.innerHTML = html
+        for (const [plat, content] of Object.entries(data.copies)) {
+          // El API devuelve opcion_directa, opcion_narrativa, opcion_disruptiva
+          // Renderizamos las tres opciones si existen, o fallback a content.body
+          const opciones = [
+            { label: 'Directa', key: 'opcion_directa', color: '#4ADE80' },
+            { label: 'Narrativa', key: 'opcion_narrativa', color: '#6860EE' },
+            { label: 'Disruptiva 🔥', key: 'opcion_disruptiva', color: '#F5A623' }
+          ]
+
+          const hasOptions = content && typeof content === 'object' && content.opcion_directa
+
+          platformsHTML += `
+            <div style="margin-bottom:24px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#F5A623;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-light);">
+                📱 ${plat.toUpperCase()}
+                ${content.insight_creativo ? `<span style="font-weight:400;color:var(--text-secondary);text-transform:none;margin-left:8px;">— ${content.insight_creativo}</span>` : ''}
+              </div>
+          `
+
+          if (hasOptions) {
+            opciones.forEach(({ label, key, color }) => {
+              const op = content[key]
+              if (!op) return
+              const copyText = [op.headline, op.body, op.cta].filter(Boolean).join('\n\n')
+              platformsHTML += `
+                <div style="padding:16px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-left:4px solid ${color};border-radius:8px;margin-bottom:12px;">
+                  <div style="font-size:0.7rem;font-weight:700;color:${color};text-transform:uppercase;margin-bottom:10px;">${label}</div>
+                  ${op.headline ? `<div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">${op.headline}</div>` : ''}
+                  <div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;margin-bottom:10px;white-space:pre-wrap;">${op.body || ''}</div>
+                  ${op.cta ? `<div style="font-size:0.8rem;font-weight:600;color:${color};">CTA: ${op.cta}</div>` : ''}
+                  ${op.referencia ? `<div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:6px;font-style:italic;">📚 ${op.referencia}</div>` : ''}
+                  <button class="btn" onclick="navigator.clipboard.writeText(${JSON.stringify(copyText)}); showToast('✅ Copiado', 'success')" style="width:100%;padding:8px;font-size:0.82rem;margin-top:10px;">📋 Copiar ${label}</button>
+                </div>
+              `
+            })
+          } else {
+            // Fallback: formato plano
+            const copyText = typeof content === 'string' ? content : (content.body || JSON.stringify(content))
+            platformsHTML += `
+              <div style="padding:16px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-left:4px solid #F5A623;border-radius:8px;margin-bottom:12px;">
+                <div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;white-space:pre-wrap;">${copyText}</div>
+                <button class="btn" onclick="navigator.clipboard.writeText(this.dataset.copy); showToast('✅ Copiado', 'success')" style="width:100%;padding:8px;font-size:0.82rem;margin-top:10px;">📋 Copiar</button>
+              </div>
+            `
+          }
+
+          platformsHTML += '</div>'
+        }
+
+        if (data.momento_cultural_usado) {
+          platformsHTML += `<div style="margin-top:16px;padding:14px;background:rgba(104,96,238,0.08);border:1px solid rgba(104,96,238,0.2);border-radius:8px;"><div style="font-size:0.75rem;font-weight:700;color:#6860EE;text-transform:uppercase;margin-bottom:6px;">🌍 Momento cultural usado</div><div style="font-size:0.88rem;color:var(--text-secondary);">${data.momento_cultural_usado}</div></div>`
+        }
+
+        canvas.innerHTML = createResultsContainer('Copy generado', '✍️', '') + platformsHTML
         showToast('✅ Copy generado', 'success')
       } catch (error) {
+        canvas.innerHTML = `<div style="padding:24px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#FF6B6B;">❌ <strong>Error:</strong> ${error.message}</div>`
         showToast(`❌ ${error.message}`, 'error')
       } finally {
         showLoading('cpyLoading', false)

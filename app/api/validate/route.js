@@ -322,11 +322,11 @@ export async function POST(request) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: getMaxTokens('validate') || 2000,
+        model: 'claude-sonnet-4-5',
+        max_tokens: 2000,
         system: systemPrompt,
         messages: [
-          { role: 'user', content: `Valida y mejora este contenido (${slideStructure.numSlides} slides detectados):\n\n"${message}"` }
+          { role: 'user', content: `Analizá y mejorá este contenido para la marca. Slides detectados: ${slideStructure.numSlides}.\n\nCONTENIDO A VALIDAR:\n"${message}"\n\nRespondé SOLO con JSON válido con esta estructura exacta (sin markdown, sin explicaciones extra):\n{"aligned":true,"score":75,"feedback":"...","slides":[{"numero":1,"titulo":"...","contenido_original":"...","contenido_mejorado":"...","cambios":["..."],"rationale":"..."}],"resumenGlobal":{"fortalezas":["..."],"mejoras_criticas":["..."],"nuevoScore":85}}` }
         ]
       })
     })
@@ -463,8 +463,39 @@ export async function POST(request) {
       }
     }
 
+    // Normalizar para compatibilidad con renderCoachAnalysis() del frontend
+    const coach_analysis = {
+      analisis_estrategico: {
+        objetivo_detectado: result.funnelStage || funnelStage,
+        stage_funnel: result.funnelStage || funnelStage,
+        emociones_a_generar: marketingTips.slice(0, 3),
+        fortalezas: result.resumenGlobal?.fortalezas || ['Contenido analizado'],
+        score_alignment: result.score || 75
+      },
+      version_optimizada: result.slides?.[0]?.contenido_mejorado || result.feedback || message,
+      explicaciones: (result.slides || []).map(slide => ({
+        cambio: slide.titulo || 'Mejora detectada',
+        principio_marketing: slide.rationale || 'Optimización basada en análisis',
+        contexto_marca: `Alineado con la identidad de ${brain?.nombre || 'la marca'}`,
+        emocion_generada: 'Claridad',
+        score: result.score || 75
+      })),
+      estrategia_futura: {
+        siguiente_paso: result.resumenGlobal?.mejoras_criticas?.[0] || 'Continuar optimizando',
+        patrones_exitosos: result.resumenGlobal?.fortalezas || [],
+        testing_recomendado: result.resumenGlobal?.mejoras_criticas || []
+      },
+      recomendaciones_video: null,
+      // también exponer la estructura de slides por si el frontend la usa
+      _slides: result.slides,
+      _score: result.score,
+      _aligned: result.aligned
+    }
+
     return Response.json({
       success: true,
+      coach_analysis,
+      // backward-compat: mantener validation por si algún path lo usa
       validation: result,
       metadata: {
         typographyScales: typographyScales,
