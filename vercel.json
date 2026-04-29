@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/validate/route.js": { "maxDuration": 60 },
+    "app/api/copy/route.js": { "maxDuration": 60 },
+    "app/api/generate/route.js": { "maxDuration": 60 }
+  }
+}
