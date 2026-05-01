@@ -6,6 +6,7 @@
 
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoValidador } from '@/lib/cerebro'
+import { getContextoActual } from '@/lib/contexto-actual'
 
 export async function POST(request) {
   try {
@@ -25,7 +26,13 @@ export async function POST(request) {
       return Response.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
     }
 
-    const systemPrompt = getContextoValidador(brain?.nombre)
+    const cerebroContext = getContextoValidador(brain?.nombre)
+    const contextualActual = realtime ? null : await getContextoActual().catch(() => null)
+
+    const systemPrompt = [
+      cerebroContext,
+      contextualActual ? `---\n\n${contextualActual}` : null
+    ].filter(Boolean).join('\n\n')
 
     // Realtime: análisis rápido sin estructura completa (para el preview mientras escribe)
     const userPrompt = realtime

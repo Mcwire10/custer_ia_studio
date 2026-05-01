@@ -10,6 +10,7 @@
 
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoGenerador } from '@/lib/cerebro'
+import { getContextoActual } from '@/lib/contexto-actual'
 
 const PLATAFORMAS_CONFIG = {
   instagram: { maxChars: 2200, tono: 'visual, emocional, con hook fuerte en la primera línea' },
@@ -97,8 +98,8 @@ export async function POST(request) {
     // 1. Cargar contexto del cerebro
     const cerebroContext = getContextoGenerador(brain?.nombre)
 
-    // 2. Buscar actualidad en paralelo mientras armamos el resto
-    const contextualActual = await buscarContextoActual(apiKey, brain).catch(() => null)
+    // 2. Leer contexto actual pre-computado desde DB (sin web search en tiempo real)
+    const contextualActual = await getContextoActual().catch(() => null)
 
     // 3. Config de plataformas solicitadas
     const especsPorPlataforma = platforms
