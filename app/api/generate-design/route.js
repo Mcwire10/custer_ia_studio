@@ -17,13 +17,60 @@ const FORMATOS = {
   'flyer':        { w: 800,  h: 1200, label: 'Flyer vertical' },
 }
 
+/**
+ * Busca la imagen de un producto en internet usando Claude web search.
+ * Devuelve la URL de la imagen o null si no encuentra.
+ */
+async function buscarImagenProducto(descripcion, apiKey) {
+  const query = `${descripcion} PNG producto fondo blanco site:*.com`
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-beta': 'web-search-2025-03-05',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{
+        role: 'user',
+        content: `Buscá una imagen PNG de "${descripcion}" en internet. Necesito la URL directa de la imagen del producto (preferentemente en fondo blanco o transparente). Devolvé SOLO la URL de la imagen, sin explicaciones. Si no encontrás ninguna URL de imagen válida, devolvé null.`
+      }]
+    })
+  })
+
+  if (!res.ok) return null
+  const data = await res.json()
+  const texto = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim()
+
+  // Extraer URL de imagen de la respuesta
+  const urlMatch = texto.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpg|jpeg|webp)(?:\?[^\s"'<>]*)?/i)
+  return urlMatch ? urlMatch[0] : null
+}
+
+/**
+ * Descarga una imagen desde una URL y la convierte a base64.
+ */
+async function urlABase64(url) {
+  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+  if (!res.ok) throw new Error('No se pudo descargar la imagen')
+  const buffer = await res.arrayBuffer()
+  const contentType = res.headers.get('content-type') || 'image/png'
+  const b64 = Buffer.from(buffer).toString('base64')
+  return `data:${contentType};base64,${b64}`
+}
+
+/**
+ * Genera imagen con gpt-image-1 como fallback si no se encontró en internet.
+ */
 async function generarImagenOpenAI(descripcion, openaiKey) {
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openaiKey}`,
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'gpt-image-1',
       prompt: descripcion,
@@ -32,16 +79,39 @@ async function generarImagenOpenAI(descripcion, openaiKey) {
       output_format: 'base64'
     })
   })
-
-  if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.error?.message || 'Error en OpenAI imagen')
-  }
-
+  if (!res.ok) throw new Error('Error OpenAI imagen')
   const data = await res.json()
   const b64 = data.data?.[0]?.b64_json
   if (!b64) throw new Error('OpenAI no devolvió imagen')
   return `data:image/png;base64,${b64}`
+}
+
+/**
+ * Obtiene imagen: primero busca en internet, si no encuentra usa gpt-image-1.
+ */
+async function obtenerImagen(descripcion, apiKey, openaiKey) {
+  // 1. Intentar buscar la imagen real del producto en internet
+  try {
+    const url = await buscarImagenProducto(descripcion, apiKey)
+    if (url) {
+      const base64 = await urlABase64(url)
+      return { base64, fuente: 'web' }
+    }
+  } catch (e) {
+    console.warn('[generate-design] búsqueda web falló:', e.message)
+  }
+
+  // 2. Fallback: generar con gpt-image-1
+  if (openaiKey) {
+    try {
+      const base64 = await generarImagenOpenAI(descripcion, openaiKey)
+      return { base64, fuente: 'generada' }
+    } catch (e) {
+      console.warn('[generate-design] gpt-image-1 falló:', e.message)
+    }
+  }
+
+  return null
 }
 
 export async function POST(request) {
@@ -117,32 +187,31 @@ ${adn ? `ADN DE LA MARCA:\n${adn}\n\nUsá la paleta de colores, tipografía y es
 
     if (!html.includes('<')) throw new Error('Claude no devolvió HTML válido')
 
-    // 2. Si hay OpenAI key, extraer placeholders y generar imágenes en paralelo
-    if (openaiKey) {
-      const placeholders = [...html.matchAll(/<!--IMG:([^>]+)-->/g)]
+    // 2. Extraer placeholders y resolver imágenes (web search primero, gpt-image-1 como fallback)
+    const placeholders = [...html.matchAll(/<!--IMG:([^>]+)-->/g)]
 
-      if (placeholders.length > 0) {
-        const imagenes = await Promise.allSettled(
-          placeholders.map(([, desc]) => generarImagenOpenAI(desc.trim(), openaiKey))
-        )
+    if (placeholders.length > 0) {
+      const imagenes = await Promise.allSettled(
+        placeholders.map(([, desc]) => obtenerImagen(desc.trim(), apiKey, openaiKey))
+      )
 
-        // 3. Inyectar imágenes generadas en el HTML
-        placeholders.forEach(([match], i) => {
-          const resultado = imagenes[i]
-          if (resultado.status === 'fulfilled') {
-            // Reemplazar el placeholder en el src del img
-            html = html.replace(`src="${match}"`, `src="${resultado.value}"`)
-            // También reemplazar si aparece suelto
-            html = html.replace(match, resultado.value)
-          } else {
-            // Fallback: fondo gris con texto
-            html = html.replace(`src="${match}"`, `src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%236b7280' font-size='14'%3EImagen%3C/text%3E%3C/svg%3E"`)
-            html = html.replace(match, '')
-          }
-        })
+      const resumen = []
+      placeholders.forEach(([match], i) => {
+        const resultado = imagenes[i]
+        if (resultado.status === 'fulfilled' && resultado.value) {
+          html = html.replace(`src="${match}"`, `src="${resultado.value.base64}"`)
+          html = html.replace(match, resultado.value.base64)
+          resumen.push({ desc: placeholders[i][1], fuente: resultado.value.fuente })
+        } else {
+          // Fallback: placeholder SVG gris
+          const svgFallback = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%239ca3af' font-size='16' font-family='sans-serif'%3EImagen%3C/text%3E%3C/svg%3E`
+          html = html.replace(`src="${match}"`, `src="${svgFallback}"`)
+          html = html.replace(match, svgFallback)
+          resumen.push({ desc: placeholders[i][1], fuente: 'fallback' })
+        }
+      })
 
-        return Response.json({ success: true, html, formato, dims, imagenes_generadas: placeholders.length })
-      }
+      return Response.json({ success: true, html, formato, dims, imagenes: resumen })
     }
 
     return Response.json({ success: true, html, formato, dims, imagenes_generadas: 0 })

@@ -2221,7 +2221,7 @@
         </div>
 
         <!-- PANEL DERECHO: PREVIEW -->
-        <div class="panel" style="min-height: 600px;">
+        <div class="panel" style="min-height: 80vh; display: flex; flex-direction: column;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <h2 style="margin: 0;">Vista previa</h2>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="genAcciones" style="display:none;">
@@ -2291,7 +2291,7 @@
             </div>
 
             <!-- iframe preview -->
-            <div id="genPreviewBox" style="background: #1a1a2e; border-radius: 8px; padding: 20px; overflow: auto; min-height: 400px; display: flex; align-items: flex-start; justify-content: center; width: 100%;">
+            <div id="genPreviewBox" style="background: #1a1a2e; border-radius: 8px; padding: 20px; overflow: auto; flex: 1; min-height: 500px; display: flex; align-items: flex-start; justify-content: center; width: 100%;">
               <div id="genIframeWrapper" style="transform-origin: top center; transition: transform 0.2s; position: relative;">
                 <iframe id="genIframe" frameborder="0" scrolling="no"
                   style="display: block; border: none; border-radius: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
@@ -4905,14 +4905,17 @@
       document.getElementById('genHistorial').style.display = genVersionesHistory.length > 0 ? 'block' : 'none'
 
       // Auto-zoom para que entre en el contenedor disponible
-      setTimeout(() => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
         const box = document.getElementById('genPreviewBox')
-        const available = (box.clientWidth || 600) - 40
-        const autoZoom = Math.min(100, Math.floor((available / dims.w) * 100))
+        const available = Math.max(400, (box.offsetWidth || box.clientWidth || 700) - 60)
+        const availableH = Math.max(400, (window.innerHeight * 0.7) - 60)
+        const zoomByW = Math.floor((available / dims.w) * 100)
+        const zoomByH = Math.floor((availableH / dims.h) * 100)
+        const autoZoom = Math.min(95, Math.max(30, Math.min(zoomByW, zoomByH)))
         const slider = document.getElementById('genZoom')
         slider.value = autoZoom
         aplicarZoom(autoZoom)
-      }, 50)
+      }))
     }
 
     function aplicarZoom(val) {
