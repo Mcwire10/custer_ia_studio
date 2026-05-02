@@ -464,7 +464,9 @@
     }
 
     .tab-content.active {
-      display: block;
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
 
     /* Horizontal Slider for Brand Brain sections */
@@ -4943,18 +4945,20 @@ function switchTab(tabName, button) {
       // Ocultar todos
       document.querySelectorAll('.tab-content').forEach(tab => {
         tab.style.display = 'none'
+        tab.style.visibility = 'hidden'
         tab.classList.remove('active')
       })
       document.querySelectorAll('.tab-btn').forEach(btn => { if (!btn.classList.contains('tab-disabled')) btn.classList.remove('active') })
       
-      // Mostrar el tab seleccionado
+      // Mostrar el tab seleccionado - FORZAR TODO
       const tab = document.getElementById(tabName)
       tab.style.display = 'block'
+      tab.style.visibility = 'visible'
+      tab.style.opacity = '1'
       tab.classList.add('active')
       if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
       
-      // Debug
-      console.log('switchTab:', tabName, 'display:', tab.style.display)
+      console.log('switchTab:', tabName)
     }
 
     function showComingSoon(nombre) {
