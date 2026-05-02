@@ -240,6 +240,16 @@
       color: var(--text-primary);
     }
 
+    .tab-btn.tab-disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      color: var(--text-disabled);
+    }
+    .tab-btn.tab-disabled:hover {
+      border-bottom-color: transparent;
+      color: var(--text-disabled);
+    }
+
     .tab-btn.active {
       background: transparent;
       border-bottom-color: var(--text-primary);
@@ -1660,17 +1670,17 @@
     </div>
 
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('brain', this)">🧠 Brand Brain</button>
-      <button class="tab-btn" onclick="switchTab('generador', this)">✨ Generador</button>
-      <button class="tab-btn" onclick="switchTab('validador', this)">🎯 Validador</button>
+      <button class="tab-btn active" onclick="switchTab('validador', this)">🎯 Validador</button>
+      <button class="tab-btn" onclick="switchTab('generador', this)">🎨 Generador</button>
       <button class="tab-btn" onclick="switchTab('copy', this)">✍️ Copy</button>
-      <button class="tab-btn" onclick="switchTab('competencia', this)">🔍 Competencia</button>
-      <button class="tab-btn" onclick="switchTab('reportes', this)">📊 Reportes</button>
-      <button class="tab-btn" onclick="switchTab('analytics', this)">📈 Analytics</button>
+      <button class="tab-btn" onclick="switchTab('brain', this)">🧠 Brand Brain</button>
+      <button class="tab-btn tab-disabled" onclick="showComingSoon('Competencia')">🔍 Competencia</button>
+      <button class="tab-btn tab-disabled" onclick="showComingSoon('Reportes')">📊 Reportes</button>
+      <button class="tab-btn tab-disabled" onclick="showComingSoon('Analytics')">📈 Analytics</button>
     </div>
 
     <!-- ====== BRAND BRAIN ====== -->
-    <div id="brain" class="tab-content active">
+    <div id="brain" class="tab-content">
       <div class="panel">
         <h2>🧠 Brand Brain</h2>
         <p class="section-subtitle">Define tu marca: propósito, audiencia, valores y personalidad única.</p>
@@ -2276,7 +2286,7 @@
     </div>
 
     <!-- ====== VALIDADOR ====== -->
-    <div id="validador" class="tab-content">
+    <div id="validador" class="tab-content active">
       <div class="panel">
         <h2>🎯 Validador</h2>
         <p class="section-subtitle">Verifica que tu contenido sea coherente y alineado con tu marca.</p>
@@ -4598,7 +4608,7 @@
       document.getElementById('bbAvoid').value = ''
       document.getElementById('bbEjemplos').value = ''
       currentBrand = null
-      switchTab('brain', document.querySelector('.tab-btn'))
+      switchTab('validador', document.querySelector('.tab-btn'))
     }
 
     // ============= CHAT CONTEXTUAL Y ASISTENTE =============
@@ -4781,9 +4791,13 @@
       // Inicializar chat flotante
       setTimeout(() => initializeFloatingChat(tabName), 100)
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'))
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'))
+      document.querySelectorAll('.tab-btn').forEach(btn => { if (!btn.classList.contains('tab-disabled')) btn.classList.remove('active') })
       document.getElementById(tabName).classList.add('active')
-      button.classList.add('active')
+      if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
+    }
+
+    function showComingSoon(nombre) {
+      showToast(`🚧 ${nombre} está en desarrollo. Próximamente disponible.`, 'info')
     }
 
     // ============= GENERADOR CON TIPOGRAFÍA INTELIGENTE =============
