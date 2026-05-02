@@ -20,7 +20,7 @@ export async function POST(request) {
     const user = await getCurrentUser()
     if (!user) return Response.json({ error: 'No autenticado' }, { status: 401 })
 
-    const { brief, formato = 'placa-feed', brain, iteracion = null } = await request.json()
+    const { brief, formato = 'placa-feed', brain, iteracion = null, imagenAnotada = null } = await request.json()
 
     if (!brief?.trim()) return Response.json({ error: 'Brief vacío' }, { status: 400 })
 
@@ -42,9 +42,32 @@ REGLAS DE OUTPUT:
 
 ${adn ? `ADN DE LA MARCA:\n${adn}\n\nUsá la paleta de colores, tipografía y estilo visual de la marca en el diseño.` : 'Usá una paleta profesional y moderna si no hay ADN de marca disponible.'}`
 
-    const userPrompt = iteracion
-      ? `Tenés este HTML generado previamente:\n\n${iteracion}\n\nAplicá este cambio: ${brief}\n\nDevolvé el HTML completo actualizado.`
-      : `Generá una pieza de tipo "${dims.label}" (${dims.w}×${dims.h}px) con este brief:\n\n${brief}\n\nDevolvé solo el HTML.`
+    // Construir el mensaje del usuario — con imagen anotada si viene
+    let userMessage
+    if (iteracion) {
+      const textoIteracion = `Tenés este HTML generado previamente:\n\n${iteracion}\n\nAplicá este cambio: ${brief}\n\nDevolvé el HTML completo actualizado.`
+      if (imagenAnotada) {
+        // Claude recibe la imagen con las anotaciones del usuario
+        userMessage = [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: 'image/png',
+              data: imagenAnotada.replace(/^data:image\/\w+;base64,/, '')
+            }
+          },
+          {
+            type: 'text',
+            text: `Esta imagen muestra la pieza actual con las zonas marcadas por el usuario indicando qué cambiar.\n\n${textoIteracion}`
+          }
+        ]
+      } else {
+        userMessage = textoIteracion
+      }
+    } else {
+      userMessage = `Generá una pieza de tipo "${dims.label}" (${dims.w}×${dims.h}px) con este brief:\n\n${brief}\n\nDevolvé solo el HTML.`
+    }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -57,7 +80,7 @@ ${adn ? `ADN DE LA MARCA:\n${adn}\n\nUsá la paleta de colores, tipografía y es
         model: 'claude-sonnet-4-5',
         max_tokens: 8000,
         system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
+        messages: [{ role: 'user', content: userMessage }]
       })
     })
 

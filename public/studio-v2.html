@@ -2224,12 +2224,18 @@
         <div class="panel" style="min-height: 600px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <h2 style="margin: 0;">Vista previa</h2>
-            <div style="display: flex; gap: 8px;" id="genAcciones" style="display:none;">
-              <button onclick="descargarDiseno()" style="background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ADE80; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
-                ⬇️ Descargar HTML
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="genAcciones" style="display:none;">
+              <button onclick="descargarImagen('png')" style="background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ADE80; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                🖼️ PNG
               </button>
-              <button onclick="copiarCodigoDiseno()" style="background: rgba(104,96,238,0.12); border: 1px solid rgba(104,96,238,0.3); color: #6860EE; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
-                📋 Copiar código
+              <button onclick="descargarImagen('jpg')" style="background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ADE80; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                📷 JPG
+              </button>
+              <button onclick="descargarDiseno()" style="background: rgba(104,96,238,0.12); border: 1px solid rgba(104,96,238,0.3); color: #6860EE; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                ⬇️ HTML
+              </button>
+              <button onclick="toggleAnnotMode(true)" id="btnAnotar" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #EF4444; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                ✏️ Marcar cambios
               </button>
               <button onclick="toggleCodigoDiseno()" id="btnVerCodigo" style="background: var(--bg-secondary); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
                 &lt;/&gt; Código
@@ -2262,12 +2268,38 @@
               </div>
             </div>
 
+            <!-- Toolbar de anotaciones -->
+            <div id="genAnnotToolbar" style="display:none; align-items: center; gap: 8px; margin-bottom: 10px; padding: 8px 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid rgba(239,68,68,0.3); flex-wrap: wrap;">
+              <span style="color: #EF4444; font-size: 0.8rem; font-weight: 700;">✏️ MODO ANOTACIÓN</span>
+              <div style="width: 1px; height: 20px; background: var(--border-light);"></div>
+              <button onclick="setAnnotTool('brush')" id="annotBrush" title="Pincel libre"
+                style="padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.4); background: rgba(239,68,68,0.15); color: #EF4444; cursor: pointer; font-size: 0.82rem; font-weight: 600;">🖌️ Pincel</button>
+              <button onclick="setAnnotTool('rect')" id="annotRect" title="Rectángulo"
+                style="padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-light); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem;">▭ Área</button>
+              <button onclick="setAnnotTool('arrow')" id="annotArrow" title="Flecha"
+                style="padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-light); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem;">➜ Flecha</button>
+              <div style="display: flex; align-items: center; gap: 6px; margin-left: 4px;">
+                <span style="color: var(--text-disabled); font-size: 0.75rem;">Color:</span>
+                <input type="color" id="annotColor" value="#EF4444" style="width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer; background: none;">
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: var(--text-disabled); font-size: 0.75rem;">Tamaño:</span>
+                <input type="range" id="annotSize" min="2" max="20" value="4" style="width: 60px; accent-color: #EF4444;">
+              </div>
+              <button onclick="limpiarAnotaciones()" style="padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-light); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; margin-left: auto;">🗑️ Limpiar</button>
+              <button onclick="toggleAnnotMode(false)" style="padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.4); background: rgba(239,68,68,0.1); color: #EF4444; cursor: pointer; font-size: 0.82rem; font-weight: 600;">✓ Listo</button>
+            </div>
+
             <!-- iframe preview -->
-            <div style="background: #1a1a2e; border-radius: 8px; padding: 20px; overflow: auto; min-height: 400px; display: flex; align-items: center; justify-content: center;">
-              <div id="genIframeWrapper" style="transform-origin: top center; transition: transform 0.2s;">
+            <div id="genPreviewBox" style="background: #1a1a2e; border-radius: 8px; padding: 20px; overflow: auto; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+              <div id="genIframeWrapper" style="transform-origin: top center; transition: transform 0.2s; position: relative;">
                 <iframe id="genIframe" frameborder="0" scrolling="no"
                   style="display: block; border: none; border-radius: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
                 </iframe>
+                <!-- Canvas overlay para anotaciones -->
+                <canvas id="genAnnotCanvas"
+                  style="position: absolute; top: 0; left: 0; border-radius: 4px; display: none; cursor: crosshair;">
+                </canvas>
               </div>
             </div>
 
@@ -4819,7 +4851,8 @@
           brief: iteracionTxt || brief,
           formato,
           brain: currentBrand,
-          iteracion: iteracionTxt && genHTMLActual ? genHTMLActual : null
+          iteracion: iteracionTxt && genHTMLActual ? genHTMLActual : null,
+          imagenAnotada: window._genAnnotacionPendiente || null
         }
 
         const res = await fetch('/api/generate-design', {
@@ -4955,6 +4988,219 @@
       const visible = panel.style.display !== 'none'
       panel.style.display = visible ? 'none' : 'block'
       btn.textContent = visible ? '</> Código' : '</> Ocultar'
+    }
+
+    // ======= ANOTACIONES =======
+    let annotTool = 'brush'
+    let annotDrawing = false
+    let annotStartX = 0, annotStartY = 0
+    let annotSnapshot = null
+
+    function toggleAnnotMode(on) {
+      const canvas = document.getElementById('genAnnotCanvas')
+      const toolbar = document.getElementById('genAnnotToolbar')
+      const iframe = document.getElementById('genIframe')
+      const btnAnotar = document.getElementById('btnAnotar')
+
+      if (on) {
+        canvas.width = parseInt(iframe.style.width)
+        canvas.height = parseInt(iframe.style.height)
+        canvas.style.display = 'block'
+        toolbar.style.display = 'flex'
+        btnAnotar.style.display = 'none'
+        setupAnnotEvents()
+        showToast('Modo anotación activo — dibujá sobre la pieza', 'info')
+      } else {
+        toolbar.style.display = 'none'
+        btnAnotar.style.display = ''
+        // No ocultamos el canvas — las anotaciones se mantienen visibles
+      }
+    }
+
+    function setAnnotTool(tool) {
+      annotTool = tool
+      ;['annotBrush','annotRect','annotArrow'].forEach(id => {
+        const el = document.getElementById(id)
+        if (el) {
+          el.style.background = 'transparent'
+          el.style.borderColor = 'var(--border-light)'
+          el.style.color = 'var(--text-secondary)'
+        }
+      })
+      const map = { brush: 'annotBrush', rect: 'annotRect', arrow: 'annotArrow' }
+      const active = document.getElementById(map[tool])
+      if (active) {
+        active.style.background = 'rgba(239,68,68,0.15)'
+        active.style.borderColor = 'rgba(239,68,68,0.4)'
+        active.style.color = '#EF4444'
+      }
+    }
+
+    function setupAnnotEvents() {
+      const canvas = document.getElementById('genAnnotCanvas')
+      const ctx = canvas.getContext('2d')
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect()
+        const scale = canvas.width / rect.width
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY
+        return { x: (clientX - rect.left) * scale, y: (clientY - rect.top) * scale }
+      }
+
+      canvas.onmousedown = canvas.ontouchstart = (e) => {
+        e.preventDefault()
+        annotDrawing = true
+        const pos = getPos(e)
+        annotStartX = pos.x; annotStartY = pos.y
+        annotSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        if (annotTool === 'brush') {
+          ctx.beginPath()
+          ctx.moveTo(pos.x, pos.y)
+        }
+      }
+
+      canvas.onmousemove = canvas.ontouchmove = (e) => {
+        if (!annotDrawing) return
+        e.preventDefault()
+        const pos = getPos(e)
+        const color = document.getElementById('annotColor').value
+        const size = parseInt(document.getElementById('annotSize').value)
+        ctx.strokeStyle = color
+        ctx.lineWidth = size
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+
+        if (annotTool === 'brush') {
+          ctx.lineTo(pos.x, pos.y)
+          ctx.stroke()
+        } else if (annotTool === 'rect' || annotTool === 'arrow') {
+          ctx.putImageData(annotSnapshot, 0, 0)
+          ctx.beginPath()
+          if (annotTool === 'rect') {
+            ctx.setLineDash([6, 3])
+            ctx.strokeRect(annotStartX, annotStartY, pos.x - annotStartX, pos.y - annotStartY)
+            ctx.setLineDash([])
+          } else {
+            // Flecha
+            drawArrow(ctx, annotStartX, annotStartY, pos.x, pos.y, color, size)
+          }
+        }
+      }
+
+      canvas.onmouseup = canvas.ontouchend = (e) => {
+        annotDrawing = false
+        annotSnapshot = null
+      }
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, size) {
+      const headLen = 16 + size
+      const angle = Math.atan2(y2 - y1, x2 - x1)
+      ctx.strokeStyle = color
+      ctx.fillStyle = color
+      ctx.lineWidth = size
+      ctx.beginPath()
+      ctx.moveTo(x1, y1)
+      ctx.lineTo(x2, y2)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(x2, y2)
+      ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6))
+      ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6))
+      ctx.closePath()
+      ctx.fill()
+    }
+
+    function limpiarAnotaciones() {
+      const canvas = document.getElementById('genAnnotCanvas')
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+    }
+
+    function getAnnotacionBase64() {
+      const canvas = document.getElementById('genAnnotCanvas')
+      if (!canvas || canvas.style.display === 'none') return null
+      // Verificar si tiene contenido
+      const ctx = canvas.getContext('2d')
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+      const hasContent = Array.from(data).some((v, i) => i % 4 === 3 && v > 0)
+      if (!hasContent) return null
+
+      // Componer: diseño + anotaciones
+      const comp = document.createElement('canvas')
+      const iframe = document.getElementById('genIframe')
+      comp.width = parseInt(iframe.style.width)
+      comp.height = parseInt(iframe.style.height)
+      const compCtx = comp.getContext('2d')
+
+      // Fondo blanco
+      compCtx.fillStyle = '#ffffff'
+      compCtx.fillRect(0, 0, comp.width, comp.height)
+      // Anotaciones encima
+      compCtx.drawImage(canvas, 0, 0)
+      return comp.toDataURL('image/png')
+    }
+
+    // Override generarDiseno para incluir anotaciones
+    const _generarDisenoOriginal = generarDiseno
+    generarDiseno = async function() {
+      // Inyectar anotación en el body antes de llamar
+      window._genAnnotacionPendiente = getAnnotacionBase64()
+      await _generarDisenoOriginal()
+      // Limpiar anotaciones después de iterar
+      limpiarAnotaciones()
+      window._genAnnotacionPendiente = null
+    }
+
+    // ======= PNG / JPG =======
+    async function descargarImagen(formato) {
+      if (!genHTMLActual) return
+      showToast('Generando imagen...', 'info')
+
+      try {
+        // Cargar html2canvas si no está cargado
+        if (!window.html2canvas) {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script')
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+            s.onload = resolve
+            s.onerror = reject
+            document.head.appendChild(s)
+          })
+        }
+
+        const iframe = document.getElementById('genIframe')
+        const canvas = await window.html2canvas(iframe.contentDocument.body, {
+          width: parseInt(iframe.style.width),
+          height: parseInt(iframe.style.height),
+          scale: 1,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        })
+
+        // Si hay anotaciones, superponerlas
+        const annotCanvas = document.getElementById('genAnnotCanvas')
+        if (annotCanvas && annotCanvas.style.display !== 'none') {
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(annotCanvas, 0, 0)
+        }
+
+        const mimeType = formato === 'jpg' ? 'image/jpeg' : 'image/png'
+        const quality = formato === 'jpg' ? 0.92 : 1
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `pieza-${currentBrand?.nombre || 'diseño'}-${Date.now()}.${formato}`
+          a.click()
+          URL.revokeObjectURL(url)
+          showToast(`✅ Descargado como ${formato.toUpperCase()}`, 'success')
+        }, mimeType, quality)
+
+      } catch (err) {
+        console.error('descargarImagen:', err)
+        showToast('❌ Error al generar imagen: ' + err.message, 'error')
+      }
     }
 
     // ============= GENERADOR CON TIPOGRAFÍA INTELIGENTE (legacy) =============
