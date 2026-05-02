@@ -460,12 +460,11 @@
     }
 
     .tab-content {
-      display: none !important;
+      display: none;
     }
 
     .tab-content.active {
-      display: block !important;
-      opacity: 1 !important;
+      display: block;
     }
 
     /* Horizontal Slider for Brand Brain sections */
@@ -4941,21 +4940,18 @@
 
     // ============= FUNCIONES DE PESTAÑAS =============
 function switchTab(tabName, button) {
-      // Resetear todos los tabs primero
+      // Ocultar todos
       document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none'
         tab.classList.remove('active')
-        tab.style.setProperty('display', 'none', 'important')
       })
       document.querySelectorAll('.tab-btn').forEach(btn => { if (!btn.classList.contains('tab-disabled')) btn.classList.remove('active') })
       
       // Mostrar el tab seleccionado
       const tab = document.getElementById(tabName)
-      tab.style.setProperty('display', 'block', 'important')
+      tab.style.display = 'block'
       tab.classList.add('active')
       if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
-      
-      // Inicializar chat flotante
-      setTimeout(() => initializeFloatingChat(tabName), 100)
     }
 
     function showComingSoon(nombre) {
