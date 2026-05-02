@@ -31,7 +31,7 @@ INSTRUCTIONS: Be specific with hex codes, identify real typefaces, extract 5-7 m
 
     const systemPrompt = 'Eres experto en diseño y branding visual. Analiza imágenes con detalle profesional. Responde SOLO JSON válido sin markdown.'
 
-    const visualAnalysis = await callGeminiVisionJSON(images, prompt, systemPrompt, { maxTokens: 6000 })
+    let visualAnalysis = await callGeminiVisionJSON(images, prompt, systemPrompt, { maxTokens: 6000 })
 
     const defaultAnalysis = {
       colores: [],
