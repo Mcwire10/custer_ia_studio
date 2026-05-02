@@ -8,6 +8,7 @@
 
 import { getCurrentUser } from '@/lib/auth'
 import { getADNMarca } from '@/lib/cerebro'
+import { formatDesignForPrompt } from '@/lib/design-md'
 import { callGemini, callGeminiWithSearch, generateImage } from '@/lib/gemini'
 
 const FORMATOS = {
@@ -300,6 +301,8 @@ IMÁGENES
 - Máximo 2 imágenes por pieza. Solo cuando aporten valor real.
 - Para todo lo demás: SVG inline, CSS gradients, shapes geométricas.` : `
 - No uses imágenes externas. Todo con SVG inline, CSS shapes, y gradientes.`}
+
+${formatDesignForPrompt('', adn)}
 
 ${adn ? `
 ════════════════════════════════════════
