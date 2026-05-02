@@ -4942,6 +4942,7 @@
 
     // ============= FUNCIONES DE PESTAÑAS =============
 function switchTab(tabName, button) {
+      alert('switchTab: ' + tabName)
       // Ocultar todos
       document.querySelectorAll('.tab-content').forEach(tab => {
         tab.style.display = 'none'
@@ -4957,8 +4958,6 @@ function switchTab(tabName, button) {
       tab.style.opacity = '1'
       tab.classList.add('active')
       if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
-      
-      console.log('switchTab:', tabName)
     }
 
     function showComingSoon(nombre) {
