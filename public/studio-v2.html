@@ -2172,114 +2172,109 @@
 
     <!-- ====== GENERADOR ====== -->
     <div id="generador" class="tab-content">
-      <div class="panel">
-        <h2>✨ Generador de contenido</h2>
-        <p class="section-subtitle">Crea contenido de marketing automáticamente basado en tu marca.</p>
+      <div style="display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start;">
 
-        <div id="optimizationBanner" style="
-          background: var(--bg-tertiary);
-          border-left: 3px solid var(--color-warning);
-          padding: 16px;
-          margin-bottom: 16px;
-          display: none;
-        ">
-          <div style="display: flex; gap: 12px; align-items: flex-start;">
-            <span style="font-size: 1.5rem;">💡</span>
-            <div style="flex: 1;">
-              <h4 style="margin: 0 0 8px 0; color: var(--text-display);">Optimizaciones disponibles</h4>
-              <div id="suggestionsText" style="color: var(--text-secondary); font-size: 0.875rem;"></div>
-              <button class="btn" style="margin-top: 12px; padding: 8px 12px; font-size: 0.875rem;" onclick="openAnalyticsDashboard()">
-                📈 Ver Dashboard
+        <!-- PANEL IZQUIERDO: BRIEF -->
+        <div class="panel" style="position: sticky; top: 20px;">
+          <h2 style="margin-bottom: 4px;">🎨 Generador de piezas</h2>
+          <p class="section-subtitle" style="margin-bottom: 20px;">Describí la pieza y Claude la diseña en tiempo real.</p>
+
+          <div class="form-group">
+            <label>Formato</label>
+            <select id="genFormato" onchange="actualizarDimsLabel()">
+              <option value="placa-feed">Placa Feed (1080×1080)</option>
+              <option value="stories">Stories (1080×1920)</option>
+              <option value="flyer">Flyer vertical (800×1200)</option>
+              <option value="banner-email">Banner Email (600×200)</option>
+              <option value="carrusel">Carrusel (múltiples slides)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Brief de la pieza</label>
+            <textarea id="genBrief" rows="6" placeholder="Describí qué querés: contenido, estética, colores, jerarquía visual, qué debe comunicar...&#10;&#10;Ej: Placa para Instagram de FarmaVida sobre rutina de skincare. Estética clean, minimalista. Tres pasos con íconos. Fondo blanco, acento verde."
+              style="min-height: 140px;"></textarea>
+          </div>
+
+          <div id="genIteracionBox" style="display:none;" class="form-group">
+            <label>Ajuste / Iteración</label>
+            <textarea id="genIteracion" rows="3" placeholder="Describí qué querés cambiar de la pieza actual...&#10;&#10;Ej: Cambiar el fondo a oscuro, agrandar el título, agregar el logo arriba a la izquierda"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn" onclick="generarDiseno()" id="genBtn"
+              style="flex: 1; background: linear-gradient(135deg, #6860EE, #8B5CF6); border: none; color: white; font-weight: 700;">
+              <span id="genSpinner"></span>
+              🎨 Generar pieza
+            </button>
+            <button onclick="limpiarGenerador()" title="Nueva pieza"
+              style="background: var(--bg-secondary); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 1rem;">
+              🗑️
+            </button>
+          </div>
+
+          <!-- Historial de iteraciones -->
+          <div id="genHistorial" style="display:none; margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+            <div style="color: var(--text-disabled); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 10px;">Versiones</div>
+            <div id="genVersiones" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+        </div>
+
+        <!-- PANEL DERECHO: PREVIEW -->
+        <div class="panel" style="min-height: 600px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <h2 style="margin: 0;">Vista previa</h2>
+            <div style="display: flex; gap: 8px;" id="genAcciones" style="display:none;">
+              <button onclick="descargarDiseno()" style="background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ADE80; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                ⬇️ Descargar HTML
+              </button>
+              <button onclick="copiarCodigoDiseno()" style="background: rgba(104,96,238,0.12); border: 1px solid rgba(104,96,238,0.3); color: #6860EE; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                📋 Copiar código
+              </button>
+              <button onclick="toggleCodigoDiseno()" id="btnVerCodigo" style="background: var(--bg-secondary); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
+                &lt;/&gt; Código
               </button>
             </div>
           </div>
-        </div>
 
-        <!-- ====== RECOMENDACIÓN PRE-GENERACIÓN ====== -->
-        <div id="preGenRecommendation" style="
-          background: linear-gradient(135deg, rgba(74,222,128,0.05), rgba(74,222,128,0.02));
-          border-left: 3px solid #4ADE80;
-          padding: 16px;
-          margin-bottom: 16px;
-          display: none;
-          border-radius: 8px;
-        ">
-          <div style="display: flex; gap: 12px; align-items: flex-start;">
-            <span style="font-size: 1.5rem;">💡</span>
-            <div style="flex: 1;">
-              <h4 style="margin: 0 0 8px 0; color: #4ADE80;">Recomendación inteligente</h4>
-              <p id="recText" style="margin: 0 0 8px 0; color: var(--text-secondary); font-size: 0.9rem;"></p>
-              <div id="tokenEstimate" style="margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 6px; border-left: 2px solid #F5A623;">
-                <div style="color: var(--text-secondary); font-size: 0.85rem;">Tokens estimados:</div>
-                <div style="font-size: 1.3rem; font-weight: 700; color: #F5A623;" id="tokenEstimateValue">-</div>
-              </div>
-              <div style="display: flex; gap: 12px;">
-                <button class="btn" style="padding: 8px 12px; font-size: 0.875rem; background: #4ADE80; color: #000; border: none;" onclick="acceptRecommendation()">
-                  ✓ Aceptar
-                </button>
-                <button class="btn" style="padding: 8px 12px; font-size: 0.875rem;" onclick="rejectRecommendation()">
-                  ✕ Ignorar
-                </button>
+          <!-- Empty state -->
+          <div id="genEmptyState" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px; color: var(--text-disabled);">
+            <div style="font-size: 3rem; margin-bottom: 16px;">🎨</div>
+            <div style="font-size: 1rem;">Completá el brief y generá tu primera pieza</div>
+          </div>
+
+          <!-- Loading -->
+          <div id="genLoadingState" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 500px; gap: 16px;">
+            <div style="width: 48px; height: 48px; border: 3px solid rgba(104,96,238,0.3); border-top-color: #6860EE; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <div style="color: var(--text-secondary); font-size: 0.95rem;">Claude está diseñando tu pieza...</div>
+          </div>
+
+          <!-- Preview container -->
+          <div id="genPreviewContainer" style="display:none;">
+            <!-- Zoom controls -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <span style="color: var(--text-disabled); font-size: 0.78rem;" id="genDimsLabel"></span>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--text-disabled); font-size: 0.78rem;">Zoom:</span>
+                <input type="range" id="genZoom" min="20" max="100" value="50" oninput="aplicarZoom(this.value)"
+                  style="width: 80px; accent-color: #6860EE;">
+                <span id="genZoomLabel" style="color: var(--text-secondary); font-size: 0.78rem; min-width: 30px;">50%</span>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="form-group">
-          <label>Tipo de formato</label>
-          <select id="genTipo">
-            <option value="carrusel">Carrusel</option>
-            <option value="stories">Stories</option>
-            <option value="post">Post único</option>
-            <option value="reels">Reels</option>
-          </select>
-        </div>
+            <!-- iframe preview -->
+            <div style="background: #1a1a2e; border-radius: 8px; padding: 20px; overflow: auto; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+              <div id="genIframeWrapper" style="transform-origin: top center; transition: transform 0.2s;">
+                <iframe id="genIframe" frameborder="0" scrolling="no"
+                  style="display: block; border: none; border-radius: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+                </iframe>
+              </div>
+            </div>
 
-        <div class="form-group">
-          <label>Cantidad de piezas</label>
-          <input type="number" id="genCant" placeholder="5" min="1" max="12">
-        </div>
-
-        <div class="form-group">
-          <label>Estilo de la pieza</label>
-          <div class="tags-container">
-            <button class="tag active" data-template="educativo" title="Enseña algo útil sobre tu marca o producto">📚 Informativo</button>
-            <button class="tag" data-template="impacto" title="Mensaje fuerte y visual para llamar atención">⚡ Impactante</button>
-            <button class="tag" data-template="lista" title="Beneficios o puntos clave en formato lista">✅ Beneficios</button>
-            <button class="tag" data-template="story" title="Diseño vertical para Instagram Stories">📱 Vertical</button>
-            <button class="tag" data-template="mockup" title="Mockup del producto en acción">🎯 Producto</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Tema / Copy base</label>
-          <textarea id="genCopy" placeholder="¿Sobre qué quieres crear? Pega el copy o describe el tema..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Objetivo</label>
-          <input type="text" id="genObj" placeholder="ej: Awareness, Lead generation, Venta directa">
-        </div>
-
-        <div class="form-group">
-          <label>Notas adicionales</label>
-          <input type="text" id="genNotas" placeholder="ej: Tono corporativo, incorporar CTA">
-        </div>
-
-        <div class="btn-group">
-          <button class="btn" onclick="generarContenido()">
-            <span id="genLoading"></span>
-            ✨ Generar
-          </button>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2>Contenido generado</h2>
-        <div id="genCanvas" class="canvas-content">
-          <div class="empty-state">
-            <div class="empty-state-icon">✨</div>
-            <p>Completa el formulario y genera contenido</p>
+            <!-- Código (oculto por defecto) -->
+            <div id="genCodigoPanel" style="display:none; margin-top: 16px;">
+              <pre id="genCodigo" style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; font-size: 0.78rem; overflow: auto; max-height: 400px; color: var(--text-secondary); white-space: pre-wrap; word-break: break-all;"></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -4800,7 +4795,169 @@
       showToast(`🚧 ${nombre} está en desarrollo. Próximamente disponible.`, 'info')
     }
 
-    // ============= GENERADOR CON TIPOGRAFÍA INTELIGENTE =============
+    // ============= GENERADOR DE PIEZAS VISUALES =============
+
+    let genHTMLActual = null
+    let genVersionesHistory = []
+
+    async function generarDiseno() {
+      const brief = document.getElementById('genBrief').value.trim()
+      const formato = document.getElementById('genFormato').value
+      const iteracionTxt = document.getElementById('genIteracion')?.value.trim()
+
+      if (!brief) { showToast('Escribí un brief primero', 'error'); return }
+
+      // Mostrar loading
+      document.getElementById('genEmptyState').style.display = 'none'
+      document.getElementById('genPreviewContainer').style.display = 'none'
+      document.getElementById('genLoadingState').style.display = 'flex'
+      document.getElementById('genBtn').disabled = true
+      document.getElementById('genSpinner').textContent = '⏳ '
+
+      try {
+        const body = {
+          brief: iteracionTxt || brief,
+          formato,
+          brain: currentBrand,
+          iteracion: iteracionTxt && genHTMLActual ? genHTMLActual : null
+        }
+
+        const res = await fetch('/api/generate-design', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        })
+
+        const data = await res.json()
+        if (!res.ok || !data.success) throw new Error(data.error || 'Error generando diseño')
+
+        // Guardar en historial
+        if (genHTMLActual) {
+          genVersionesHistory.push({ html: genHTMLActual, label: `v${genVersionesHistory.length + 1}` })
+          renderVersiones()
+        }
+
+        genHTMLActual = data.html
+        renderPreviewDiseno(data.html, data.dims)
+
+        // Activar iteración
+        document.getElementById('genIteracionBox').style.display = 'block'
+        document.getElementById('genIteracion').value = ''
+        document.getElementById('genIteracion').placeholder = 'Describí qué querés cambiar...'
+
+        showToast('✅ Pieza generada', 'success')
+      } catch (err) {
+        console.error('generarDiseno:', err)
+        showToast('❌ ' + err.message, 'error')
+        document.getElementById('genEmptyState').style.display = 'flex'
+      } finally {
+        document.getElementById('genLoadingState').style.display = 'none'
+        document.getElementById('genBtn').disabled = false
+        document.getElementById('genSpinner').textContent = ''
+      }
+    }
+
+    function renderPreviewDiseno(html, dims) {
+      const iframe = document.getElementById('genIframe')
+      const wrapper = document.getElementById('genIframeWrapper')
+
+      iframe.style.width = dims.w + 'px'
+      iframe.style.height = dims.h + 'px'
+      iframe.srcdoc = html
+
+      document.getElementById('genDimsLabel').textContent = `${dims.w} × ${dims.h} px`
+      document.getElementById('genCodigo').textContent = html
+
+      document.getElementById('genPreviewContainer').style.display = 'block'
+      document.getElementById('genAcciones').style.display = 'flex'
+      document.getElementById('genHistorial').style.display = genVersionesHistory.length > 0 ? 'block' : 'none'
+
+      aplicarZoom(document.getElementById('genZoom').value)
+    }
+
+    function aplicarZoom(val) {
+      const scale = val / 100
+      document.getElementById('genIframeWrapper').style.transform = `scale(${scale})`
+      document.getElementById('genZoomLabel').textContent = val + '%'
+
+      // Ajustar altura del wrapper al iframe escalado
+      const iframe = document.getElementById('genIframe')
+      const h = parseInt(iframe.style.height || 1080)
+      document.getElementById('genIframeWrapper').parentElement.style.minHeight = (h * scale + 40) + 'px'
+    }
+
+    function actualizarDimsLabel() {
+      const labels = {
+        'placa-feed': '1080 × 1080 px',
+        'stories': '1080 × 1920 px',
+        'flyer': '800 × 1200 px',
+        'banner-email': '600 × 200 px',
+        'carrusel': '1080 × 1080 px (carrusel)'
+      }
+      const lbl = document.getElementById('genDimsLabel')
+      if (lbl) lbl.textContent = labels[document.getElementById('genFormato').value] || ''
+    }
+
+    function renderVersiones() {
+      const container = document.getElementById('genVersiones')
+      container.innerHTML = genVersionesHistory.map((v, i) => `
+        <button onclick="restaurarVersion(${i})"
+          style="background: var(--bg-secondary); border: 1px solid var(--border-light); color: var(--text-secondary);
+                 padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; text-align: left;">
+          ${v.label} — click para restaurar
+        </button>
+      `).join('')
+      document.getElementById('genHistorial').style.display = 'block'
+    }
+
+    function restaurarVersion(idx) {
+      const v = genVersionesHistory[idx]
+      if (!v) return
+      genHTMLActual = v.html
+      const dims = { w: parseInt(document.getElementById('genIframe').style.width), h: parseInt(document.getElementById('genIframe').style.height) }
+      renderPreviewDiseno(v.html, dims)
+      showToast('Versión restaurada', 'info')
+    }
+
+    function limpiarGenerador() {
+      genHTMLActual = null
+      genVersionesHistory = []
+      document.getElementById('genBrief').value = ''
+      document.getElementById('genIteracion') && (document.getElementById('genIteracion').value = '')
+      document.getElementById('genIteracionBox').style.display = 'none'
+      document.getElementById('genPreviewContainer').style.display = 'none'
+      document.getElementById('genAcciones').style.display = 'none'
+      document.getElementById('genHistorial').style.display = 'none'
+      document.getElementById('genEmptyState').style.display = 'flex'
+    }
+
+    function descargarDiseno() {
+      if (!genHTMLActual) return
+      const blob = new Blob([genHTMLActual], { type: 'text/html' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `pieza-${currentBrand?.nombre || 'diseño'}-${Date.now()}.html`
+      a.click()
+      URL.revokeObjectURL(url)
+      showToast('✅ HTML descargado', 'success')
+    }
+
+    function copiarCodigoDiseno() {
+      if (!genHTMLActual) return
+      navigator.clipboard.writeText(genHTMLActual)
+      showToast('✅ Código copiado', 'success')
+    }
+
+    function toggleCodigoDiseno() {
+      const panel = document.getElementById('genCodigoPanel')
+      const btn = document.getElementById('btnVerCodigo')
+      const visible = panel.style.display !== 'none'
+      panel.style.display = visible ? 'none' : 'block'
+      btn.textContent = visible ? '</> Código' : '</> Ocultar'
+    }
+
+    // ============= GENERADOR CON TIPOGRAFÍA INTELIGENTE (legacy) =============
 
     // ============= ESTIMACIÓN DE TOKENS PRE-GENERACIÓN =============
     function estimateTokensForContent(type, quantity, theme) {
