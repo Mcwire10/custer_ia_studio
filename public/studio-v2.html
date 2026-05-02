@@ -127,14 +127,9 @@
       left: 0;
     }
 
-    /* Paneles - Fade in + slide up */
+    /* Paneles */
     .panel {
-      animation: panelEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    @keyframes panelEnter {
-      to { opacity: 1; transform: translateY(0); }
+      /* animation removed to fix tabs visibility */
     }
 
     /* Cards - Hover lift */
@@ -465,11 +460,12 @@
     }
 
     .tab-content {
-      display: none;
+      display: none !important;
     }
 
     .tab-content.active {
-      display: block;
+      display: block !important;
+      opacity: 1 !important;
     }
 
     /* Horizontal Slider for Brand Brain sections */
@@ -4945,18 +4941,16 @@
 
     // ============= FUNCIONES DE PESTAÑAS =============
 function switchTab(tabName, button) {
-      // Quitar animaciones para evitar problemas
+      // Resetear todos los tabs primero
       document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active')
-        tab.style.opacity = '1'
-        tab.style.transform = 'none'
-        tab.style.filter = 'none'
+        tab.style.setProperty('display', 'none', 'important')
       })
       document.querySelectorAll('.tab-btn').forEach(btn => { if (!btn.classList.contains('tab-disabled')) btn.classList.remove('active') })
+      
+      // Mostrar el tab seleccionado
       const tab = document.getElementById(tabName)
-      tab.style.opacity = '1'
-      tab.style.transform = 'none'
-      tab.style.filter = 'none'
+      tab.style.setProperty('display', 'block', 'important')
       tab.classList.add('active')
       if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
       
@@ -7300,35 +7294,35 @@ function switchTab(tabName, button) {
     `;
     document.head.appendChild(style);
 
-    // Mutation observer to apply animations to dynamically created elements
-    const mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach(mutation => {
-        if (mutation.addedNodes.length) {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType === 1) { // Element node
-              if (node.classList && node.classList.contains('result-card')) {
-                node.style.animation = 'morphIn 0.6s ease-out';
-              }
-            }
-          });
-        }
-      });
-    });
+    // Mutation observer - commented out to fix tabs visibility
+    // const mutationObserver = new MutationObserver((mutations) => {
+    //   mutations.forEach(mutation => {
+    //     if (mutation.addedNodes.length) {
+    //       mutation.addedNodes.forEach(node => {
+    //         if (node.nodeType === 1) { // Element node
+    //           if (node.classList && node.classList.contains('result-card')) {
+    //             node.style.animation = 'morphIn 0.6s ease-out';
+    //           }
+    //         }
+    //       });
+    //     }
+    //   });
+    // });
 
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: false
-    });
+    // mutationObserver.observe(document.body, {
+    //   childList: true,
+    //   subtree: true,
+    //   attributes: false
+    // });
 
-    // Initialize animations on page load
-    window.addEventListener('load', () => {
-      document.querySelectorAll('.panel, .result-card, .carousel').forEach((el, idx) => {
-        setTimeout(() => {
-          el.style.animation = 'morphIn 0.6s ease-out';
-        }, idx * 100);
-      });
-    });
+    // Initialize animations - disabled for tabs
+    // window.addEventListener('load', () => {
+    //   document.querySelectorAll('.panel, .result-card, .carousel').forEach((el, idx) => {
+    //     setTimeout(() => {
+    //       el.style.animation = 'morphIn 0.6s ease-out';
+    //     }, idx * 100);
+    //   });
+    // });
 
     console.log('✨ Custer Scrollytelling & Morphing Effects Initialized');
   </script>
