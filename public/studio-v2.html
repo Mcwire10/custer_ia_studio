@@ -1000,14 +1000,13 @@
       100% { transform: translateY(0); opacity: 1; }
     }
 
-    /* Scrollytelling triggers */
+    /* Scrollytelling triggers - DISABLED */
     .scroll-trigger {
-      opacity: 0;
-      animation: scrollParallax var(--transition-slow) ease-out forwards;
+      /* opacity: 0; was breaking tabs */
     }
 
     .scroll-trigger.active {
-      animation-play-state: running;
+      /* animation-play-state: running; was breaking tabs */
     }
 
     /* Brain slides always visible */
@@ -7126,74 +7125,31 @@ function switchTab(tabName, button) {
   <script>
     // ============= CUSTER SCROLLYTELLING & MORPHING EFFECTS =============
 
-    // Intersection Observer for scroll-triggered animations
-    const observerOptions = {
-      threshold: 0.15,
-      rootMargin: '0px 0px -50px 0px'
-    };
+    // Intersection Observer - DISABLED (was breaking tabs)
+    const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
+    const scrollObserver = { observe: () => {}, disconnect: () => {} };
 
-    const scrollObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active');
-          entry.target.style.animation = 'scrollParallax var(--transition-slow) ease-out forwards';
-        }
-      });
-    }, observerOptions);
+    // Morphing effect on element interactions - DISABLED
+    // document.addEventListener('mouseover', (e) => {
+    //   if (e.target.matches('.btn, .tag, .carousel-btn, .brain-nav-btn')) {
+    //     e.target.style.animation = 'morphButton 0.4s ease-out';
+    //   }
+    // });
 
-    // Observe all elements with scroll-trigger class
-    document.querySelectorAll('.scroll-trigger').forEach(el => {
-      scrollObserver.observe(el);
+    // Scroll parallax - DISABLED
+    const parallaxElements = [];
+    // window.addEventListener('scroll', () => { ... });
 
-      // Check if element is already visible on page load
-      const rect = el.getBoundingClientRect();
-      const isVisible = (rect.top >= -50 && rect.top <= window.innerHeight - 50);
+    // Scrollytelling for carousel items - DISABLED (was adding scroll-trigger class)
+    // const carouselSlides = document.querySelectorAll('.carousel-item, .brain-slide');
+    // carouselSlides.forEach((slide, index) => {
+    //   slide.setAttribute('data-parallax', (0.3 + index * 0.05).toString());
+    //   slide.classList.add('scroll-trigger');
+    // });
 
-      if (isVisible) {
-        el.classList.add('active');
-        el.style.animation = 'scrollParallax var(--transition-slow) ease-out forwards';
-      }
-    });
-
-    // Morphing effect on element interactions
-    document.addEventListener('mouseover', (e) => {
-      if (e.target.matches('.btn, .tag, .carousel-btn, .brain-nav-btn')) {
-        e.target.style.animation = 'morphButton 0.4s ease-out';
-      }
-    });
-
-    // Scroll parallax effect for slides
-    const parallaxElements = document.querySelectorAll('[data-parallax]');
-    window.addEventListener('scroll', () => {
-      parallaxElements.forEach(el => {
-        const scrollPosition = window.scrollY;
-        const parallaxValue = scrollPosition * (el.dataset.parallax || 0.5);
-        el.style.transform = `translateY(${parallaxValue}px)`;
-      });
-    });
-
-    // Scrollytelling for carousel items
-    const carouselSlides = document.querySelectorAll('.carousel-item, .brain-slide');
-    carouselSlides.forEach((slide, index) => {
-      slide.setAttribute('data-parallax', (0.3 + index * 0.05).toString());
-      slide.classList.add('scroll-trigger');
-
-      // For brain-slides, immediately make them visible
-      if (slide.classList.contains('brain-slide')) {
-        slide.classList.add('active');
-        slide.style.animation = 'scrollParallax var(--transition-slow) ease-out forwards';
-      }
-    });
-
-    // Floating animation on scroll
-    const floatingElements = document.querySelectorAll('[data-float]');
-    window.addEventListener('scroll', () => {
-      floatingElements.forEach(el => {
-        const scrollPosition = window.scrollY;
-        const floatValue = Math.sin(scrollPosition * 0.01) * 8;
-        el.style.transform = `translateY(${floatValue}px)`;
-      });
-    });
+    // Floating animation on scroll - DISABLED
+    const floatingElements = [];
+    // window.addEventListener('scroll', () => { ... });
 
     // Enhanced click morphing (ripple effect)
     document.addEventListener('click', (e) => {
