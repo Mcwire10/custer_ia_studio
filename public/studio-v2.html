@@ -2172,7 +2172,7 @@
 
     <!-- ====== GENERADOR ====== -->
     <div id="generador" class="tab-content">
-      <div style="display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start;">
+      <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; min-width: 0;">
 
         <!-- PANEL IZQUIERDO: BRIEF -->
         <div class="panel" style="position: sticky; top: 20px;">
@@ -2291,7 +2291,7 @@
             </div>
 
             <!-- iframe preview -->
-            <div id="genPreviewBox" style="background: #1a1a2e; border-radius: 8px; padding: 20px; overflow: auto; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+            <div id="genPreviewBox" style="background: #1a1a2e; border-radius: 8px; padding: 20px; overflow: auto; min-height: 400px; display: flex; align-items: flex-start; justify-content: center; width: 100%;">
               <div id="genIframeWrapper" style="transform-origin: top center; transition: transform 0.2s; position: relative;">
                 <iframe id="genIframe" frameborder="0" scrolling="no"
                   style="display: block; border: none; border-radius: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
@@ -4892,7 +4892,6 @@
 
     function renderPreviewDiseno(html, dims) {
       const iframe = document.getElementById('genIframe')
-      const wrapper = document.getElementById('genIframeWrapper')
 
       iframe.style.width = dims.w + 'px'
       iframe.style.height = dims.h + 'px'
@@ -4905,18 +4904,30 @@
       document.getElementById('genAcciones').style.display = 'flex'
       document.getElementById('genHistorial').style.display = genVersionesHistory.length > 0 ? 'block' : 'none'
 
-      aplicarZoom(document.getElementById('genZoom').value)
+      // Auto-zoom para que entre en el contenedor disponible
+      setTimeout(() => {
+        const box = document.getElementById('genPreviewBox')
+        const available = (box.clientWidth || 600) - 40
+        const autoZoom = Math.min(100, Math.floor((available / dims.w) * 100))
+        const slider = document.getElementById('genZoom')
+        slider.value = autoZoom
+        aplicarZoom(autoZoom)
+      }, 50)
     }
 
     function aplicarZoom(val) {
       const scale = val / 100
-      document.getElementById('genIframeWrapper').style.transform = `scale(${scale})`
+      const wrapper = document.getElementById('genIframeWrapper')
+      const iframe = document.getElementById('genIframe')
+      wrapper.style.transform = `scale(${scale})`
+      wrapper.style.transformOrigin = 'top center'
       document.getElementById('genZoomLabel').textContent = val + '%'
 
-      // Ajustar altura del wrapper al iframe escalado
-      const iframe = document.getElementById('genIframe')
+      // Ajustar altura del contenedor para que no se corte
       const h = parseInt(iframe.style.height || 1080)
-      document.getElementById('genIframeWrapper').parentElement.style.minHeight = (h * scale + 40) + 'px'
+      const w = parseInt(iframe.style.width || 1080)
+      wrapper.parentElement.style.minHeight = (h * scale + 40) + 'px'
+      wrapper.parentElement.style.minWidth = (w * scale + 40) + 'px'
     }
 
     function actualizarDimsLabel() {
