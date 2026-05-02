@@ -1,31 +1,10 @@
 /**
  * POST /api/parse-brand-file
- * Procesa archivos de marca (PDF, imagen, documento) y extrae datos con Claude
+ * Procesa archivos de marca (imagen) y extrae datos con Gemini
+ * NOTA: PDFs no están soportados con Gemini
  */
 
-import { readFileSync } from 'fs'
-import { join } from 'path'
-import { COMPACT_SCHEMA_INSTRUCTION, getMaxTokens } from '@/app/lib/prompt-schemas'
-
-function getApiKey() {
-  let apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    try {
-      const envPath = join(process.cwd(), '.env.local')
-      const envContent = readFileSync(envPath, 'utf8')
-      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
-      if (match) apiKey = match[1].trim()
-    } catch (e) {
-      try {
-        const envPath = join(process.cwd(), '.env')
-        const envContent = readFileSync(envPath, 'utf8')
-        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
-        if (match) apiKey = match[1].trim()
-      } catch (e2) {}
-    }
-  }
-  return apiKey
-}
+import { callGemini, callGeminiVisionJSON } from '@/lib/gemini'
 
 export async function POST(request) {
   try {
@@ -36,192 +15,68 @@ export async function POST(request) {
       return Response.json({ error: 'Archivo requerido' }, { status: 400 })
     }
 
-    const apiKey = getApiKey()
-    if (!apiKey) {
-      return Response.json(
-        { error: 'API Key no configurada' },
-        { status: 500 }
-      )
-    }
-
-    // Convertir archivo a base64
-    const buffer = await file.arrayBuffer()
-    const base64 = Buffer.from(buffer).toString('base64')
-
-    // Determinar tipo de archivo
     const isImage = file.type.startsWith('image/')
     const isPDF = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf')
 
-    let messageContent = []
-
-    if (isImage) {
-      // Para imágenes, usar vision API
-      const mediaType = file.type
-      messageContent.push({
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: mediaType,
-          data: base64
-        }
-      })
-    } else if (isPDF) {
-      // Para PDFs, usar document API de Claude (soporta PDF nativamente)
-      messageContent.push({
-        type: 'document',
-        source: {
-          type: 'base64',
-          media_type: 'application/pdf',
-          data: base64
-        }
-      })
+    if (isPDF) {
+      return Response.json({
+        error: 'PDF no soportado con Gemini. Podés usar imágenes (JPG, PNG, WebP) o texto.',
+        hint: 'Subí una imagen del documento o pegá el contenido como texto'
+      }, { status: 400 })
     }
 
-    const extractionPrompt = `Analiza este archivo (puede ser una guía de marca, brochure, catálogo, presentación o imagen corporativa) y extrae TODA la información de marca posible.
+    if (!isImage) {
+      return Response.json({
+        error: 'Tipo de archivo no soportado',
+        supported: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+      }, { status: 400 })
+    }
 
-Devuelve SOLO este JSON sin markdown:
+    const buffer = await file.arrayBuffer()
+    const uint8Array = new Uint8Array(buffer)
+    const base64 = Buffer.from(uint8Array).toString('base64')
+    const mimeType = file.type || 'image/jpeg'
+
+    const prompt = `Analizá este archivo de marca y extraé la información de branding en JSON.
+Estructura esperada:
 {
-  "basico": {"nombre": null, "rubro": null, "ciudad": null, "propuesta": null},
-  "estrategico": {"mision": null, "vision": null, "valores": [], "beneficios_funcionales": null, "beneficios_emocionales": null},
-  "audiencia": {"publico_objetivo": null, "audiencia_real": null, "pain_points": [], "gains": [], "motivaciones": null, "comportamiento_digital": null},
-  "identidad": {"voz_tono": null, "claim": null, "narrativa": null, "territorio_creativo": null},
-  "visual": {"tipografia": null, "colores": {"primario": null, "secundario": null, "acentos": []}, "estilo_visual": null, "recursos_graficos": null, "sistema_grafico": null, "mood_board": null},
-  "posicionamiento": {"competencia": [], "diferenciadores": [], "propuesta_unica": null},
-  "implementacion": {"canales": [], "formatos": [], "frecuencia": null},
-  "comunicacion": {"keywords": [], "avoid": [], "tonalidad": [], "ejemplos": null}
+  "basico": {nombre, rubro, ciudad, propuesta},
+  "estrategico": {mision, vision, valores[], beneficios_funcionales, beneficios_emocionales},
+  "audiencia": {publico_objetivo, pain_points[], gains[], motivaciones},
+  "identidad": {voz_tono, claim, narrativa},
+  "visual": {tipografia, colores: {primario, secundario, acentos[]}, estilo_visual},
+  "posicionamiento": {competencia[], diferenciadores[], propuesta_unica},
+  "comunicacion": {keywords[], avoid[], tonalidad[]}
 }
 
-Para colores: devuelve HEX (#RRGGBB). Para campos sin información clara: null.`
+Respondé SOLO JSON válido.`
 
-    messageContent.push({
-      type: 'text',
-      text: extractionPrompt
-    })
+    const systemPrompt = 'Eres experto en branding. Extrae información de documentos e imágenes de marca.'
 
-    // Usar sonnet para PDFs (más capaz con documentos complejos), haiku para imágenes simples
-    const model = isPDF ? 'claude-sonnet-4-5' : 'claude-haiku-4-5'
-
-    // Llamar a Claude
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-beta': isPDF ? 'pdfs-2024-09-25' : undefined
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: isPDF ? 4000 : getMaxTokens('parse-brand-file'),
-        system: 'Eres experto en branding estratégico. Responde SOLO JSON válido sin markdown ni explicaciones.',
-        messages: [
-          {
-            role: 'user',
-            content: messageContent
-          }
-        ]
-      })
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error?.message || 'Error en Claude API')
-    }
-
-    const data = await response.json()
-    let responseText = data.content[0].text.trim()
-
-    // Limpiar markdown si existe
-    if (responseText.startsWith('```json')) {
-      responseText = responseText.replace(/^```json\n?/, '').replace(/\n?```$/, '')
-    } else if (responseText.startsWith('```')) {
-      responseText = responseText.replace(/^```\n?/, '').replace(/\n?```$/, '')
-    }
-
-    // Parsear JSON
-    let brandData = JSON.parse(responseText)
-
-    // Asegurar estructura correcta con valores por defecto
-    const defaultBrand = {
-      basico: {
-        nombre: null,
-        rubro: null,
-        ciudad: null,
-        propuesta: null
-      },
-      estrategico: {
-        mision: null,
-        vision: null,
-        valores: [],
-        beneficios_funcionales: null,
-        beneficios_emocionales: null
-      },
-      audiencia: {
-        publico_objetivo: null,
-        audiencia_real: null,
-        pain_points: [],
-        gains: [],
-        motivaciones: null,
-        comportamiento_digital: null
-      },
-      identidad: {
-        voz_tono: null,
-        claim: null,
-        narrativa: null,
-        territorio_creativo: null
-      },
-      visual: {
-        tipografia: null,
-        colores: {
-          primario: null,
-          secundario: null,
-          acentos: []
-        },
-        estilo_visual: null,
-        recursos_graficos: [],
-        sistema_grafico: null,
-        mood_board: null
-      },
-      posicionamiento: {
-        competencia: [],
-        diferenciadores: [],
-        propuesta_unica: null
-      },
-      implementacion: {
-        canales: [],
-        formatos: [],
-        frecuencia: null
-      },
-      comunicacion: {
-        keywords: [],
-        avoid: [],
-        tonalidad: [],
-        ejemplos: null
+    let result
+    try {
+      result = await callGeminiVisionJSON([{ data: base64, type: mimeType }], prompt, systemPrompt, { maxTokens: 4000 })
+    } catch (visionError) {
+      console.warn('Vision failed, falling back to text:', visionError.message)
+      result = await callGemini(prompt, systemPrompt, { maxTokens: 4000 })
+      try {
+        result = JSON.parse(result.text)
+      } catch {
+        throw new Error('No se pudo parsear la respuesta')
       }
     }
-
-    // Merge recursivo para mantener estructura
-    const deepMerge = (target, source) => {
-      for (const key in source) {
-        if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-          target[key] = { ...target[key], ...source[key] }
-        } else {
-          target[key] = source[key]
-        }
-      }
-      return target
-    }
-
-    brandData = deepMerge(defaultBrand, brandData || {})
 
     return Response.json({
       success: true,
-      brand: brandData
+      brand: result,
+      file: file.name,
+      type: isImage ? 'image' : 'unknown'
     })
+
   } catch (error) {
-    console.error('Error en /api/parse-brand-file:', error.message)
+    console.error('Error en /api/parse-brand-file:', error)
     return Response.json(
-      { error: 'Error procesando archivo: ' + error.message },
+      { error: error.message || 'Error procesando archivo' },
       { status: 500 }
     )
   }

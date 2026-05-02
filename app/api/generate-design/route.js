@@ -1,13 +1,14 @@
 /**
  * POST /api/generate-design
  * Flujo:
- * 1. Claude genera HTML/CSS de la pieza con placeholders para imágenes: <!--IMG:descripción-->
+ * 1. Gemini genera HTML/CSS de la pieza con placeholders para imágenes: <!--IMG:descripción-->
  * 2. gpt-image-1 genera cada imagen en paralelo (base64)
  * 3. Las imágenes se inyectan en el HTML final
  */
 
 import { getCurrentUser } from '@/lib/auth'
 import { getADNMarca } from '@/lib/cerebro'
+import { callGemini, callGeminiWithSearch, generateImage } from '@/lib/gemini'
 
 const FORMATOS = {
   'placa-feed':   { w: 1080, h: 1080, label: 'Placa Feed (1:1)' },
@@ -18,38 +19,33 @@ const FORMATOS = {
 }
 
 /**
- * Busca la imagen de un producto en internet usando Claude web search.
+ * Busca la imagen de un producto en internet usando Gemini con Google Search.
  * Devuelve la URL de la imagen o null si no encuentra.
  */
-async function buscarImagenProducto(descripcion, apiKey) {
-  const query = `${descripcion} PNG producto fondo blanco site:*.com`
+async function buscarImagenProducto(descripcion) {
+  const prompt = `Buscá una imagen PNG o JPG de "${descripcion}" en internet. 
+Necesito la URL directa de la imagen del producto (preferentemente en fondo blanco o transparente).
+Devolvé SOLO la URL de la imagen, sin explicaciones.
+Si no encontrás ninguna URL de imagen válida que sea realmente una imagen, devolvé "NO_ENCONTRADA".`
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'web-search-2025-03-05',
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{
-        role: 'user',
-        content: `Buscá una imagen PNG de "${descripcion}" en internet. Necesito la URL directa de la imagen del producto (preferentemente en fondo blanco o transparente). Devolvé SOLO la URL de la imagen, sin explicaciones. Si no encontrás ninguna URL de imagen válida, devolvé null.`
-      }]
-    })
-  })
+  try {
+    const result = await callGeminiWithSearch(prompt, null, { maxTokens: 300 })
+    const texto = result.text.trim()
 
-  if (!res.ok) return null
-  const data = await res.json()
-  const texto = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim()
+    const urlMatch = texto.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpg|jpeg|webp)(?:\?[^\s"'<>]*)?/i)
+    if (urlMatch) {
+      return urlMatch[0]
+    }
 
-  // Extraer URL de imagen de la respuesta
-  const urlMatch = texto.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpg|jpeg|webp)(?:\?[^\s"'<>]*)?/i)
-  return urlMatch ? urlMatch[0] : null
+    if (texto.includes('NO_ENCONTRADA') || texto.length < 50) {
+      return null
+    }
+
+    return null
+  } catch (e) {
+    console.warn('[generate-design] búsqueda Gemini falló:', e.message)
+    return null
+  }
 }
 
 /**
@@ -65,34 +61,11 @@ async function urlABase64(url) {
 }
 
 /**
- * Genera imagen con gpt-image-1 como fallback si no se encontró en internet.
- */
-async function generarImagenOpenAI(descripcion, openaiKey) {
-  const res = await fetch('https://api.openai.com/v1/images/generations', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'gpt-image-1',
-      prompt: descripcion,
-      n: 1,
-      size: '1024x1024',
-      output_format: 'base64'
-    })
-  })
-  if (!res.ok) throw new Error('Error OpenAI imagen')
-  const data = await res.json()
-  const b64 = data.data?.[0]?.b64_json
-  if (!b64) throw new Error('OpenAI no devolvió imagen')
-  return `data:image/png;base64,${b64}`
-}
-
-/**
  * Obtiene imagen: primero busca en internet, si no encuentra usa gpt-image-1.
  */
-async function obtenerImagen(descripcion, apiKey, openaiKey) {
-  // 1. Intentar buscar la imagen real del producto en internet
+async function obtenerImagen(descripcion, openaiKey) {
   try {
-    const url = await buscarImagenProducto(descripcion, apiKey)
+    const url = await buscarImagenProducto(descripcion)
     if (url) {
       const base64 = await urlABase64(url)
       return { base64, fuente: 'web' }
@@ -101,10 +74,9 @@ async function obtenerImagen(descripcion, apiKey, openaiKey) {
     console.warn('[generate-design] búsqueda web falló:', e.message)
   }
 
-  // 2. Fallback: generar con gpt-image-1
   if (openaiKey) {
     try {
-      const base64 = await generarImagenOpenAI(descripcion, openaiKey)
+      const base64 = await generateImage(descripcion)
       return { base64, fuente: 'generada' }
     } catch (e) {
       console.warn('[generate-design] gpt-image-1 falló:', e.message)
@@ -123,9 +95,8 @@ export async function POST(request) {
 
     if (!brief?.trim()) return Response.json({ error: 'Brief vacío' }, { status: 400 })
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
     const openaiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) return Response.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
+    if (!openaiKey) return Response.json({ error: 'OPENAI_API_KEY no configurada' }, { status: 500 })
 
     const dims = FORMATOS[formato] || FORMATOS['placa-feed']
     const adn = getADNMarca(brain?.nombre)
@@ -339,51 +310,25 @@ ${adn}
 ⚠️ IMPORTANTE: Respetá FIELMENTE la paleta de colores, tipografía y estilo visual de esta marca. Derivá el --hue de los colores primarios del ADN.` : `
 Usá una paleta profesional y moderna acorde al brief. Elegí un --hue que refuerce el mensaje.`}`
 
-    // Construir mensaje — con imagen anotada si viene
-    let userMessage
+    let userPrompt
     if (iteracion) {
-      const texto = `Tenés este HTML previo:\n\n${iteracion}\n\nAplicá este cambio: ${brief}\n\nDevolvé el HTML completo actualizado.`
-      if (imagenAnotada) {
-        userMessage = [
-          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: imagenAnotada.replace(/^data:image\/\w+;base64,/, '') } },
-          { type: 'text', text: `Esta imagen muestra la pieza con zonas marcadas indicando qué cambiar.\n\n${texto}` }
-        ]
-      } else {
-        userMessage = texto
-      }
+      userPrompt = `Tenés este HTML previo:\n\n${iteracion}\n\nAplicá este cambio: ${brief}\n\nDevolvé el HTML completo actualizado.`
     } else {
-      userMessage = `Generá una pieza "${dims.label}" (${dims.w}×${dims.h}px):\n\n${brief}\n\nDevolvé solo el HTML.`
+      userPrompt = `Generá una pieza "${dims.label}" (${dims.w}×${dims.h}px):\n\n${brief}\n\nDevolvé solo el HTML.`
     }
 
-    // 1. Claude genera el HTML con placeholders
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 8000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }]
-      })
-    })
+    const result = await callGemini(userPrompt, systemPrompt, { maxTokens: 8000 })
 
-    if (!claudeRes.ok) {
-      const err = await claudeRes.json()
-      throw new Error(err.error?.message || 'Error en Claude API')
-    }
-
-    const claudeData = await claudeRes.json()
-    let html = claudeData.content[0]?.text || ''
+    let html = result.text
     html = html.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
 
-    if (!html.includes('<')) throw new Error('Claude no devolvió HTML válido')
+    if (!html.includes('<')) throw new Error('Gemini no devolvió HTML válido')
 
-    // 2. Extraer placeholders y resolver imágenes (web search primero, gpt-image-1 como fallback)
     const placeholders = [...html.matchAll(/<!--IMG:([^>]+)-->/g)]
 
     if (placeholders.length > 0) {
       const imagenes = await Promise.allSettled(
-        placeholders.map(([, desc]) => obtenerImagen(desc.trim(), apiKey, openaiKey))
+        placeholders.map(([, desc]) => obtenerImagen(desc.trim(), openaiKey))
       )
 
       const resumen = []
@@ -394,7 +339,6 @@ Usá una paleta profesional y moderna acorde al brief. Elegí un --hue que refue
           html = html.replace(match, resultado.value.base64)
           resumen.push({ desc: placeholders[i][1], fuente: resultado.value.fuente })
         } else {
-          // Fallback: placeholder SVG gris
           const svgFallback = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%239ca3af' font-size='16' font-family='sans-serif'%3EImagen%3C/text%3E%3C/svg%3E`
           html = html.replace(`src="${match}"`, `src="${svgFallback}"`)
           html = html.replace(match, svgFallback)

@@ -1,12 +1,13 @@
 /**
  * POST /api/validate
  * Mentor Ácido Creativo analiza el copy y devuelve diagnóstico + 3 versiones mejoradas.
- * Una sola llamada a Claude — sin web search, sin slide detection.
+ * Una sola llamada a Gemini — sin web search, sin slide detection.
  */
 
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoValidador } from '@/lib/cerebro'
 import { getContextoActual } from '@/lib/contexto-actual'
+import { callGeminiJSON } from '@/lib/gemini'
 
 export async function POST(request) {
   try {
@@ -21,11 +22,6 @@ export async function POST(request) {
       return Response.json({ error: 'Mensaje vacío' }, { status: 400 })
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
-    if (!apiKey) {
-      return Response.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
-    }
-
     const cerebroContext = getContextoValidador(brain?.nombre)
     const contextualActual = realtime ? null : await getContextoActual().catch(() => null)
 
@@ -34,10 +30,19 @@ export async function POST(request) {
       contextualActual ? `---\n\n${contextualActual}` : null
     ].filter(Boolean).join('\n\n')
 
-    // Realtime: análisis rápido sin estructura completa (para el preview mientras escribe)
-    const userPrompt = realtime
-      ? `Analizá brevemente este contenido y devolvé solo un JSON con: {"score": número del 0 al 100, "feedback": "diagnóstico de 2-3 oraciones", "aligned": true/false}\n\nCONTENIDO:\n"${message}"`
-      : `Analizá este contenido como el Mentor Ácido Creativo que sos. Sé directo, específico y útil.
+    let result
+
+    if (realtime) {
+      const prompt = `Analizá brevemente este contenido y devolvé solo un JSON con: {"score": número del 0 al 100, "feedback": "diagnóstico de 2-3 oraciones", "aligned": true/false}\n\nCONTENIDO:\n"${message}"`
+
+      const response = await callGeminiJSON(prompt, systemPrompt, { maxTokens: 300 })
+      result = {
+        score: response.score,
+        feedback: response.feedback,
+        aligned: response.aligned
+      }
+    } else {
+      const prompt = `Analizá este contenido como el Mentor Ácido Creativo que sos. Sé directo, específico y útil.
 
 CONTENIDO A VALIDAR:
 "${message}"
@@ -47,7 +52,7 @@ INSTRUCCIONES CLAVE:
 2. En la opción DIRECTA: mantené EXACTAMENTE la misma cantidad de elementos visuales que el original (misma cantidad de bullets, líneas, secciones, items). Si el original tiene 4 bullets, la directa tiene 4 bullets. Si tiene headline + 3 items + CTA, la directa tiene headline + 3 items + CTA. Esto es crítico para mantener coherencia visual en los diseños.
 3. Las opciones Narrativa y Disruptiva pueden tener estructura diferente.
 
-Respondé SOLO con JSON válido, sin markdown:
+Respondé SOLO con JSON válido:
 {
   "score": número del 0 al 100,
   "aligned": true o false,
@@ -85,36 +90,18 @@ Respondé SOLO con JSON válido, sin markdown:
   "aprendizaje_clave": "párrafo de 3-5 oraciones: qué aprendió este análisis, qué patrón repetido hay en el copy, qué debería mejorar el usuario en la próxima pieza"
 }`
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: realtime ? 300 : 4000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
-    })
-
-    if (!response.ok) {
-      const err = await response.json()
-      throw new Error(err.error?.message || 'Error en Claude API')
+      const response = await callGeminiJSON(prompt, systemPrompt, { maxTokens: 4000 })
+      result = {
+        score: response.score,
+        aligned: response.aligned,
+        tipo_contenido: response.tipo_contenido,
+        etapa_funnel: response.etapa_funnel,
+        diagnostico: response.diagnostico,
+        cambios: response.cambios,
+        opciones: response.opciones,
+        aprendizaje_clave: response.aprendizaje_clave
+      }
     }
-
-    const data = await response.json()
-    const responseText = data.content[0]?.text || ''
-
-    const jsonStart = responseText.indexOf('{')
-    const jsonEnd = responseText.lastIndexOf('}')
-    if (jsonStart === -1 || jsonEnd === -1) {
-      throw new Error('Claude no devolvió JSON válido')
-    }
-
-    const result = JSON.parse(responseText.slice(jsonStart, jsonEnd + 1))
 
     return Response.json({ success: true, coach_analysis: result, ...result })
 
