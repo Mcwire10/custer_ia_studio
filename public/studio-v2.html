@@ -2183,6 +2183,26 @@
           <h2 style="margin-bottom: 4px;">🎨 Generador de piezas</h2>
           <p class="section-subtitle" style="margin-bottom: 20px;">Describí la pieza y Claude la diseña en tiempo real.</p>
 
+          <!-- ASSET TRAY -->
+          <div id="genAssetTray" style="margin-bottom: 16px; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden;">
+            <div onclick="toggleAssetTray()" style="background: var(--bg-secondary); padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">📦 Asset Tray</span>
+              <span id="genAssetCount" style="background: var(--color-brand); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">0</span>
+            </div>
+            <div id="genAssetPanel" style="display: none; padding: 16px; background: var(--bg-primary);">
+              <div id="genAssetDropZone" style="border: 2px dashed var(--border-medium); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;" onclick="document.getElementById('genAssetInput').click()">
+                <div style="font-size: 1.5rem; margin-bottom: 8px;">📁</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Arrastrá imágenes o hacé click</div>
+                <div style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 4px;">PNG, JPG, WebP</div>
+                <input type="file" id="genAssetInput" accept="image/*" multiple style="display: none;" onchange="handleAssetUpload(this)">
+              </div>
+              <div id="genAssetList" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
+              <div style="margin-top: 12px; font-size: 0.75rem; color: var(--text-tertiary);">
+                ✨ Claude usará estos assets si los nombrás en el brief
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
             <label>Formato</label>
             <select id="genFormato" onchange="actualizarDimsLabel()">
@@ -4856,7 +4876,8 @@
           formato,
           brain: currentBrand,
           iteracion: iteracionTxt && genHTMLActual ? genHTMLActual : null,
-          imagenAnotada: window._genAnnotacionPendiente || null
+          imagenAnotada: window._genAnnotacionPendiente || null,
+          assets: genAssets.length > 0 ? genAssets : null
         }
 
         const res = await fetch('/api/generate-design', {
@@ -4896,6 +4917,14 @@
 
     function renderPreviewDiseno(html, dims) {
       const iframe = document.getElementById('genIframe')
+
+      // Reemplazar {{asset:nombre}} con el base64 real
+      if (genAssets && genAssets.length > 0) {
+        genAssets.forEach(asset => {
+          const regex = new RegExp(`\\{\\{asset:${asset.name}\\}\\}`, 'gi')
+          html = html.replace(regex, asset.base64)
+        })
+      }
 
       iframe.style.width = dims.w + 'px'
       iframe.style.height = dims.h + 'px'
@@ -4973,6 +5002,8 @@
     function limpiarGenerador() {
       genHTMLActual = null
       genVersionesHistory = []
+      genAssets = []
+      renderAssetList()
       document.getElementById('genBrief').value = ''
       document.getElementById('genIteracion') && (document.getElementById('genIteracion').value = '')
       document.getElementById('genIteracionBox').style.display = 'none'
@@ -5006,6 +5037,65 @@
       const visible = panel.style.display !== 'none'
       panel.style.display = visible ? 'none' : 'block'
       btn.textContent = visible ? '</> Código' : '</> Ocultar'
+    }
+
+    // ======= ASSET TRAY =======
+    let genAssets = []
+
+    function toggleAssetTray() {
+      const panel = document.getElementById('genAssetPanel')
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+    }
+
+    async function handleAssetUpload(input) {
+      const files = input.files
+      if (!files || files.length === 0) return
+
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          showToast('Solo imágenes permitidas', 'error')
+          continue
+        }
+
+        const reader = new FileReader()
+        reader.onload = function(e) {
+          const base64 = e.target.result
+          const name = file.name.replace(/\.[^/.]+$/, '').toLowerCase().replace(/\s+/g, '-')
+
+          genAssets.push({ name, base64, fileName: file.name })
+          renderAssetList()
+        }
+        reader.readAsDataURL(file)
+      }
+
+      input.value = ''
+    }
+
+    function renderAssetList() {
+      const container = document.getElementById('genAssetList')
+      const countBadge = document.getElementById('genAssetCount')
+
+      countBadge.textContent = genAssets.length
+
+      if (genAssets.length === 0) {
+        container.innerHTML = ''
+        return
+      }
+
+      container.innerHTML = genAssets.map((asset, i) => `
+        <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); padding: 8px; border-radius: 8px;">
+          <img src="${asset.base64}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">
+          <input type="text" value="${asset.name}" 
+            onchange="genAssets[${i}].name = this.value"
+            style="flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); padding: 6px 8px; border-radius: 6px; font-size: 0.8rem;">
+          <button onclick="removeAsset(${i})" style="background: transparent; border: none; color: var(--color-error); cursor: pointer; font-size: 1rem; padding: 4px;">✕</button>
+        </div>
+      `).join('')
+    }
+
+    function removeAsset(index) {
+      genAssets.splice(index, 1)
+      renderAssetList()
     }
 
     // ======= ANOTACIONES =======

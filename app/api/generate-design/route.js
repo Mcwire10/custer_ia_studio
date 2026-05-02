@@ -91,7 +91,7 @@ export async function POST(request) {
     const user = await getCurrentUser()
     if (!user) return Response.json({ error: 'No autenticado' }, { status: 401 })
 
-    const { brief, formato = 'placa-feed', brain, iteracion = null, imagenAnotada = null } = await request.json()
+    const { brief, formato = 'placa-feed', brain, iteracion = null, imagenAnotada = null, assets = null } = await request.json()
 
     if (!brief?.trim()) return Response.json({ error: 'Brief vacío' }, { status: 400 })
 
@@ -308,7 +308,15 @@ ADN DE MARCA
 ${adn}
 
 ⚠️ IMPORTANTE: Respetá FIELMENTE la paleta de colores, tipografía y estilo visual de esta marca. Derivá el --hue de los colores primarios del ADN.` : `
-Usá una paleta profesional y moderna acorde al brief. Elegí un --hue que refuerce el mensaje.`}`
+Usá una paleta profesional y moderna acorde al brief. Elegí un --hue que refuerce el mensaje.`}
+
+${assets && assets.length > 0 ? `
+════════════════════════════════════════
+ASSETS DISPONIBLES
+════════════════════════════════════════
+${assets.map(a => `- ${a.name}: {{asset:${a.name}}}`).join('\n')}
+
+⚠️ IMPORTANTE: Si el brief menciona estos assets, USALOS. Reemplazá {{asset:nombre}} con el base64 de la imagen.` : ''}`
 
     let userPrompt
     if (iteracion) {
