@@ -4952,6 +4952,9 @@ function switchTab(tabName, button) {
       tab.style.display = 'block'
       tab.classList.add('active')
       if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
+      
+      // Debug
+      console.log('switchTab:', tabName, 'display:', tab.style.display)
     }
 
     function showComingSoon(nombre) {
