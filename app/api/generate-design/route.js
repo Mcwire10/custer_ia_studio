@@ -1,18 +1,47 @@
 /**
  * POST /api/generate-design
- * Genera una pieza visual completa como HTML/CSS autónomo.
- * Claude recibe el brief + ADN de marca y devuelve HTML listo para renderizar.
+ * Flujo:
+ * 1. Claude genera HTML/CSS de la pieza con placeholders para imágenes: <!--IMG:descripción-->
+ * 2. gpt-image-1 genera cada imagen en paralelo (base64)
+ * 3. Las imágenes se inyectan en el HTML final
  */
 
 import { getCurrentUser } from '@/lib/auth'
 import { getADNMarca } from '@/lib/cerebro'
 
 const FORMATOS = {
-  'placa-feed':    { w: 1080, h: 1080, label: 'Placa Feed (1:1)' },
-  'stories':       { w: 1080, h: 1920, label: 'Stories (9:16)' },
-  'banner-email':  { w: 600,  h: 200,  label: 'Banner Email' },
-  'carrusel':      { w: 1080, h: 1080, label: 'Carrusel (múltiples slides)' },
-  'flyer':         { w: 800,  h: 1200, label: 'Flyer vertical' },
+  'placa-feed':   { w: 1080, h: 1080, label: 'Placa Feed (1:1)' },
+  'stories':      { w: 1080, h: 1920, label: 'Stories (9:16)' },
+  'banner-email': { w: 600,  h: 200,  label: 'Banner Email' },
+  'carrusel':     { w: 1080, h: 1080, label: 'Carrusel (múltiples slides)' },
+  'flyer':        { w: 800,  h: 1200, label: 'Flyer vertical' },
+}
+
+async function generarImagenOpenAI(descripcion, openaiKey) {
+  const res = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openaiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'gpt-image-1',
+      prompt: descripcion,
+      n: 1,
+      size: '1024x1024',
+      output_format: 'base64'
+    })
+  })
+
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error?.message || 'Error en OpenAI imagen')
+  }
+
+  const data = await res.json()
+  const b64 = data.data?.[0]?.b64_json
+  if (!b64) throw new Error('OpenAI no devolvió imagen')
+  return `data:image/png;base64,${b64}`
 }
 
 export async function POST(request) {
@@ -25,6 +54,7 @@ export async function POST(request) {
     if (!brief?.trim()) return Response.json({ error: 'Brief vacío' }, { status: 400 })
 
     const apiKey = process.env.ANTHROPIC_API_KEY
+    const openaiKey = process.env.OPENAI_API_KEY
     if (!apiKey) return Response.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
 
     const dims = FORMATOS[formato] || FORMATOS['placa-feed']
@@ -35,47 +65,39 @@ Tu trabajo es generar HTML/CSS autónomo, sin dependencias externas, que represe
 
 REGLAS DE OUTPUT:
 - Respondé ÚNICAMENTE con el HTML completo. Sin explicaciones, sin markdown, sin comentarios fuera del HTML.
-- El HTML debe ser 100% autónomo: todo el CSS inline o en <style>. Cero links externos, cero Google Fonts por URL (usá font-family genéricas o @font-face con base64 si es crítico).
+- El HTML debe ser 100% autónomo: todo el CSS inline o en <style>. Cero links externos.
 - El tamaño del root debe ser exactamente ${dims.w}px × ${dims.h}px con overflow: hidden.
 - Usá flexbox o grid para el layout. Que se vea profesional y listo para entregar.
-- Si el brief pide múltiples slides de carrusel, generá cada slide como una sección con display:none excepto la primera, y agregá botones prev/next en JS puro para navegar.
+- Si el brief pide múltiples slides de carrusel, generá cada slide como sección con display:none excepto la primera, con botones prev/next en JS puro.
+${openaiKey ? `
+IMÁGENES:
+- Cuando la pieza necesite una imagen real (foto de producto, persona, fondo fotográfico, ambiente), usá este placeholder exacto en el HTML: <!--IMG:descripción detallada de la imagen en español-->
+- Ponelo como valor del atributo src de un <img>: <img src="<!--IMG:descripción-->" ...>
+- Máximo 2 imágenes por pieza. Solo cuando realmente sumen al diseño.
+- Para íconos y formas geométricas usá SVG inline o CSS puro, no imágenes.` : '- No uses imágenes externas. Usá SVG inline o CSS para elementos visuales.'}
 
-${adn ? `ADN DE LA MARCA:\n${adn}\n\nUsá la paleta de colores, tipografía y estilo visual de la marca en el diseño.` : 'Usá una paleta profesional y moderna si no hay ADN de marca disponible.'}`
+${adn ? `ADN DE LA MARCA:\n${adn}\n\nUsá la paleta de colores, tipografía y estilo visual de la marca.` : 'Usá una paleta profesional y moderna.'}`
 
-    // Construir el mensaje del usuario — con imagen anotada si viene
+    // Construir mensaje — con imagen anotada si viene
     let userMessage
     if (iteracion) {
-      const textoIteracion = `Tenés este HTML generado previamente:\n\n${iteracion}\n\nAplicá este cambio: ${brief}\n\nDevolvé el HTML completo actualizado.`
+      const texto = `Tenés este HTML previo:\n\n${iteracion}\n\nAplicá este cambio: ${brief}\n\nDevolvé el HTML completo actualizado.`
       if (imagenAnotada) {
-        // Claude recibe la imagen con las anotaciones del usuario
         userMessage = [
-          {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: 'image/png',
-              data: imagenAnotada.replace(/^data:image\/\w+;base64,/, '')
-            }
-          },
-          {
-            type: 'text',
-            text: `Esta imagen muestra la pieza actual con las zonas marcadas por el usuario indicando qué cambiar.\n\n${textoIteracion}`
-          }
+          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: imagenAnotada.replace(/^data:image\/\w+;base64,/, '') } },
+          { type: 'text', text: `Esta imagen muestra la pieza con zonas marcadas indicando qué cambiar.\n\n${texto}` }
         ]
       } else {
-        userMessage = textoIteracion
+        userMessage = texto
       }
     } else {
-      userMessage = `Generá una pieza de tipo "${dims.label}" (${dims.w}×${dims.h}px) con este brief:\n\n${brief}\n\nDevolvé solo el HTML.`
+      userMessage = `Generá una pieza "${dims.label}" (${dims.w}×${dims.h}px):\n\n${brief}\n\nDevolvé solo el HTML.`
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // 1. Claude genera el HTML con placeholders
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      },
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
         max_tokens: 8000,
@@ -84,22 +106,46 @@ ${adn ? `ADN DE LA MARCA:\n${adn}\n\nUsá la paleta de colores, tipografía y es
       })
     })
 
-    if (!response.ok) {
-      const err = await response.json()
+    if (!claudeRes.ok) {
+      const err = await claudeRes.json()
       throw new Error(err.error?.message || 'Error en Claude API')
     }
 
-    const data = await response.json()
-    let html = data.content[0]?.text || ''
-
-    // Limpiar si Claude envolvió en markdown
+    const claudeData = await claudeRes.json()
+    let html = claudeData.content[0]?.text || ''
     html = html.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
 
-    if (!html.includes('<html') && !html.includes('<div') && !html.includes('<body')) {
-      throw new Error('Claude no devolvió HTML válido')
+    if (!html.includes('<')) throw new Error('Claude no devolvió HTML válido')
+
+    // 2. Si hay OpenAI key, extraer placeholders y generar imágenes en paralelo
+    if (openaiKey) {
+      const placeholders = [...html.matchAll(/<!--IMG:([^>]+)-->/g)]
+
+      if (placeholders.length > 0) {
+        const imagenes = await Promise.allSettled(
+          placeholders.map(([, desc]) => generarImagenOpenAI(desc.trim(), openaiKey))
+        )
+
+        // 3. Inyectar imágenes generadas en el HTML
+        placeholders.forEach(([match], i) => {
+          const resultado = imagenes[i]
+          if (resultado.status === 'fulfilled') {
+            // Reemplazar el placeholder en el src del img
+            html = html.replace(`src="${match}"`, `src="${resultado.value}"`)
+            // También reemplazar si aparece suelto
+            html = html.replace(match, resultado.value)
+          } else {
+            // Fallback: fondo gris con texto
+            html = html.replace(`src="${match}"`, `src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%236b7280' font-size='14'%3EImagen%3C/text%3E%3C/svg%3E"`)
+            html = html.replace(match, '')
+          }
+        })
+
+        return Response.json({ success: true, html, formato, dims, imagenes_generadas: placeholders.length })
+      }
     }
 
-    return Response.json({ success: true, html, formato, dims })
+    return Response.json({ success: true, html, formato, dims, imagenes_generadas: 0 })
 
   } catch (error) {
     console.error('Error en /api/generate-design:', error)
