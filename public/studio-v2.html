@@ -469,19 +469,7 @@
     }
 
     .tab-content.active {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-    }
-
-    #generador.tab-content.active {
       display: block;
-    }
-
-    @media (max-width: 1200px) {
-      .tab-content.active {
-        grid-template-columns: 1fr;
-      }
     }
 
     /* Horizontal Slider for Brand Brain sections */
@@ -4956,13 +4944,24 @@
     }
 
     // ============= FUNCIONES DE PESTAÑAS =============
-    function switchTab(tabName, button) {
+function switchTab(tabName, button) {
+      // Quitar animaciones para evitar problemas
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active')
+        tab.style.opacity = '1'
+        tab.style.transform = 'none'
+        tab.style.filter = 'none'
+      })
+      document.querySelectorAll('.tab-btn').forEach(btn => { if (!btn.classList.contains('tab-disabled')) btn.classList.remove('active') })
+      const tab = document.getElementById(tabName)
+      tab.style.opacity = '1'
+      tab.style.transform = 'none'
+      tab.style.filter = 'none'
+      tab.classList.add('active')
+      if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
+      
       // Inicializar chat flotante
       setTimeout(() => initializeFloatingChat(tabName), 100)
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'))
-      document.querySelectorAll('.tab-btn').forEach(btn => { if (!btn.classList.contains('tab-disabled')) btn.classList.remove('active') })
-      document.getElementById(tabName).classList.add('active')
-      if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
     }
 
     function showComingSoon(nombre) {
