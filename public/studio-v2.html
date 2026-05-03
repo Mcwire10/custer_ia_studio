@@ -384,69 +384,78 @@
       }
     }
 
-    /* ===== GRID: VALIDADOR (3 columnas: input | validación | feedback) ===== */
+    /* ===== GRID: VALIDADOR (2 paneles: input + sugerencias) ===== */
     #validador .main-content {
-      grid-template-columns: 1fr 1fr 1fr;
-      grid-template-rows: auto 1fr;
+      display: flex;
+      gap: var(--space-24);
+      align-items: flex-start;
     }
     #validador .panel {
-      min-height: 400px;
+      flex: 1;
+      min-width: 0;
     }
-    @media (max-width: 1400px) {
+    #validador .panel:first-child {
+      flex: 0 0 400px;
+    }
+    @media (max-width: 1200px) {
       #validador .main-content {
-        grid-template-columns: 1fr 1fr;
+        flex-direction: column;
       }
-    }
-    @media (max-width: 900px) {
-      #validador .main-content {
-        grid-template-columns: 1fr;
+      #validador .panel:first-child {
+        flex: none;
       }
     }
 
-    /* ===== GRID: GENERADOR (Preview grande + sidebar) ===== */
+    /* ===== GRID: GENERADOR (sidebar left + preview right) ===== */
     #generador .main-content {
-      grid-template-columns: 2fr 1fr;
+      display: flex;
+      gap: var(--space-24);
+      align-items: flex-start;
     }
     #generador .panel:first-child {
-      min-height: 500px;
+      flex: 0 0 350px;
+      position: sticky;
+      top: 20px;
+    }
+    #generador .panel:last-child {
+      flex: 1;
+      min-height: 70vh;
     }
     @media (max-width: 1200px) {
       #generador .main-content {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+      #generador .panel:first-child {
+        flex: none;
+        position: static;
       }
     }
 
-    /* ===== GRID: COPY (Escritura central + herramientas) ===== */
+    /* ===== GRID: COPY (form left + resultado right) ===== */
     #copy .main-content {
-      grid-template-columns: 2fr 1fr;
-      grid-template-rows: auto 1fr;
+      display: flex;
+      gap: var(--space-24);
+      align-items: flex-start;
     }
     #copy .panel:first-child {
-      min-height: 450px;
+      flex: 0 0 400px;
+    }
+    #copy .panel:last-child {
+      flex: 1;
+      min-height: 60vh;
     }
     @media (max-width: 1200px) {
       #copy .main-content {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+      #copy .panel:first-child {
+        flex: none;
       }
     }
 
-    /* ===== GRID: BRAND BRAIN (Cards en grid) ===== */
+    /* ===== BRAND BRAIN (usa su slider interno) ===== */
     #brain .main-content {
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-24);
-    }
-    #brain .panel {
-      min-height: 300px;
-    }
-    @media (max-width: 1400px) {
-      #brain .main-content {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    @media (max-width: 900px) {
-      #brain .main-content {
-        grid-template-columns: 1fr;
-      }
+      display: block;
     }
 
     /* ===== MICRO-INTERACCIONES ===== */
