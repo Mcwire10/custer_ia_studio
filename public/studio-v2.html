@@ -346,6 +346,10 @@
       gap: 30px;
     }
 
+    #generador.tab-content.active {
+      display: block;
+    }
+
     @media (max-width: 1200px) {
       .tab-content.active {
         grid-template-columns: 1fr;
@@ -720,14 +724,9 @@
     }
 
     .thinking-spinner svg {
-      animation: rocketFly 3s ease-in-out infinite;
     }
 
-    @keyframes rocketFly {
-      0% { transform: translateY(0) rotate(45deg); opacity: 0.8; }
-      50% { transform: translateY(-50px) rotate(45deg); opacity: 1; }
-      100% { transform: translateY(0) rotate(45deg); opacity: 0.8; }
-    }
+    
 
     .thinking-text {
       font-size: 1.3rem;
@@ -749,12 +748,9 @@
       border: 2px solid var(--border-subtle);
       border-top-color: var(--color-accent);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    
 
     .canvas-content {
       min-height: 100%;
@@ -824,66 +820,24 @@
       padding: var(--space-16) var(--space-20);
       color: var(--text-primary);
       font-size: 0.875rem;
-      animation: slideUp 0.3s ease-out;
       z-index: 999;
       max-width: 300px;
       font-family: var(--font-body);
       box-shadow: var(--shadow-lg);
     }
 
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    
 
     /* Custer Morphing Animations */
-    @keyframes morphIn {
-      0% {
-        opacity: 0;
-        transform: scale(0.8) rotateX(20deg);
-        filter: blur(8px);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1) rotateX(0);
-        filter: blur(0);
-      }
-    }
+    
 
-    @keyframes morphButton {
-      0% {
-        border-radius: 24px;
-        transform: scale(1);
-      }
-      50% {
-        border-radius: 30px;
-      }
-      100% {
-        border-radius: 24px;
-        transform: scale(1);
-      }
-    }
+    
 
-    @keyframes scrollFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
-    }
+    
 
-    @keyframes scrollReveal {
-      from {
-        opacity: 0;
-        clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
-      }
-      to {
-        opacity: 1;
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-      }
-    }
+    
 
-    @keyframes scrollParallax {
-      0% { transform: translateY(40px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
-    }
+    
 
     /* Scrollytelling triggers - DISABLED (was hiding tabs) */
     .scroll-trigger {
@@ -939,13 +893,9 @@
 
     .carousel-item.active {
       display: block;
-      animation: fadeIn 0.5s ease;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    
 
     .carousel-nav {
       display: flex;
@@ -1121,20 +1071,10 @@
       display: flex;
       flex-direction: column;
       z-index: 1000;
-      animation: slideIn 0.3s ease-out;
       box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
     }
 
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
+    
 
     /* Floating Chat Button */
     .floating-chat-btn {
@@ -1401,27 +1341,9 @@
     }
 
     /* PHASE 7: Toast Notifications Animations */
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
+    
 
-    @keyframes slideOut {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-    }
+    
 
     /* PHASE 7: Modal Responsive Design */
     @media (max-width: 768px) {
@@ -6612,7 +6534,6 @@
           border-radius: 50%;
           background: rgba(255, 255, 255, 0.6);
           transform: scale(0);
-          animation: ripple-effect 600ms ease-out;
           pointer-events: none;
           left: ${e.clientX - clickTarget.getBoundingClientRect().left}px;
           top: ${e.clientY - clickTarget.getBoundingClientRect().top}px;
@@ -7444,7 +7365,6 @@
           font-size: 14px;
           font-weight: 500;
           z-index: 10000;
-          animation: slideIn 0.3s ease;
           max-width: 300px;
           word-wrap: break-word;
         `;
@@ -7532,4 +7452,3 @@
   </script>
 </body>
 </html>
-/* cache bust Sat May  2 20:52:31 -03 2026 */
