@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body style="background: #0a0e27; color: white; font-family: sans-serif; padding: 40px;">
+
+  <div style="margin-bottom: 20px;">
+    <button onclick="switchTab('brain')">Brain</button>
+    <button onclick="switchTab('generador')">Generador</button>
+    <button onclick="switchTab('validador')">Validador</button>
+  </div>
+
+  <div id="brain" class="tab-content active" style="padding: 20px; background: #151b3c; border-radius: 16px;">
+    <h2>🧠 Brain</h2>
+    <p>Contenido de Brand Brain funcionando.</p>
+  </div>
+
+  <div id="generador" class="tab-content" style="padding: 20px; background: #151b3c; border-radius: 16px;">
+    <h2>🎨 Generador</h2>
+    <p>Contenido del Generador funcionando.</p>
+  </div>
+
+  <div id="validador" class="tab-content" style="padding: 20px; background: #151b3c; border-radius: 16px;">
+    <h2>🎯 Validador</h2>
+    <p>Contenido del Validador funcionando.</p>
+  </div>
+
+  <script>
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'))
+      document.getElementById(tabName).classList.add('active')
+      alert('Switched to: ' + tabName)
+    }
+  </script>
+</body>
+</html>
