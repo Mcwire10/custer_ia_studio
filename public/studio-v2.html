@@ -187,7 +187,6 @@
       color: var(--text-primary);
       border-radius: 0px;
       cursor: pointer;
-      transition: border-color 150ms, color 150ms;
       font-weight: 600;
       font-size: 0.875rem;
       font-family: var(--font-body);
@@ -228,7 +227,6 @@
       color: var(--text-secondary);
       border-radius: 0px;
       cursor: pointer;
-      transition: border-color 150ms, color 150ms;
       font-weight: 600;
       font-size: 0.875rem;
       letter-spacing: 0px;
@@ -270,7 +268,6 @@
       overflow-y: auto;
       max-height: calc(100vh - 200px);
       box-shadow: var(--shadow-sm);
-      transition: all var(--transition-normal);
     }
 
     /* Liquid Glass Mode - Activated via [data-liquid-glass="true"] */
@@ -313,7 +310,6 @@
     .brain-section-item,
     .result-card,
     .floating-chat-panel {
-      transition: var(--glass-transition);
     }
 
     [data-liquid-glass="true"] .brain-section-item,
@@ -387,7 +383,6 @@
       background: var(--bg-secondary);
       border: 1px solid var(--border-light);
       border-radius: 0px;
-      transition: all var(--transition-normal);
     }
 
     .brain-section-item:hover {
@@ -499,7 +494,6 @@
       border: 1px solid var(--border-light);
       color: var(--text-primary);
       cursor: pointer;
-      transition: all var(--transition-fast);
       font-family: var(--font-body);
       font-weight: 600;
       border-radius: 6px;
@@ -549,7 +543,6 @@
       color: var(--text-primary);
       font-family: var(--font-body);
       font-size: 0.875rem;
-      transition: all var(--transition-fast);
       line-height: 1.5;
     }
 
@@ -597,7 +590,6 @@
       color: var(--text-primary);
       font-weight: 500;
       cursor: pointer;
-      transition: all var(--transition-normal);
       font-size: 0.875rem;
       letter-spacing: -0.2px;
       box-shadow: var(--shadow-sm);
@@ -671,7 +663,6 @@
       border-radius: 12px;
       text-align: center;
       cursor: pointer;
-      transition: all var(--transition-normal);
     }
 
     .file-upload.drag-active .file-upload-label,
@@ -765,7 +756,6 @@
       border-radius: 0px;
       padding: var(--space-20);
       margin-bottom: var(--space-16);
-      transition: all var(--transition-normal);
     }
 
     .result-card:hover {
@@ -875,7 +865,6 @@
       border-radius: 12px;
       overflow: hidden;
       min-height: 400px;
-      transition: all var(--transition-normal);
       scroll-behavior: smooth;
     }
 
@@ -913,7 +902,6 @@
       color: white;
       cursor: pointer;
       font-weight: 600;
-      transition: all var(--transition-fast);
     }
 
     .carousel-btn:hover {
@@ -940,7 +928,6 @@
       border-radius: 12px;
       font-size: 0.75rem;
       cursor: pointer;
-      transition: all var(--transition-fast);
       font-family: var(--font-body);
       text-transform: none;
       font-weight: 600;
@@ -984,7 +971,6 @@
       color: white;
       font-weight: 600;
       cursor: pointer;
-      transition: all var(--transition-fast);
     }
 
     .search-box button:hover {
@@ -1030,7 +1016,6 @@
       font-size: 0.6rem;
       color: var(--text-secondary);
       opacity: 0.6;
-      transition: opacity 150ms;
       flex-shrink: 0;
     }
 
@@ -1091,7 +1076,6 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(94, 106, 210, 0.4);
       z-index: 999;
-      transition: all var(--transition-normal);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1135,7 +1119,6 @@
       align-items: center;
       justify-content: center;
       border-radius: 4px;
-      transition: all 0.2s;
     }
 
     .close-btn:hover {
@@ -1207,7 +1190,6 @@
       border-radius: 6px;
       color: var(--text-primary);
       font-size: 0.9rem;
-      transition: all var(--transition-fast);
       font-family: var(--font-body);
     }
 
@@ -1225,7 +1207,6 @@
       color: white;
       font-size: 1rem;
       cursor: pointer;
-      transition: all var(--transition-fast);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1284,7 +1265,6 @@
     }
 
     #analyticsTable tbody tr {
-      transition: background-color var(--transition-fast);
     }
 
     #analyticsTable tbody tr:hover {
@@ -1310,7 +1290,6 @@
 
     /* Métrica cards hover effect */
     .metric-card {
-      transition: all 0.2s ease;
     }
 
     .metric-card:hover {
@@ -1549,7 +1528,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.3s ease;
             color: var(--text-primary);
             font-weight: 600;
           ">
@@ -1569,7 +1547,6 @@
               cursor: pointer;
               font-size: 0.9rem;
               font-weight: 600;
-              transition: all 0.3s ease;
             "
             onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
             onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
@@ -4698,12 +4675,13 @@
 
     // ============= FUNCIONES DE PESTAÑAS =============
     function switchTab(tabName, button) {
-      // Inicializar chat flotante
-      setTimeout(() => initializeFloatingChat(tabName), 100)
+      // Hide all tabs
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'))
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'))
+      
+      // Show selected tab
       document.getElementById(tabName).classList.add('active')
-      button.classList.add('active')
+      if (button) button.classList.add('active')
     }
 
     // ============= GENERADOR CON TIPOGRAFÍA INTELIGENTE =============
@@ -5043,7 +5021,6 @@
               cursor: pointer;
               text-transform: uppercase;
               letter-spacing: 1px;
-              transition: all 0.3s ease;
               box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(0, 0, 0, 0.3)';"
               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.2)';">
