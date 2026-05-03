@@ -291,31 +291,39 @@
 
     .logo-container {
       display: flex;
-      align-items: baseline;
-      gap: 12px;
+      align-items: center;
+      gap: 0;
     }
 
     .logo-img {
-      height: 48px;
+      height: 40px;
       width: auto;
+      margin-right: 12px;
+    }
+
+    .logo-text-group {
+      display: flex;
+      flex-direction: column;
     }
 
     .logo-container h1 {
       font-family: var(--font-display);
       font-weight: var(--weight-display);
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       letter-spacing: 2px;
       color: var(--text-display);
       text-transform: uppercase;
       margin: 0;
+      line-height: 1;
     }
 
     .logo-subtitle {
       font-family: var(--font-body);
       font-weight: 400;
-      font-size: 1rem;
+      font-size: 0.85rem;
       color: var(--text-secondary);
       letter-spacing: 1px;
+      line-height: 1.2;
     }
       flex-wrap: wrap;
     }
@@ -1894,12 +1902,11 @@
   <div class="container">
     <div class="header">
       <div class="logo-container">
-        <img src="images/logo-custer.png" alt="Custer" class="logo-img" onerror="this.style.display='none'">
-        <div id="logo-text" style="display:none;">
+        <img src="images/logo-custer.png" alt="Custer" class="logo-img" style="display:none;" onerror="this.style.display='none'">
+        <div class="logo-text-group">
           <h1>CUSTER</h1>
+          <span class="logo-subtitle">IA Studio Pro</span>
         </div>
-        <span class="logo-subtitle">IA Studio Pro</span>
-      </div>
       <div class="brand-selector" style="min-width: 350px;">
         <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
           <label style="font-size: 0.75rem; font-weight: 700; color: #F5A623; text-transform: uppercase; letter-spacing: 0.5px;">MARCA ACTIVA</label>
