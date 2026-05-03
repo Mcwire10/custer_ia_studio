@@ -6,8 +6,24 @@
   <title>Custer AI Studio Pro</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* ===== GOTHAM FONTS ===== */
+    @font-face {
+      font-family: 'Gotham';
+      src: url('fonts/gotham/GothamBold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Gotham';
+      src: url('fonts/gotham/GothamMedium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -55,10 +71,15 @@
       --text-disabled: #606060;
       --text-brand: #F5A623;
 
-      /* Typography - Montserrat + Source Sans 3 */
-      --font-display: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      /* Typography - Gotham + Source Sans 3 */
+      --font-display: 'Gotham', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+      /* Typography weights - contrast at 2 steps */
+      --weight-display: 700;
+      --weight-subtitle: 500;
+      --weight-body: 400;
 
       /* Spacing Scale */
       --space-2: 2px;
@@ -266,20 +287,51 @@
       align-items: center;
       margin-bottom: 30px;
       gap: 20px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .logo-img {
+      height: 48px;
+      width: auto;
+    }
+
+    .logo-container h1 {
+      font-family: var(--font-display);
+      font-weight: var(--weight-display);
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      color: var(--text-display);
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .logo-subtitle {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 1rem;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+    }
       flex-wrap: wrap;
     }
 
     .header h1 {
       font-size: 2.2rem;
-      font-weight: 600;
-      letter-spacing: 0px;
+      font-weight: var(--weight-display);
+      letter-spacing: 1px;
       color: var(--text-display);
       font-family: var(--font-display);
+      text-transform: uppercase;
     }
 
     .header p {
-      font-size: 0.875rem;
-      letter-spacing: 0px;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
       color: var(--text-secondary);
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -536,16 +588,17 @@
 
     .panel h2 {
       font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: var(--space-32);
-      letter-spacing: 0px;
+      font-weight: var(--weight-display);
+      margin-bottom: var(--space-24);
+      letter-spacing: 0.5px;
       color: var(--text-display);
       font-family: var(--font-display);
+      text-transform: uppercase;
     }
 
     .panel h3 {
-      font-size: 0.875rem;
-      font-weight: 600;
+      font-size: 1.1rem;
+      font-weight: var(--weight-subtitle);
       margin-bottom: var(--space-16);
       color: var(--text-secondary);
       letter-spacing: 0px;
@@ -832,18 +885,19 @@
       border: 1.5px solid var(--border-light);
       border-radius: 24px;
       color: var(--text-primary);
-      font-weight: 500;
+      font-weight: var(--weight-subtitle);
       cursor: pointer;
       transition: all var(--transition-normal);
-      font-size: 0.875rem;
-      letter-spacing: -0.2px;
+      font-size: 0.9rem;
+      letter-spacing: 0.3px;
       box-shadow: var(--shadow-sm);
-      font-family: var(--font-body);
+      font-family: var(--font-display);
       display: inline-flex;
       align-items: center;
       gap: var(--space-8);
       white-space: nowrap;
       position: relative;
+      text-transform: uppercase;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
@@ -1566,7 +1620,7 @@
     .section-subtitle {
       font-size: 1rem;
       color: var(--text-secondary);
-      font-weight: 400;
+      font-weight: var(--weight-body);
       margin: 8px 0 var(--space-24) 0;
       line-height: 1.5;
       font-family: var(--font-body);
@@ -1839,9 +1893,12 @@
 
   <div class="container">
     <div class="header">
-      <div>
-        <h1>🚀 Custer AI Studio Pro</h1>
-        <p style="color: var(--text-secondary); margin-top: 5px;">Sistema profesional de branding y contenido</p>
+      <div class="logo-container">
+        <img src="images/logo-custer.png" alt="Custer" class="logo-img" onerror="this.style.display='none'">
+        <div id="logo-text" style="display:none;">
+          <h1>CUSTER</h1>
+        </div>
+        <span class="logo-subtitle">IA Studio Pro</span>
       </div>
       <div class="brand-selector" style="min-width: 350px;">
         <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
