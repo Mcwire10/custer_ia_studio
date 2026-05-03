@@ -1,32 +1,24 @@
 /**
  * POST /api/auto-populate-brand
- * Análisis completo de marca — UN solo call a Claude que analiza todo
+ * Análisis completo de marca — UN solo call a Gemini
  *
  * Acepta: {
- *   files: [{name, type, data: "base64string"}],  ← ya sin prefijo data:...;base64,
- *   visualImages: [{name, type, data: "base64string"}],  ← imágenes del feed
+ *   files: [{name, type, data: "base64string"}],
+ *   visualImages: [{name, type, data: "base64string"}],
  *   websiteUrl: "https://...",
  *   instagramHandle: "@usuario",
  *   brandText: "texto libre"
  * }
+ *
+ * NOTA: Los PDFs no están soportados con Gemini. Se convierten a texto si es posible.
  */
 
 import { getCurrentUser } from '@/lib/auth'
 import { saveBrand } from '@/lib/brands-db'
-import { readFileSync } from 'fs'
-import { join } from 'path'
-
-function getApiKey() {
-  let key = process.env.ANTHROPIC_API_KEY
-  if (!key) {
-    try { const e = readFileSync(join(process.cwd(), '.env.local'), 'utf8'); const m = e.match(/ANTHROPIC_API_KEY=(.+)/); if (m) key = m[1].trim() } catch {}
-    try { const e = readFileSync(join(process.cwd(), '.env'), 'utf8'); const m = e.match(/ANTHROPIC_API_KEY=(.+)/); if (m) key = m[1].trim() } catch {}
-  }
-  return key
-}
+import { callGemini, callGeminiVisionJSON } from '@/lib/gemini'
 
 const SYSTEM_PROMPT = `Sos un equipo creativo senior de una agencia de marketing completa. Tenés la experiencia acumulada de:
-- Directora de Arte con 15 años en branding y diseño gráfico
+- Directiva de Arte con 15 años en branding y diseño gráfico
 - Estratega de contenido y social media manager
 - Media Buyer experto en Meta Ads y Google Ads
 - Community Manager con foco en engagement y crecimiento
@@ -163,15 +155,10 @@ export async function POST(request) {
       return Response.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    const apiKey = getApiKey()
-    if (!apiKey) {
-      return Response.json({ error: 'API Key no configurada' }, { status: 500 })
-    }
-
     const body = await request.json()
     const {
-      files = [],          // [{name, type, data: base64}] — archivos principales
-      visualImages = [],   // [{name, type, data: base64}] — imágenes del feed para análisis visual
+      files = [],
+      visualImages = [],
       websiteUrl = '',
       instagramHandle = '',
       brandText = ''
@@ -187,7 +174,10 @@ export async function POST(request) {
 
     console.log(`🚀 Analizando marca: ${allImages.length} imágenes, ${pdfs.length} PDFs, URL: ${!!websiteUrl}`)
 
-    // Construir fuentes de texto
+    if (pdfs.length > 0) {
+      console.warn('⚠️ PDFs no son soportados con Gemini. Se omitirán.')
+    }
+
     const textSources = []
 
     if (brandText?.trim()) {
@@ -199,7 +189,6 @@ export async function POST(request) {
       textSources.push(`## INSTAGRAM\nHandle: @${handle}`)
     }
 
-    // Scrape del sitio web
     if (websiteUrl?.trim()) {
       try {
         let url = websiteUrl.trim()
@@ -219,82 +208,51 @@ export async function POST(request) {
       }
     }
 
-    // Construir el mensaje para Claude
-    const messageContent = []
-
-    // PDFs (con anthropic-beta header)
-    const hasPdfs = pdfs.length > 0
-    for (const pdf of pdfs.slice(0, 3)) {
-      messageContent.push({
-        type: 'document',
-        source: { type: 'base64', media_type: 'application/pdf', data: pdf.data }
-      })
-    }
-
-    // Imágenes
-    for (const img of allImages.slice(0, 12)) {
-      // Limpiar el base64 — asegurarse que no tiene prefijo
-      let data = img.data || ''
-      if (data.includes(',')) data = data.split(',')[1]
-      if (!data) continue
-
-      const mediaType = img.type?.startsWith('image/') ? img.type : 'image/jpeg'
-      messageContent.push({
-        type: 'image',
-        source: { type: 'base64', media_type: mediaType, data }
-      })
-    }
-
-    // Texto con todas las fuentes
-    const sourcesText = textSources.length > 0 ? textSources.join('\n\n---\n\n') : 'Analizá los archivos adjuntos.'
-    messageContent.push({ type: 'text', text: buildPrompt(sourcesText) })
-
-    // Headers para la API
-    const headers = {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json'
-    }
-    if (hasPdfs) {
-      headers['anthropic-beta'] = 'pdfs-2024-09-25'
-    }
-
-    console.log(`📊 Enviando a Claude: ${messageContent.length} bloques (${allImages.length} imgs, ${pdfs.length} PDFs)`)
-
-    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 8000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: messageContent }]
-      })
-    })
-
-    if (!claudeResponse.ok) {
-      const err = await claudeResponse.json()
-      throw new Error(err.error?.message || `Error API: ${claudeResponse.status}`)
-    }
-
-    const claudeData = await claudeResponse.json()
-    let responseText = claudeData.content?.[0]?.text?.trim() || ''
-
-    // Limpiar markdown
-    responseText = responseText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
-
     let brandData
-    try {
-      brandData = JSON.parse(responseText)
-    } catch {
-      const match = responseText.match(/\{[\s\S]*\}/)
-      if (match) brandData = JSON.parse(match[0])
-      else throw new Error('La IA no devolvió un JSON válido')
+
+    if (allImages.length > 0) {
+      console.log(`📸 Analizando ${allImages.length} imágenes con Gemini Vision...`)
+
+      const imagesForVision = allImages.slice(0, 12).map(img => {
+        let data = img.data || ''
+        if (data.includes(',')) data = data.split(',')[1]
+        return { data, type: img.type || 'image/jpeg' }
+      })
+
+      const prompt = buildPrompt(textSources.length > 0 ? textSources.join('\n\n---\n\n') : 'Analizá las imágenes adjuntas de la marca.')
+
+      try {
+        brandData = await callGeminiVisionJSON(imagesForVision, prompt, SYSTEM_PROMPT, { maxTokens: 8000 })
+      } catch (visionError) {
+        console.warn('Vision falló, cayendo a texto:', visionError.message)
+        const textPrompt = buildPrompt(textSources.length > 0 ? textSources.join('\n\n---\n\n') : 'No hay texto adicional.')
+        const result = await callGemini(textPrompt, SYSTEM_PROMPT, { maxTokens: 8000 })
+        try {
+          brandData = JSON.parse(result.text)
+        } catch {
+          throw new Error('Gemini no devolvió JSON válido')
+        }
+      }
+    } else {
+      const sourcesText = textSources.length > 0 ? textSources.join('\n\n---\n\n') : 'Analizá los datos proporcionados.'
+      const prompt = buildPrompt(sourcesText)
+
+      const result = await callGemini(prompt, SYSTEM_PROMPT, { maxTokens: 8000 })
+
+      try {
+        brandData = JSON.parse(result.text)
+      } catch {
+        const jsonMatch = result.text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          brandData = JSON.parse(jsonMatch[0])
+        } else {
+          throw new Error('Gemini no devolvió JSON válido')
+        }
+      }
     }
 
     console.log(`✅ Brand Brain generado: ${brandData?.basico?.nombre || 'sin nombre'}`)
 
-    // Guardar en DB
     let savedId = null
     try {
       const dbBrand = await saveBrand({
@@ -347,7 +305,8 @@ export async function POST(request) {
     return Response.json({
       success: true,
       brand: { ...brandData, id: savedId },
-      sources: { images: allImages.length, pdfs: pdfs.length, website: !!websiteUrl, text: !!brandText }
+      sources: { images: allImages.length, pdfs: pdfs.length, website: !!websiteUrl, text: !!brandText },
+      note: pdfs.length > 0 ? 'Los PDFs no están soportados con Gemini. Se omitieron.' : null
     })
 
   } catch (error) {

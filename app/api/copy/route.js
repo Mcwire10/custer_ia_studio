@@ -4,14 +4,14 @@
  *
  * Flujo:
  * 1. Carga el cerebro (Mentor Ácido + biblioteca teórica + ADN de la marca)
- * 2. Busca tendencias actuales del sector Y eventos masivos culturales/deportivos
- * 3. Claude genera copy alineado a la marca, con referencias bibliográficas y anclado a la actualidad
+ * 2. Busca tendencias actuales del sector Y eventos masivos culturales/deportivos usando Gemini
+ * 3. Genera copy alineado a la marca, con referencias bibliográficas y anclado a la actualidad
  */
-
-export const maxDuration = 60 // Aumentar timeout en Vercel a 60s
 
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoGenerador } from '@/lib/cerebro'
+import { getContextoActual } from '@/lib/contexto-actual'
+import { callGeminiJSON, callGeminiWithSearch } from '@/lib/gemini'
 
 const PLATAFORMAS_CONFIG = {
   instagram: { maxChars: 2200, tono: 'visual, emocional, con hook fuerte en la primera línea' },
@@ -23,66 +23,23 @@ const PLATAFORMAS_CONFIG = {
   tiktok:    { maxChars: 300,  tono: 'gancho en los primeros 3 segundos, lenguaje generacional' },
 }
 
-async function buscarContextoActual(apiKey, marca) {
+async function buscarContextoActual(marca) {
   const sector = marca?.rubro || 'marketing y comunicación'
-  const nombre = marca?.nombre || ''
 
-  // Dos búsquedas en paralelo:
-  // A) Tendencias específicas del sector
-  // B) Eventos masivos globales/culturales/deportivos aprovechables
-  const querySector = `tendencias actuales ${sector} Argentina 2025 comunicación marketing`
-  const queryEventos = `eventos masivos globales culturales deportivos 2025 oportunidades de marca`
+  const promptSector = `Buscá información actualizada sobre tendencias actuales ${sector} Argentina 2025 comunicación marketing. Resumí los 3-5 hallazgos más relevantes en máximo 200 palabras. Solo hechos concretos y fechas cuando las tengas.`
+  const promptEventos = `Buscá información sobre eventos masivos globales culturales deportivos 2025 oportunidades de marca. Resumí los 3-5 eventos más relevantes en máximo 150 palabras. Solo fechas y oportunidades concretas.`
 
-  const buscar = async (query) => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
-
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-beta': 'web-search-2025-03-05',
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-haiku-20241022',
-          max_tokens: 800,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-          messages: [{
-            role: 'user',
-            content: `Buscá información actualizada sobre: "${query}". Resumí los 3-5 hallazgos más relevantes en máximo 200 palabras. Solo hechos concretos y fechas cuando las tengas.`
-          }]
-        })
-      })
-      clearTimeout(timeoutId)
-      if (!res.ok) return null
-      const data = await res.json()
-      // Extraer el texto final de la respuesta (puede haber tool_use + text)
-      const textos = (data.content || [])
-        .filter(b => b.type === 'text')
-        .map(b => b.text)
-        .join('\n')
-      return textos || null
-    } catch (e) {
-      clearTimeout(timeoutId)
-      return null
-    }
-  }
-
-  const [tendencias, eventos] = await Promise.allSettled([
-    buscar(querySector),
-    buscar(queryEventos)
+  const [tendenciasRes, eventosRes] = await Promise.allSettled([
+    callGeminiWithSearch(promptSector, null, { maxTokens: 800 }),
+    callGeminiWithSearch(promptEventos, null, { maxTokens: 800 })
   ])
 
   const resultado = []
-  if (tendencias.status === 'fulfilled' && tendencias.value) {
-    resultado.push(`## TENDENCIAS EN ${sector.toUpperCase()}\n${tendencias.value}`)
+  if (tendenciasRes.status === 'fulfilled' && tendenciasRes.value?.text) {
+    resultado.push(`## TENDENCIAS EN ${sector.toUpperCase()}\n${tendenciasRes.value.text}`)
   }
-  if (eventos.status === 'fulfilled' && eventos.value) {
-    resultado.push(`## EVENTOS Y MOMENTOS CULTURALES PARA CONECTAR\n${eventos.value}`)
+  if (eventosRes.status === 'fulfilled' && eventosRes.value?.text) {
+    resultado.push(`## EVENTOS Y MOMENTOS CULTURALES PARA CONECTAR\n${eventosRes.value.text}`)
   }
 
   return resultado.join('\n\n') || null
@@ -101,18 +58,9 @@ export async function POST(request) {
       return Response.json({ error: 'Tema y plataformas requeridas' }, { status: 400 })
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
-    if (!apiKey) {
-      return Response.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
-    }
-
-    // 1. Cargar contexto del cerebro
     const cerebroContext = getContextoGenerador(brain?.nombre)
+    const contextualActual = await getContextoActual().catch(() => null)
 
-    // 2. Buscar actualidad en paralelo mientras armamos el resto
-    const contextualActual = await buscarContextoActual(apiKey, brain).catch(() => null)
-
-    // 3. Config de plataformas solicitadas
     const especsPorPlataforma = platforms
       .map(p => {
         const config = PLATAFORMAS_CONFIG[p.toLowerCase()] || { maxChars: 500, tono: 'claro y directo' }
@@ -167,39 +115,13 @@ Respondé en JSON válido con esta estructura exacta:
 }
 `
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 4000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
-    })
-
-    if (!response.ok) {
-      const err = await response.json()
-      throw new Error(err.error?.message || 'Error en Claude API')
-    }
-
-    const data = await response.json()
-    const responseText = data.content[0]?.text || ''
-
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('Claude no devolvió JSON válido')
-
-    const result = JSON.parse(jsonMatch[0])
+    const response = await callGeminiJSON(userPrompt, systemPrompt, { maxTokens: 4000 })
 
     return Response.json({
       success: true,
-      copies: result.copies,
-      momento_cultural_usado: result.momento_cultural_usado || null,
-      estrategia_general: result.estrategia_general || null,
+      copies: response.copies,
+      momento_cultural_usado: response.momento_cultural_usado || null,
+      estrategia_general: response.estrategia_general || null,
       contexto_usado: !!contextualActual
     })
 

@@ -1,17 +1,15 @@
 /**
  * POST /api/generate
- * Generador de piezas de diseño con Claude como diseñador gráfico
+ * Generador de piezas de diseño con Gemini como diseñador gráfico
  *
- * Claude no genera solo texto — genera HTML/CSS completo
+ * Gemini no genera solo texto — genera HTML/CSS completo
  * con conocimiento real de teoría de diseño.
  */
 
 import { getCurrentUser } from '@/lib/auth'
 import { getContextoGenerador } from '@/lib/cerebro'
+import { callGeminiJSON } from '@/lib/gemini'
 
-// ─────────────────────────────────────────────
-// DESIGN SYSTEM PROMPT — Teoría de diseño real
-// ─────────────────────────────────────────────
 const DESIGN_SYSTEM_PROMPT = `
 Eres un diseñador gráfico senior especialista en diseño editorial y comunicación de marca.
 Tenés conocimiento profundo de:
@@ -77,9 +75,6 @@ Tenés conocimiento profundo de:
 - Font stack: font de marca como primera opción, luego fallback system-ui
 `
 
-// ─────────────────────────────────────────────
-// Construir contexto de marca desde el Brain
-// ─────────────────────────────────────────────
 function buildBrandContext(brain) {
   if (!brain?.nombre) return 'No hay marca definida aún.'
 
@@ -125,9 +120,6 @@ function buildBrandContext(brain) {
   return lines.join('\n')
 }
 
-// ─────────────────────────────────────────────
-// Prompt del usuario con instrucción de diseño
-// ─────────────────────────────────────────────
 function buildUserPrompt({ topic, format, qty, brand, imageUrl, conversationHistory }) {
   const colorPrimary = brand?.color_primario || '#6860EE'
   const colorSecondary = brand?.color_secundario || '#F5A623'
@@ -174,7 +166,7 @@ INSTRUCCIONES DE DISEÑO:
 2. ${format === 'carrusel' ? 'Slide 1 = gancho visual que para el scroll. Slides 2-N = desarrollo narrativo. Última slide = CTA.' : 'Diseñá para máximo impacto visual en 0.3 segundos.'}
 3. Cada slide debe ser visualmente independiente pero cohesiva en la serie
 4. Usá la psicología del color: el color primario de la marca y su temperatura deben guiar el estado emocional
-5. Jerarquía clara: 1 mensaje principal por slide, nunca compitas con 2 titulares
+5. Jerarquía clara: 1 mensaje principal por slide, nunca compites con 2 titulares
 6. Espacio negativo generoso — mejor menos elementos, más impacto
 7. El texto debe ser legible siempre — contrastes correctos
 
@@ -192,9 +184,6 @@ Respondé ÚNICAMENTE con JSON válido, sin markdown ni texto extra:
 `
 }
 
-// ─────────────────────────────────────────────
-// Generar imagen con Replicate (Flux)
-// ─────────────────────────────────────────────
 async function generateImage(topic, brand) {
   const apiKey = process.env.REPLICATE_API_KEY
   if (!apiKey) return null
@@ -203,7 +192,6 @@ async function generateImage(topic, brand) {
   const style = brand?.estilo_visual || 'moderno'
   const brandName = brand?.nombre || ''
 
-  // Prompt de imagen consciente de la marca
   const imgPrompt = [
     `${topic}`,
     `professional ${style} style photography`,
@@ -231,7 +219,6 @@ async function generateImage(topic, brand) {
     const prediction = await res.json()
     if (!prediction.id) return null
 
-    // Polling hasta completar (max 30s)
     for (let i = 0; i < 60; i++) {
       await new Promise(r => setTimeout(r, 500))
       const poll = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
@@ -247,9 +234,6 @@ async function generateImage(topic, brand) {
   return null
 }
 
-// ─────────────────────────────────────────────
-// HANDLER PRINCIPAL
-// ─────────────────────────────────────────────
 export async function POST(request) {
   try {
     const user = await getCurrentUser()
@@ -265,71 +249,30 @@ export async function POST(request) {
 
     const brain = brandData || {}
     const qty = Math.min(Math.max(parseInt(quantity) || 5, 1), 10)
-    const apiKey = process.env.ANTHROPIC_API_KEY
 
-    if (!apiKey) {
-      return Response.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
-    }
-
-    // Generar imagen en paralelo mientras preparamos el prompt
     console.log(`🎨 Generando diseño: "${topic}" | Formato: ${format} | Slides: ${qty}`)
     const imageUrl = await generateImage(topic, brain)
     if (imageUrl) console.log('✅ Imagen generada con Replicate')
 
-    // Inyectar el Mentor Ácido + biblioteca teórica + ADN del vault
     const cerebroContext = getContextoGenerador(brain.nombre)
     const system = (cerebroContext ? cerebroContext + '\n\n---\n\n' : '') +
       DESIGN_SYSTEM_PROMPT + '\n\n' + buildBrandContext(brain)
     const userPrompt = buildUserPrompt({ topic, format, qty, brand: brain, imageUrl, conversationHistory })
 
-    // Claude genera los slides completos
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 8000,
-        system,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
-    })
-
-    if (!claudeRes.ok) {
-      const err = await claudeRes.json()
-      throw new Error(err.error?.message || 'Error en Claude API')
-    }
-
-    const claudeData = await claudeRes.json()
-    const responseText = claudeData.content[0]?.text || ''
-
-    // Parsear JSON de la respuesta
-    let parsed = null
-    try {
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-      if (jsonMatch) parsed = JSON.parse(jsonMatch[0])
-    } catch (e) {
-      console.error('Error parsing Claude response:', e)
-      throw new Error('Claude no devolvió JSON válido')
-    }
+    const parsed = await callGeminiJSON(userPrompt, system, { maxTokens: 8000 })
 
     if (!parsed?.slides?.length) {
-      throw new Error('No se generaron slides. Respuesta: ' + responseText.slice(0, 300))
+      throw new Error('No se generaron slides')
     }
 
-    console.log(`✅ ${parsed.slides.length} slides generados por Claude`)
+    console.log(`✅ ${parsed.slides.length} slides generados por Gemini`)
 
-    // Formatear respuesta compatible con el frontend existente
     return Response.json({
       success: true,
       topic,
       format,
       imageUrl,
       slides: parsed.slides,
-      // Compatibilidad con código anterior del frontend
       ads: parsed.slides.map((s, i) => ({
         type: format,
         headline: s.label || `Slide ${i + 1}`,

@@ -31,7 +31,9 @@ export async function GET() {
       dns_error: dnsError
     },
     keys: {
-      anthropic: process.env.ANTHROPIC_API_KEY ? '***SET***' : 'NOT SET'
+      anthropic: process.env.ANTHROPIC_API_KEY ? '***SET***' : 'NOT SET',
+      google: process.env.GOOGLE_API_KEY ? '***SET***' : 'NOT SET',
+      openai: process.env.OPENAI_API_KEY ? '***SET***' : 'NOT SET'
     }
   })
 }

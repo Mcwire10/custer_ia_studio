@@ -1,41 +1,21 @@
 /**
  * POST /api/assistant-context
  * Chat contextual en cada módulo que explica fuentes de datos y permite cambiar herramientas
+ * Ahora usa Gemini
  */
 
-import { readFileSync } from 'fs'
-import { join } from 'path'
-
-function getApiKey() {
-  let apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    try {
-      const envPath = join(process.cwd(), '.env.local')
-      const envContent = readFileSync(envPath, 'utf8')
-      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
-      if (match) apiKey = match[1].trim()
-    } catch (e) {
-      try {
-        const envPath = join(process.cwd(), '.env')
-        const envContent = readFileSync(envPath, 'utf8')
-        const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/)
-        if (match) apiKey = match[1].trim()
-      } catch (e2) {}
-    }
-  }
-  return apiKey
-}
+import { callGemini } from '@/lib/gemini'
 
 const MODULE_CONTEXT = {
   brain: {
     name: 'Brand Brain',
     description: 'Extrae información completa de marca',
     sources: [
-      'Análisis de documentos PDF con Claude Vision',
-      'Procesamiento de texto con Claude Opus',
-      'Extracción visual de 10-15 imágenes de Instagram'
+      'Análisis de documentos con Gemini Vision',
+      'Procesamiento de texto con Gemini',
+      'Extracción visual de imágenes de Instagram'
     ],
-    tools: ['Vision API', 'Text Processing', 'Image Analysis'],
+    tools: ['Gemini Vision', 'Text Processing', 'Image Analysis'],
     alternativeTools: {
       'Text Processing': ['Manual entry', 'Web scraping'],
       'Image Analysis': ['TikTok', 'Pinterest', 'Facebook', 'LinkedIn'],
@@ -147,15 +127,6 @@ export async function POST(request) {
       )
     }
 
-    const apiKey = getApiKey()
-    if (!apiKey) {
-      return Response.json(
-        { error: 'API Key no configurada' },
-        { status: 500 }
-      )
-    }
-
-    // Construir contexto para Claude
     let systemPrompt = `Eres un asistente experto en branding y marketing digital.
 Trabajas en el módulo "${moduleInfo.name}" de una plataforma de gestión de marcas.
 
@@ -174,10 +145,8 @@ Herramientas: ${moduleInfo.tools.join(', ')}
 
 PREGUNTA DEL USUARIO: ${question}`
 
-    // Si usuario solicita herramientas alternativas
     if (tools_requested && tools_requested.length > 0) {
       userPrompt += `
-
 SOLICITUD DE CAMBIO:
 El usuario solicita usar estas herramientas alternativas: ${tools_requested.join(', ')}
 
@@ -187,7 +156,6 @@ Proporciona:
 3. Tiempo estimado para cambiar
 4. Recomendación personal`
 
-      // Obtener opciones de herramientas alternativas
       const alternatives = {}
       for (const tool of moduleInfo.tools) {
         if (moduleInfo.alternativeTools[tool]) {
@@ -196,13 +164,10 @@ Proporciona:
       }
 
       userPrompt += `
-
 HERRAMIENTAS ALTERNATIVAS DISPONIBLES:
 ${JSON.stringify(alternatives, null, 2)}`
     } else {
-      // Si es una pregunta normal
       userPrompt += `
-
 Por favor:
 1. Explica qué estamos usando actualmente
 2. Por qué elegimos estas herramientas
@@ -210,38 +175,11 @@ Por favor:
 4. Si tienes sugerencias de mejora, menciónalas`
     }
 
-    // Llamar a Claude
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: userPrompt
-          }
-        ]
-      })
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error?.message || 'Error en Claude API')
-    }
-
-    const data = await response.json()
-    const assistantResponse = data.content[0].text
+    const result = await callGemini(userPrompt, systemPrompt, { maxTokens: 1000 })
 
     return Response.json({
       success: true,
-      response: assistantResponse,
+      response: result.text,
       module: module,
       moduleInfo: {
         name: moduleInfo.name,
