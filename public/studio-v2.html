@@ -433,87 +433,22 @@
     .main-content {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: var(--space-32);
-      min-height: calc(100vh - 250px);
+      gap: var(--space-24);
     }
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1024px) {
       .main-content {
         grid-template-columns: 1fr;
-        min-height: auto;
       }
     }
 
-    /* ===== GRID: VALIDADOR (2 paneles: input + sugerencias) ===== */
-    #validador .main-content {
-      display: flex;
-      gap: var(--space-24);
-      align-items: flex-start;
+    .tab-content {
+      display: none;
     }
-    #validador .panel {
-      flex: 1;
-      min-width: 0;
-    }
-    #validador .panel:first-child {
-      flex: 0 0 400px;
-    }
-    @media (max-width: 1200px) {
-      #validador .main-content {
-        flex-direction: column;
-      }
-      #validador .panel:first-child {
-        flex: none;
-      }
+    .tab-content.active {
+      display: block;
     }
 
-    /* ===== GRID: GENERADOR (sidebar left + preview right) ===== */
-    #generador .main-content {
-      display: flex;
-      gap: var(--space-24);
-      align-items: flex-start;
-    }
-    #generador .panel:first-child {
-      flex: 0 0 350px;
-      position: sticky;
-      top: 20px;
-    }
-    #generador .panel:last-child {
-      flex: 1;
-      min-height: 70vh;
-    }
-    @media (max-width: 1200px) {
-      #generador .main-content {
-        flex-direction: column;
-      }
-      #generador .panel:first-child {
-        flex: none;
-        position: static;
-      }
-    }
-
-    /* ===== GRID: COPY (form left + resultado right) ===== */
-    #copy .main-content {
-      display: flex;
-      gap: var(--space-24);
-      align-items: flex-start;
-    }
-    #copy .panel:first-child {
-      flex: 0 0 400px;
-    }
-    #copy .panel:last-child {
-      flex: 1;
-      min-height: 60vh;
-    }
-    @media (max-width: 1200px) {
-      #copy .main-content {
-        flex-direction: column;
-      }
-      #copy .panel:first-child {
-        flex: none;
-      }
-    }
-
-    /* ===== BRAND BRAIN (usa su slider interno) ===== */
     #brain .main-content {
       display: block;
     }
