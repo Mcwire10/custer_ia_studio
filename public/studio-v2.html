@@ -2937,27 +2937,21 @@
      */
     async function verifyAuthenticationAndLoadUser() {
       try {
-        // Bypass de autenticación para desarrollo - permitir acceso sin sesión
+        // Bypass de autenticación para desarrollo
         currentUser = { id: 1, username: 'admin' }
         console.log('✅ Modo desarrollo: acceso permitido')
 
-        // Mostrar nombre de usuario en el header
+        // Mostrar nombre de usuario
         const usernameDisplay = document.getElementById('currentUsername')
         if (usernameDisplay) {
           usernameDisplay.textContent = `👤 ${currentUser.username}`
         }
 
-        // Cargar marcas del usuario desde BD
+        // Cargar marcas
         await loadUserBrands()
-
-        // Mostrar nombre de usuario en el header
-        const usernameDisplay = document.getElementById('currentUsername')
-        if (usernameDisplay) {
-          usernameDisplay.textContent = `👤 ${currentUser.username}`
-        }
-
-        // Cargar marcas del usuario desde BD
-        await loadUserBrands()
+      } catch (error) {
+        console.error('Error inicializando:', error)
+      }
     }
 
     /**
