@@ -384,6 +384,108 @@
       }
     }
 
+    /* ===== GRID: VALIDADOR (3 columnas: input | validación | feedback) ===== */
+    #validador .main-content {
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto 1fr;
+    }
+    #validador .panel {
+      min-height: 400px;
+    }
+    @media (max-width: 1400px) {
+      #validador .main-content {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 900px) {
+      #validador .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== GRID: GENERADOR (Preview grande + sidebar) ===== */
+    #generador .main-content {
+      grid-template-columns: 2fr 1fr;
+    }
+    #generador .panel:first-child {
+      min-height: 500px;
+    }
+    @media (max-width: 1200px) {
+      #generador .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== GRID: COPY (Escritura central + herramientas) ===== */
+    #copy .main-content {
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: auto 1fr;
+    }
+    #copy .panel:first-child {
+      min-height: 450px;
+    }
+    @media (max-width: 1200px) {
+      #copy .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== GRID: BRAND BRAIN (Cards en grid) ===== */
+    #brain .main-content {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-24);
+    }
+    #brain .panel {
+      min-height: 300px;
+    }
+    @media (max-width: 1400px) {
+      #brain .main-content {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 900px) {
+      #brain .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== MICRO-INTERACCIONES ===== */
+    .tab-btn {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(61, 57, 172, 0.3);
+    }
+    .tab-btn:active {
+      transform: translateY(0);
+    }
+
+    .panel {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .panel:hover {
+      box-shadow: 0 12px 40px rgba(61, 57, 172, 0.15);
+    }
+
+    button, .btn {
+      transition: all 0.2s ease;
+    }
+    button:hover, .btn:hover {
+      transform: scale(1.02);
+    }
+    button:active, .btn:active {
+      transform: scale(0.98);
+    }
+
+    input, textarea, select {
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--color-brand);
+      box-shadow: 0 0 0 3px rgba(61, 57, 172, 0.15);
+    }
+
     .panel {
       background: var(--bg-secondary);
       backdrop-filter: none;
@@ -2659,6 +2761,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script>
     // ============= ESTADO GLOBAL =============
     let currentBrand = null
@@ -4877,20 +4980,43 @@
 
     // ============= FUNCIONES DE PESTAÑAS =============
 function switchTab(tabName, button) {
-      alert('switchTab: ' + tabName)
-      
-      // QUITAR active de todos los tabs
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active')
+      // GSAP exit animation
+      document.querySelectorAll('.tab-content.active').forEach(tab => {
+        gsap.to(tab, {
+          opacity: 0,
+          y: 20,
+          duration: 0.2,
+          onComplete: () => {
+            tab.classList.remove('active')
+            const newTab = document.getElementById(tabName)
+            if (newTab) {
+              newTab.classList.add('active')
+              gsap.fromTo(newTab,
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+              )
+            }
+          }
+        })
       })
+
+      // Si no hay tab activa, animamos directo
+      if (!document.querySelector('.tab-content.active')) {
+        const newTab = document.getElementById(tabName)
+        if (newTab) {
+          newTab.classList.add('active')
+          gsap.fromTo(newTab,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+          )
+        }
+      }
+
+      // Update button states
       document.querySelectorAll('.tab-btn').forEach(btn => { 
-        if (!btn.classList.contains('tab-disabled')) btn.classList.remove('active') 
+        btn.classList.remove('active') 
       })
-      
-      // AGREGAR active al tab seleccionado
-      const tab = document.getElementById(tabName)
-      tab.classList.add('active')
-      if (button && !button.classList.contains('tab-disabled')) button.classList.add('active')
+      if (button) button.classList.add('active')
     }
 
     function showComingSoon(nombre) {
