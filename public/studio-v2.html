@@ -2487,7 +2487,8 @@
         if (!response.ok || !data.user) {
           // No autenticado - redirigir a login
           console.log('No autenticado, redirigiendo a login...')
-          window.location.href = '/login.html'
+          // TEMPORARY: Commented out for debugging
+          // window.location.href = '/login.html'
           return
         }
 
@@ -2507,7 +2508,8 @@
       } catch (error) {
         console.error('Error verificando autenticación:', error)
         // En caso de error, redirigir a login como medida de seguridad
-        window.location.href = '/login.html'
+        // TEMPORARY: Commented out for debugging
+        // window.location.href = '/login.html'
       }
     }
 
