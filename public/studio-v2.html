@@ -18,17 +18,20 @@
       /* === CUSTER BRAND DESIGN SYSTEM === */
       /* Estratégico. Directo. Con carácter argentino. */
 
-      /* CUSTER: Primary Color - Indigo Profundo */
-      --color-brand: #6860EE;
-      --color-brand-light: #8B7FFF;
-      --color-brand-hover: #4A4199;
-      --color-brand-dark: #3D3B99;
+      /* CUSTER: Primary Color - Azul Custer (60%) */
+      --color-brand: #3d39ac;
+      --color-brand-light: #8253cc;
+      --color-brand-hover: #2a2780;
+      --color-brand-dark: #1f1a5c;
 
-      /* CUSTER: Secondary Color - Naranja Oro */
-      --color-accent: #F5A623;
-      --color-accent-light: #FFB84D;
-      --color-accent-hover: #D98A1F;
-      --color-accent-dark: #E89620;
+      /* CUSTER: Secondary Color - Naranja Custer (20%) */
+      --color-accent: #ffc80f;
+      --color-accent-light: #ffd433;
+      --color-accent-hover: #d9a800;
+      --color-accent-dark: #b38f00;
+
+      /* CUSTER: Accent Verde/Cyan (10%) */
+      --color-accent-tertiary: #6ac7ba;
 
       /* CUSTER: Dark Mode Base */
       --bg-primary: #0D0C1E;
@@ -38,14 +41,14 @@
 
       /* Status Colors - Custer palette */
       --color-success: #10B981;
-      --color-warning: #F5A623;
+      --color-warning: #ffc80f;
       --color-error: #EF4444;
-      --color-info: #6860EE;
+      --color-info: #3d39ac;
 
-      /* Borders - Custer approach: semi-transparent indigo */
-      --border-subtle: rgba(104, 96, 238, 0.1);
-      --border-light: rgba(104, 96, 238, 0.2);
-      --border-medium: rgba(104, 96, 238, 0.35);
+      /* Borders - Custer approach: semi-transparent Custer colors */
+      --border-subtle: rgba(61, 57, 172, 0.1);
+      --border-light: rgba(61, 57, 172, 0.2);
+      --border-medium: rgba(61, 57, 172, 0.35);
 
       /* Text Hierarchy */
       --text-display: #FFFFFF;
@@ -53,7 +56,7 @@
       --text-secondary: #B8B8B8;
       --text-tertiary: #808080;
       --text-disabled: #606060;
-      --text-brand: #F5A623;
+      --text-brand: #ffc80f;
 
       /* Typography */
       --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -260,9 +263,9 @@
     }
 
     .panel {
-      background: red !important;
-      color: yellow !important;
-      border: 5px solid lime !important;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-light);
       border-radius: 0px;
       padding: var(--space-32);
       overflow-y: auto;
@@ -1560,17 +1563,18 @@
     </div>
 
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('brain', this)">🧠 Brand Brain</button>
+      <button class="tab-btn active" onclick="switchTab('validador', this)">🎯 Validador</button>
       <button class="tab-btn" onclick="switchTab('generador', this)">✨ Generador</button>
-      <button class="tab-btn" onclick="switchTab('validador', this)">🎯 Validador</button>
       <button class="tab-btn" onclick="switchTab('copy', this)">✍️ Copy</button>
-      <button class="tab-btn" onclick="switchTab('competencia', this)">🔍 Competencia</button>
-      <button class="tab-btn" onclick="switchTab('reportes', this)">📊 Reportes</button>
-      <button class="tab-btn" onclick="switchTab('analytics', this)">📈 Analytics</button>
+      <button class="tab-btn" onclick="switchTab('brain', this)">🧠 Brand Brain</button>
+      <!-- En construcción: -->
+      <button class="tab-btn" onclick="switchTab('competencia', this)" style="opacity:0.5;cursor:not-allowed;" title="En construcción">🔍 Competencia</button>
+      <button class="tab-btn" onclick="switchTab('reportes', this)" style="opacity:0.5;cursor:not-allowed;" title="En construcción">📊 Reportes</button>
+      <button class="tab-btn" onclick="switchTab('analytics', this)" style="opacity:0.5;cursor:not-allowed;" title="En construcción">📈 Analytics</button>
     </div>
 
     <!-- ====== BRAND BRAIN ====== -->
-    <div id="brain" class="tab-content active">
+    <div id="brain" class="tab-content">
       <div class="panel">
         <h2>🧠 Brand Brain</h2>
         <p class="section-subtitle">Define tu marca: propósito, audiencia, valores y personalidad única.</p>
@@ -2176,7 +2180,7 @@
     </div>
 
     <!-- ====== VALIDADOR ====== -->
-    <div id="validador" class="tab-content">
+    <div id="validador" class="tab-content active">
       <div class="panel">
         <h2>🎯 Validador</h2>
         <p class="section-subtitle">Verifica que tu contenido sea coherente y alineado con tu marca.</p>
