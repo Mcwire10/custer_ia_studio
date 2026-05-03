@@ -288,8 +288,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 30px;
+      margin-bottom: 24px;
       gap: 20px;
+      flex-wrap: wrap;
     }
 
     .logo-container {
@@ -389,11 +390,13 @@
 
     .tabs-nav {
       display: flex;
-      gap: var(--space-16);
-      margin-bottom: var(--space-32);
+      flex-direction: row;
+      gap: 8px;
+      margin-bottom: 24px;
       flex-wrap: wrap;
       border-bottom: 1px solid var(--border-light);
-      padding-bottom: var(--space-16);
+      padding-bottom: 12px;
+      justify-content: flex-start;
     }
 
     .tab-btn {
@@ -466,6 +469,8 @@
     }
 
     .panel {
+      display: block;
+      width: 100%;
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .panel:hover {
