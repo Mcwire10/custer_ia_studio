@@ -2879,6 +2879,7 @@
       try {
         // Bypass de autenticación para desarrollo
         currentUser = { id: 1, username: 'admin' }
+        console.log('🔄 Iniciando app...')
         console.log('✅ Modo desarrollo: acceso permitido')
 
         // Mostrar nombre de usuario
@@ -2938,11 +2939,12 @@
       brandSelect.innerHTML = '<option value="">-- Selecciona una marca --</option>'
 
       // Agregar marcas disponibles
+      console.log('Marcas:', allBrands)
       allBrands.forEach(brand => {
         const option = document.createElement('option')
-        option.value = brand.id
-        option.textContent = brand.name
-        // Marcar currentBrand como seleccionada, o la primera si no hay currentBrand
+        option.value = brand.id || brand.nombre
+        option.textContent = brand.nombre || brand.name || brand.id
+        // Marcar currentBrand como seleccionada
         const isCurrent = currentBrand && currentBrand.id === brand.id;
         if (isCurrent || (!currentBrand && brand === allBrands[0])) {
           option.selected = true
