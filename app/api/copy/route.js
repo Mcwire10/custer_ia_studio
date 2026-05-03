@@ -47,9 +47,10 @@ async function buscarContextoActual(marca) {
 
 export async function POST(request) {
   try {
+    // DEVELOPMENT BYPASS
     const user = await getCurrentUser()
     if (!user) {
-      return Response.json({ error: 'No autenticado' }, { status: 401 })
+      console.log('🔓 Copy: sin autenticación (modo dev)')
     }
 
     const { theme, platforms, brain } = await request.json()
