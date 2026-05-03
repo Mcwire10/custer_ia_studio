@@ -434,15 +434,7 @@
     }
 
     .main-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-24);
-    }
-
-    @media (max-width: 1024px) {
-      .main-content {
-        grid-template-columns: 1fr;
-      }
+      display: block;
     }
 
     .tab-content {
@@ -450,6 +442,11 @@
     }
     .tab-content.active {
       display: block;
+    }
+
+    .tab-content.active .panel {
+      margin-bottom: var(--space-24);
+      width: 100%;
     }
 
     #brain .main-content {
