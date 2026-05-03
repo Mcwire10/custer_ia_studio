@@ -20,8 +20,9 @@
  * }
  */
 
-import fetch from 'node-fetch'
-import { JSDOM } from 'jsdom'
+// Disabled: jsdom has ESM issues with Next.js 16
+// import fetch from 'node-fetch'
+// import { JSDOM } from 'jsdom'
 
 export async function POST(request) {
   try {
@@ -31,12 +32,12 @@ export async function POST(request) {
       return Response.json({ error: 'URL inválida' }, { status: 400 })
     }
 
-    // Validate URL is accessible
+    // Use global fetch (Node 18+)
     let html
     try {
       const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-        timeout: 10000
+        signal: AbortSignal.timeout(10000)
       })
 
       if (!response.ok) {
@@ -51,27 +52,26 @@ export async function POST(request) {
       )
     }
 
-    // Parse HTML
-    const dom = new JSDOM(html)
-    const doc = dom.window.document
+    // Basic HTML parsing without jsdom (regex-based fallback)
+    const doc = parseHTMLBasic(html)
 
     // ============= EXTRACT META DATA =============
     const meta = {
-      title: doc.querySelector('title')?.textContent || '',
-      description: doc.querySelector('meta[name="description"]')?.content || '',
-      ogImage: doc.querySelector('meta[property="og:image"]')?.content || '',
-      favicon: doc.querySelector('link[rel="icon"]')?.href || '',
-      lang: doc.documentElement.getAttribute('lang') || 'es'
+      title: (html.match(/<title[^>]*>([^<]+)<\/title>/i) || [])[1] || '',
+      description: (html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i) || [])[1] || '',
+      ogImage: (html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) || [])[1] || '',
+      favicon: (html.match(/<link[^>]*rel=["'][^"']*icon[^"']*["'][^>]*href=["']([^"']+)["']/i) || [])[1] || '',
+      lang: (html.match(/<html[^>]*lang=["']([^"']+)["']/i) || [])[1] || 'es'
     }
 
     // ============= EXTRACT COLORS FROM CSS =============
-    const colors = extractColorsFromCSS(doc)
+    const colors = extractColorsFromHTML(html)
 
     // ============= EXTRACT FONTS FROM CSS =============
-    const fonts = extractFontsFromCSS(doc)
+    const fonts = extractFontsFromHTML(html)
 
     // ============= EXTRACT CONTENT STRUCTURE =============
-    const structure = extractContentStructure(doc)
+    const structure = extractContentStructureFromHTML(html)
 
     return Response.json({
       success: true,
@@ -90,41 +90,31 @@ export async function POST(request) {
 }
 
 /**
- * Extract colors from CSS and inline styles
+ * Basic HTML parser without jsdom
  */
-function extractColorsFromCSS(doc) {
+function parseHTMLBasic(html) {
+  return {
+    querySelector: (sel) => null, // not implemented
+    querySelectorAll: (sel) => [] // not implemented
+  }
+}
+
+/**
+ * Extract colors from HTML using regex
+ */
+function extractColorsFromHTML(html) {
   const colors = {}
-  const colorRegex =
-    /#[0-9a-f]{6}|#[0-9a-f]{3}|rgb\([0-9,\s]+\)|rgba\([0-9,.\s]+\)|hsl\([0-9,\s%]+\)/gi
+  const colorRegex = /#[0-9a-f]{6}|#[0-9a-f]{3}/gi
 
-  // From style tags
-  const styleTags = doc.querySelectorAll('style')
-  styleTags.forEach(tag => {
-    const matches = tag.textContent.match(colorRegex)
-    if (matches) {
-      matches.forEach(color => {
-        const hex = colorToHex(color)
-        colors[hex] = (colors[hex] || 0) + 1
-      })
-    }
+  const matches = html.match(colorRegex) || []
+  matches.forEach(color => {
+    const hex = color.length === 4
+      ? '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3]
+      : color.toLowerCase()
+    colors[hex] = (colors[hex] || 0) + 1
   })
 
-  // From inline styles on major elements
-  doc.querySelectorAll('[style*="color"]').forEach(el => {
-    const style = el.getAttribute('style')
-    if (style) {
-      const matches = style.match(colorRegex)
-      if (matches) {
-        matches.forEach(color => {
-          const hex = colorToHex(color)
-          colors[hex] = (colors[hex] || 0) + 1
-        })
-      }
-    }
-  })
-
-  // Get top colors
-  const topColors = Object.entries(colors)
+  return Object.entries(colors)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([hex, count]) => ({
@@ -132,43 +122,24 @@ function extractColorsFromCSS(doc) {
       name: getColorName(hex),
       confidence: Math.min(100, 50 + count * 10)
     }))
-
-  return topColors
 }
 
 /**
- * Extract fonts from CSS
+ * Extract fonts from HTML using regex
  */
-function extractFontsFromCSS(doc) {
+function extractFontsFromHTML(html) {
   const fonts = {}
+  const fontMatches = html.match(/font-family:\s*['"]?([^;'"\n]+)['"]?;/gi) || []
 
-  // From style tags
-  const styleTags = doc.querySelectorAll('style')
-  styleTags.forEach(tag => {
-    const fontMatches = tag.textContent.match(/font-family:\s*['"]?([^;'"\n]+)['"]?;/gi)
-    if (fontMatches) {
-      fontMatches.forEach(match => {
-        const family = match.match(/font-family:\s*['"]?([^;'"\n]+)['"]?;/i)[1]?.trim()
-        if (family && family.length > 2) {
-          const cleanFamily = family.split(',')[0].replace(/['"]/g, '').trim()
-          fonts[cleanFamily] = (fonts[cleanFamily] || 0) + 1
-        }
-      })
-    }
-  })
-
-  // From computed styles on main elements
-  const mainElements = doc.querySelectorAll('h1, h2, p, body')
-  mainElements.forEach(el => {
-    const computed = getComputedStyle ? getComputedStyle(el).fontFamily : null
-    if (computed) {
-      const cleanFamily = computed.split(',')[0].replace(/['"]/g, '').trim()
+  fontMatches.forEach(match => {
+    const family = (match.match(/font-family:\s*['"]?([^;'"\n]+)['"]?;/i) || [])[1]?.trim()
+    if (family && family.length > 2) {
+      const cleanFamily = family.split(',')[0].replace(/['"]/g, '').trim()
       fonts[cleanFamily] = (fonts[cleanFamily] || 0) + 1
     }
   })
 
-  // Get top fonts
-  const topFonts = Object.entries(fonts)
+  return Object.entries(fonts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([family, count]) => ({
@@ -176,51 +147,37 @@ function extractFontsFromCSS(doc) {
       confidence: Math.min(100, 60 + count * 10),
       type: detectFontType(family)
     }))
-
-  return topFonts
 }
 
 /**
- * Extract content structure
+ * Extract content structure from HTML using regex
  */
-function extractContentStructure(doc) {
+function extractContentStructureFromHTML(html) {
   const headings = []
   const ctas = []
-  const sections = []
 
-  // Headings
-  doc.querySelectorAll('h1, h2, h3').forEach(h => {
-    const text = h.textContent.trim().substring(0, 100)
+  // Extract headings
+  const headingMatches = html.match(/<h[123][^>]*>([^<]+)<\/h[123]>/gi) || []
+  headingMatches.slice(0, 5).forEach(h => {
+    const text = (h.match(/>([^<]+)</) || [])[1]?.trim().substring(0, 100)
     if (text) headings.push(text)
   })
 
-  // CTAs
-  doc.querySelectorAll('a[href], button').forEach(el => {
-    const text = el.textContent.trim().substring(0, 50)
-    if (
-      text &&
-      (text.toLowerCase().includes('compra') ||
-        text.toLowerCase().includes('descargar') ||
-        text.toLowerCase().includes('probar') ||
-        text.toLowerCase().includes('contacto') ||
-        text.toLowerCase().includes('más'))
-    ) {
+  // Extract CTAs
+  const ctaMatches = html.match(/<(a|button)[^>]*>([^<]+)<\/(a|button)>/gi) || []
+  ctaMatches.forEach(el => {
+    const text = (el.match(/>([^<]+)</) || [])[1]?.trim().substring(0, 50)
+    if (text && /compra|descargar|probar|contacto|más/i.test(text)) {
       ctas.push(text)
     }
-  })
-
-  // Sections
-  doc.querySelectorAll('section, article, main, [role="main"]').forEach(sec => {
-    const text = sec.textContent.trim().substring(0, 150)
-    if (text) sections.push(text)
   })
 
   return {
     headings: headings.slice(0, 5),
     ctas: ctas.slice(0, 3),
-    sections: sections.length,
-    hasNavigation: !!doc.querySelector('nav'),
-    hasFooter: !!doc.querySelector('footer')
+    sections: (html.match(/<section|<article|<main/gi) || []).length,
+    hasNavigation: /<nav/i.test(html),
+    hasFooter: /<footer/i.test(html)
   }
 }
 
