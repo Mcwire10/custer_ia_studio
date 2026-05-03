@@ -3,18 +3,19 @@
  * Ejecutar: curl -X POST https://vercel.app/api/setup/import-cerebro
  */
 
-import { getConnection } from '@/lib/db'
+import { query, getPool } from '@/lib/db'
 import { readFileSync, readdirSync, existsSync } from 'fs'
 import { join } from 'path'
 
 export async function POST(request) {
   try {
-    const pool = await getConnection()
+    console.log('🔄 Importando cerebro...')
+    const pool = await getPool()
     
     // ==================== CREAR TABLAS ====================
     
     // 1. Tabla de contenido teórico (biblioteca)
-    await pool.execute(`
+    await query(`
       CREATE TABLE IF NOT EXISTS content_library (
         id INT PRIMARY KEY AUTO_INCREMENT,
         type VARCHAR(50) NOT NULL,
@@ -30,7 +31,7 @@ export async function POST(request) {
     console.log('✓ Tabla content_library creada')
 
     // 2. Tabla de system prompts
-    await pool.execute(`
+    await query(`
       CREATE TABLE IF NOT EXISTS system_prompts (
         id INT PRIMARY KEY AUTO_INCREMENT,
         name VARCHAR(255) NOT NULL,
@@ -44,7 +45,7 @@ export async function POST(request) {
     console.log('✓ Tabla system_prompts creada')
 
     // 3. Tabla de templates
-    await pool.execute(`
+    await query(`
       CREATE TABLE IF NOT EXISTS templates (
         id INT PRIMARY KEY AUTO_INCREMENT,
         name VARCHAR(255) NOT NULL,
@@ -77,7 +78,7 @@ export async function POST(request) {
           colorPrimario = '#' + colorMatch[1]
         }
         
-        await pool.execute(
+        await query(
           `INSERT IGNORE INTO brands (user_id, name, color_primario, data) VALUES (1, ?, ?, ?)`,
           [name, colorPrimario, JSON.stringify({ fullContent: content, imported: true })]
         )
@@ -94,7 +95,7 @@ export async function POST(request) {
         const content = readFileSync(join(teoriaPath, file), 'utf-8')
         const title = file.replace('.md', '').replace(/_/g, ' ')
         
-        await pool.execute(
+        await query(
           `INSERT INTO content_library (type, title, category, content, file_path) VALUES (?, ?, ?, ?, ?)`,
           ['teoria', title, 'Biblioteca', content, `01_Biblioteca_Teorica/${file}`]
         )
@@ -111,7 +112,7 @@ export async function POST(request) {
         const content = readFileSync(join(sopPath, file), 'utf-8')
         const name = file.replace('.md', '').replace(/_/g, ' ')
         
-        await pool.execute(
+        await query(
           `INSERT INTO system_prompts (name, description, prompt, category) VALUES (?, ?, ?, ?)`,
           [name, `System prompt para ${name}`, content, 'mentor']
         )
@@ -128,7 +129,7 @@ export async function POST(request) {
         const content = readFileSync(join(templatePath, file), 'utf-8')
         const name = file.replace('.md', '').replace(/_/g, ' ')
         
-        await pool.execute(
+        await query(
           `INSERT INTO templates (name, type, description, template_content) VALUES (?, ?, ?, ?)`,
           [name, 'caso_exito', `Template ${name}`, content]
         )
