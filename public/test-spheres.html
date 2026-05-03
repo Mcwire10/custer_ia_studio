@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Orange-Gold Spheres - Bootstrap Lombardi Design</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF8C00;
+      --primary-light: #FFB347;
+      --accent: #D4AF37;
+      --accent-light: #F0D68C;
+      --bg-dark: #0A0E27;
+      --bg-card: #151B3C;
+      --bg-card-hover: #1C2447;
+      --text-primary: #FFFFFF;
+      --text-secondary: rgba(255, 255, 255, 0.7);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+      --radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--accent-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+      font-size: 1.1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+      border: 1px solid rgba(255, 140, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 140, 0, 0.3);
+    }
+
+    .sphere-container {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 24px;
+      position: relative;
+      perspective: 1000px;
+    }
+
+    .sphere {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      background: radial-gradient(circle at 30% 30%, var(--primary-light), var(--primary) 40%, var(--accent) 70%, #B8860B);
+      box-shadow: 
+        inset -20px -20px 40px rgba(0, 0, 0, 0.4),
+        inset 20px 20px 40px rgba(255, 255, 255, 0.3),
+        0 0 40px rgba(255, 140, 0, 0.4);
+      animation: rotateSphere 10s infinite linear;
+      transform-style: preserve-3d;
+    }
+
+    .sphere::before {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 20%;
+      width: 30%;
+      height: 20%;
+      background: radial-gradient(ellipse, rgba(255, 255, 255, 0.6), transparent);
+      border-radius: 50%;
+      filter: blur(8px);
+    }
+
+    .sphere::after {
+      content: '';
+      position: absolute;
+      bottom: 20%;
+      right: 15%;
+      width: 25%;
+      height: 25%;
+      background: radial-gradient(circle, var(--accent-light), transparent);
+      border-radius: 50%;
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes rotateSphere {
+      0% { transform: rotateY(0deg) rotateX(0deg); }
+      25% { transform: rotateY(90deg) rotateX(15deg); }
+      50% { transform: rotateY(180deg) rotateX(0deg); }
+      75% { transform: rotateY(270deg) rotateX(-15deg); }
+      100% { transform: rotateY(360deg) rotateX(0deg); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.2); }
+    }
+
+    .sphere-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .sphere-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 12px;
+      background: rgba(255, 140, 0, 0.15);
+      border: 1px solid rgba(255, 140, 0, 0.3);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--primary-light);
+      margin-top: 16px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>3D Orange-Gold Spheres</h1>
+    <p class="subtitle">Bootstrap Lombardi design system with Material Design 3 expressive shapes</p>
+    
+    <div class="grid">
+      <!-- Sphere 1 -->
+      <div class="card">
+        <div class="sphere-container">
+          <div class="sphere"></div>
+        </div>
+        <div class="sphere-title">Energy Core</div>
+        <p class="sphere-desc">Vibrant orange sphere with golden accents, representing dynamic energy and power.</p>
+        <span class="tag">3D</span>
+        <span class="tag">Animated</span>
+      </div>
+
+      <!-- Sphere 2 -->
+      <div class="card">
+        <div class="sphere-container">
+          <div class="sphere"></div>
+        </div>
+        <div class="sphere-title">Solaris</div>
+        <p class="sphere-desc">Warm gradient flowing from bright orange to rich gold metallic finish.</p>
+        <span class="tag">Gradient</span>
+        <span class="tag">Premium</span>
+      </div>
+
+      <!-- Sphere 3 -->
+      <div class="card">
+        <div class="sphere-container">
+          <div class="sphere"></div>
+        </div>
+        <div class="sphere-title">Aurum</div>
+        <p class="sphere-desc">Elegant dark navy background with sophisticated gold metallic reflections.</p>
+        <span class="tag">Luxury</span>
+        <span class="tag">Design</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

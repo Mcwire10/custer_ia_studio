@@ -260,14 +260,13 @@
     }
 
     .panel {
-      background: var(--bg-secondary);
-      backdrop-filter: none;
-      border: 1px solid var(--border-light);
+      background: red !important;
+      color: yellow !important;
+      border: 5px solid lime !important;
       border-radius: 0px;
       padding: var(--space-32);
       overflow-y: auto;
       max-height: calc(100vh - 200px);
-      box-shadow: var(--shadow-sm);
     }
 
     /* Liquid Glass Mode - Activated via [data-liquid-glass="true"] */
@@ -333,7 +332,17 @@
     }
 
     .tab-content {
-      display: none;
+      display: none !important;
+      background: blue !important;
+      color: white !important;
+      min-height: 300px !important;
+    }
+
+    .tab-content.active {
+      display: block !important;
+      background: green !important;
+      color: white !important;
+      min-height: 300px !important;
     }
 
     .tab-content.active {
