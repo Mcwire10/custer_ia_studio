@@ -66,10 +66,27 @@ function extraerTipografiasDeMarca(adnText) {
 
 /**
  * Construye los CSS tokens reales de marca
+ * adnText: texto del archivo markdown del vault
+ * brain: objeto con campos estructurados de MySQL (fallback)
  */
-function buildBrandTokens(adnText) {
-  const colores = extraerColoresDeMarca(adnText)
-  const tipografia = extraerTipografiasDeMarca(adnText)
+function buildBrandTokens(adnText, brain = null) {
+  let colores = extraerColoresDeMarca(adnText)
+  let tipografia = extraerTipografiasDeMarca(adnText)
+
+  // Si el ADN no tiene colores, intentar desde brain (MySQL)
+  if (colores.length === 0 && brain) {
+    const colorFields = [brain.color_primario, brain.color_secundario, brain.colores_hex]
+    for (const field of colorFields) {
+      if (!field) continue
+      const extracted = extraerColoresDeMarca(field)
+      if (extracted.length > 0) { colores = extracted; break }
+    }
+  }
+  // Tipografía desde brain si no la encontramos en ADN
+  if (!tipografia && brain?.tipografia_principal) {
+    tipografia = brain.tipografia_principal
+  }
+
   if (colores.length === 0 && !tipografia) return null
 
   const primary = colores[0] || null
@@ -110,6 +127,29 @@ function buildBrandTokens(adnText) {
   }
 
   return { css, tipBlock, colores, tipografia }
+}
+
+/**
+ * Construye un texto de ADN desde los campos estructurados de MySQL
+ * Se usa como fallback cuando no hay archivo .md en el vault
+ */
+function buildAdnFromBrain(brain) {
+  if (!brain) return null
+  const lines = []
+  if (brain.nombre || brain.name) lines.push(`# ADN de Marca: ${brain.nombre || brain.name}`)
+  if (brain.rubro) lines.push(`\n## Rubro\n${brain.rubro}`)
+  if (brain.descripcion) lines.push(`\n## Descripción\n${brain.descripcion}`)
+  if (brain.personalidad) lines.push(`\n## Personalidad\n${brain.personalidad}`)
+  if (brain.tono) lines.push(`\n## Tono de comunicación\n${brain.tono}`)
+  if (brain.valores) lines.push(`\n## Valores\n${brain.valores}`)
+  if (brain.tipografia_principal) lines.push(`\n## Tipografía\nPrincipal: **${brain.tipografia_principal}**`)
+  if (brain.color_primario) lines.push(`\n## Colores\nPrimario: ${brain.color_primario}`)
+  if (brain.colores_hex) lines.push(`Paleta: ${brain.colores_hex}`)
+  if (brain.propuesta_valor) lines.push(`\n## Propuesta de valor\n${brain.propuesta_valor}`)
+  if (brain.publico_objetivo) lines.push(`\n## Público objetivo\n${brain.publico_objetivo}`)
+  if (brain.estetica) lines.push(`\n## Estética visual\n${brain.estetica}`)
+  if (brain.no_es) lines.push(`\n## Lo que NO es la marca\n${brain.no_es}`)
+  return lines.length > 1 ? lines.join('\n') : null
 }
 
 /**
@@ -218,10 +258,24 @@ export async function POST(request) {
 
     const openaiKey = process.env.OPENAI_API_KEY
     const dims = FORMATOS[formato] || FORMATOS['placa-feed']
-    const adn = getADNMarca(brain?.nombre)
+
+    // ── ADN de marca: filesystem (.md) + datos estructurados de MySQL ────
+    const adnFile = getADNMarca(brain?.nombre)
+
+    // Si hay datos estructurados en brain (MySQL), construir un ADN sintético como fallback/enriquecimiento
+    const adnMysql = brain && (brain.rubro || brain.personalidad || brain.descripcion || brain.tipografia_principal)
+      ? buildAdnFromBrain(brain)
+      : null
+
+    // El ADN final: archivo del vault si existe, sino datos de MySQL, sino null
+    const adn = adnFile || adnMysql
+
+    if (!adnFile && brain?.nombre) {
+      console.log(`[generate-design] ADN archivo no encontrado para "${brain.nombre}" — usando datos MySQL`)
+    }
 
     // ── Tokens de marca ─────────────────────────────────────────────────
-    const brandTokens = buildBrandTokens(adn)
+    const brandTokens = buildBrandTokens(adn, brain)
     const hasBrand = !!brain?.nombre
 
     // ── Clasificar assets por tipo ────────────────────────────────────────

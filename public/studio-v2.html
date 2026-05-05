@@ -4214,43 +4214,65 @@
         return
       }
 
-      const brandIdStr = brandId.toString();
-      currentBrand = allBrands.find(b => {
-        const idStr = b.id ? b.id.toString() : b.nombre.toLowerCase().replace(/\s+/g, '-');
-        return idStr === brandIdStr;
-      });
-      if (currentBrand) {
-        localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
+      const brandIdStr = brandId.toString()
+      // Primero setear con los datos mínimos (para respuesta inmediata de UI)
+      const minimal = allBrands.find(b => {
+        const idStr = b.id ? b.id.toString() : b.nombre?.toLowerCase().replace(/\s+/g, '-')
+        return idStr === brandIdStr
+      })
 
-        // Restaurar imágenes y análisis visual
-        currentBrandImages = currentBrand.visualAssets?.images || []
-        currentVisualAnalysis = currentBrand.visualAssets?.analysis || null
+      if (!minimal) return
 
-        // Actualizar vista previa de imágenes
-        const preview = document.getElementById('visualImagesPreview')
-        if (preview && currentBrandImages.length > 0) {
-          preview.innerHTML = ''
-          currentBrandImages.forEach((img, imageIndex) => {
-            const imgEl = document.createElement('img')
-            imgEl.src = img.data || img
-            imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border 0.3s;'
-            imgEl.title = img.name || `Imagen ${imageIndex + 1}`
-            imgEl.onmouseover = () => (imgEl.style.borderColor = 'rgb(94, 106, 210)')
-            imgEl.onmouseout = () => (imgEl.style.borderColor = 'transparent')
-            imgEl.onclick = () => {
-              currentBrandImages.splice(imageIndex, 1)
-              preview.removeChild(imgEl)
-              showToast('❌ Imagen removida', 'info')
+      currentBrand = minimal
+      syncActionButtons()
+
+      // Cargar el brand COMPLETO desde la API (tiene todos los campos: rubro, tipografia, personalidad, etc.)
+      fetch(`/api/brands?id=${minimal.id}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.brand) {
+            // Enriquecer con datos completos, preservar nombre
+            currentBrand = {
+              ...data.brand,
+              nombre: data.brand.nombre || data.brand.name || minimal.nombre || minimal.name
             }
-            preview.appendChild(imgEl)
-          })
-        }
 
-        // Persistir en localStorage como caché de sesión (ARCH-01)
-        localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
-        updateBrainPreview()
-        syncActionButtons()
-      }
+            // Restaurar imágenes y análisis visual
+            currentBrandImages = currentBrand.visualAssets?.images || []
+            currentVisualAnalysis = currentBrand.visualAssets?.analysis || null
+
+            // Actualizar vista previa de imágenes
+            const preview = document.getElementById('visualImagesPreview')
+            if (preview && currentBrandImages.length > 0) {
+              preview.innerHTML = ''
+              currentBrandImages.forEach((img, imageIndex) => {
+                const imgEl = document.createElement('img')
+                imgEl.src = img.data || img
+                imgEl.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border 0.3s;'
+                imgEl.title = img.name || `Imagen ${imageIndex + 1}`
+                imgEl.onmouseover = () => (imgEl.style.borderColor = 'rgb(94, 106, 210)')
+                imgEl.onmouseout = () => (imgEl.style.borderColor = 'transparent')
+                imgEl.onclick = () => {
+                  currentBrandImages.splice(imageIndex, 1)
+                  preview.removeChild(imgEl)
+                  showToast('❌ Imagen removida', 'info')
+                }
+                preview.appendChild(imgEl)
+              })
+            }
+
+            localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
+            updateBrainPreview()
+            syncActionButtons()
+          }
+        })
+        .catch(e => {
+          // Si falla la carga completa, quedarse con el mínimo (al menos tiene nombre)
+          console.warn('No se pudo cargar brand completo:', e.message)
+          currentBrand = { ...minimal, nombre: minimal.nombre || minimal.name }
+          localStorage.setItem('custer_current_brand', JSON.stringify(currentBrand))
+          updateBrainPreview()
+        })
     }
 
     function updateBrainPreview() {
