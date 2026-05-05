@@ -212,6 +212,8 @@ export async function POST(request) {
       assets = []
     } = await request.json()
 
+    const safeAssets = Array.isArray(assets) ? assets : []
+
     if (!brief?.trim()) return Response.json({ error: 'Brief vacío' }, { status: 400 })
 
     const openaiKey = process.env.OPENAI_API_KEY
@@ -231,7 +233,7 @@ export async function POST(request) {
           ? 'logo' : 'otro'
       ))
     })
-    const allAssets = assets.map(normalizeAsset)
+    const allAssets = safeAssets.map(normalizeAsset)
 
     const referenceAssets = allAssets.filter(a => a.tipo === 'referencia')
     const fondoAsset = allAssets.find(a => a.tipo === 'fondo')       // imagen de fondo subida por el usuario
