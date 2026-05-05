@@ -222,13 +222,21 @@ export async function POST(request) {
     const brandTokens = buildBrandTokens(adn)
     const hasBrand = !!brain?.nombre
 
-    // ── Separar assets: referencias de estilo vs assets regulares ───────
-    const referenceAssets = assets.filter(a => a.isReference === true)
-    const regularAssets = assets.filter(a => a.isReference !== true)
-    const logoAsset = regularAssets.find(a =>
-      a.name?.toLowerCase().includes('logo') ||
-      a.fileName?.toLowerCase().includes('logo')
-    )
+    // ── Clasificar assets por tipo ────────────────────────────────────────
+    // Compatibilidad hacia atrás: isReference (viejo) → tipo='referencia'
+    const normalizeAsset = a => ({
+      ...a,
+      tipo: a.tipo || (a.isReference ? 'referencia' : (
+        a.name?.toLowerCase().includes('logo') || a.fileName?.toLowerCase().includes('logo')
+          ? 'logo' : 'otro'
+      ))
+    })
+    const allAssets = assets.map(normalizeAsset)
+
+    const referenceAssets = allAssets.filter(a => a.tipo === 'referencia')
+    const fondoAsset = allAssets.find(a => a.tipo === 'fondo')       // imagen de fondo subida por el usuario
+    const logoAsset = allAssets.find(a => a.tipo === 'logo')
+    const regularAssets = allAssets.filter(a => a.tipo !== 'referencia' && a.tipo !== 'fondo')
     const hasAssets = regularAssets.length > 0
 
     // ── PASO 1: Analizar referencias de estilo con Claude Vision ─────────
@@ -238,17 +246,25 @@ export async function POST(request) {
       styleDescription = await analyzeReferenceAssets(referenceAssets, brain?.nombre)
     }
 
-    // ── PASO 2: Generar imagen de fondo fotográfica (Claude Banana + gpt-image-1) ──
+    // ── PASO 2: Obtener imagen de fondo ───────────────────────────────────
+    // Prioridad: 1) fondo subido por usuario, 2) generar con Claude Banana + gpt-image-1
     let backgroundImage = null
     let bgPromptUsado = null
-    if (openaiKey && !iteracion) { // Solo en generación nueva, no en iteraciones
+
+    if (fondoAsset) {
+      // El usuario subió su propia imagen de fondo
+      backgroundImage = fondoAsset.base64 || fondoAsset.data
+      console.log('[generate-design] Usando imagen de fondo subida por usuario')
+    } else if (openaiKey && !iteracion) {
+      // Auto-generar fondo fotográfico con Claude Banana + gpt-image-1
       try {
         bgPromptUsado = await buildImagePrompt(brief, adn, brain, dims)
         backgroundImage = await generateBackgroundImage(bgPromptUsado, dims)
-        console.log('[generate-design] Fondo generado exitosamente')
+        console.log('[generate-design] Fondo fotográfico generado exitosamente')
       } catch (e) {
         console.warn('[generate-design] No se pudo generar fondo fotográfico:', e.message)
         backgroundImage = null
+        // Fallback: modo institucional (sin foto, puro CSS de marca)
       }
     }
 
@@ -468,8 +484,148 @@ CHECKLIST
   }
 
   // ════════════════════════════════════════════════════════
-  // MODO SIN FONDO (fallback — Claude diseña todo con CSS)
+  // MODO INSTITUCIONAL — diseño de marca puro con CSS
+  // Se usa cuando no hay foto disponible (ni subida ni generada)
+  // La pieza se construye 100% con la identidad visual de la marca
   // ════════════════════════════════════════════════════════
+  return `Sos un director de arte senior especializado en identidad visual y diseño editorial para social media.
+Tu trabajo: crear una pieza de marca INSTITUCIONAL — sin fotografía, pero con la misma fuerza visual que una pieza de agencia.
+Esto significa que la identidad visual de la marca (colores, tipografía, recursos gráficos propios) son los protagonistas absolutos.
+
+════════════════════════════════════════════════════════
+REGLA #1 — OUTPUT (ABSOLUTA)
+════════════════════════════════════════════════════════
+- Respondé ÚNICAMENTE con el HTML completo. Cero texto afuera del HTML.
+- 100% self-contained: todo CSS en <style>, todo JS en <script>. Cero CDN, cero @import externos.
+- El contenedor raíz = exactamente ${dims.w}px × ${dims.h}px, overflow:hidden, position:relative.
+
+════════════════════════════════════════════════════════
+REGLA #2 — IDENTIDAD DE MARCA (NO NEGOCIABLE)
+════════════════════════════════════════════════════════
+${brandTokens ? `
+TOKENS EXTRAÍDOS DEL ADN — COPIAR EXACTAMENTE EN <style>:
+\`\`\`css
+${brandTokens.css}${brandTokens.tipBlock}
+\`\`\`
+COLORES: ${brandTokens.colores.join(' · ')}
+${brandTokens.tipografia ? `TIPOGRAFÍA: ${brandTokens.tipografia}` : ''}
+
+APLICACIÓN:
+- --brand-primary: el color más presente. Puede ser el fondo de la pieza completa.
+- --brand-secondary: para acentos, subrayados, CTAs, detalles decorativos
+- Derivados oscuros: color-mix(in srgb, var(--brand-primary) 80%, black)
+- Derivados claros: color-mix(in srgb, var(--brand-primary) 15%, white)
+${brandTokens.tipografia ? `- var(--font-brand): en titulares y display — el carácter de la marca está en la tipografía` : ''}
+- NUNCA grises genéricos. TODO debe derivar del ADN.
+` : `Sin ADN. Elegí 1 color fuerte y derivá toda la paleta desde él. Sin grises.`}
+
+════════════════════════════════════════════════════════
+REGLA #3 — EL DISEÑO INSTITUCIONAL TIENE SUS PROPIOS RECURSOS
+════════════════════════════════════════════════════════
+Sin foto de fondo, el peso visual lo llevan estos elementos. Usá al menos 3:
+
+1. BLOQUES DE COLOR:
+   - Fondo sólido en --brand-primary o color muy oscuro
+   - Bloque de acento en --brand-secondary cortando el layout
+   - Contrastes fuertes (negro sobre primario, blanco sobre oscuro)
+
+2. TIPOGRAFÍA COMO ELEMENTO GRÁFICO:
+   - Letras o números MUY grandes (opacity: 0.06–0.12) como textura de fondo
+   - Mix de pesos: headline bold/condensed + body light
+   - Texto rotado como elemento decorativo (transform: rotate(-90deg))
+   - Letras outline: -webkit-text-stroke: 2px var(--brand-primary); color: transparent
+
+3. FORMAS GEOMÉTRICAS DE LA MARCA:
+   - Rectángulos, líneas, círculos en colores de marca
+   - Diagonal de acento: div rotado −15° a −45° cortando el canvas
+   - Semicírculo: border-radius: 50% en un div rectangular
+   - Esquinas de marco: solo 2 esquinas con border parcial (sin cerrar el rectángulo)
+
+4. PATRONES PROPIOS:
+   Grid de puntos SVG (en color de marca, no gris):
+   <svg><pattern id="p" width="24" height="24" patternUnits="userSpaceOnUse">
+     <circle cx="2" cy="2" r="1.5" fill="var(--brand-primary)" opacity="0.2"/>
+   </pattern><rect width="${dims.w}" height="${dims.h}" fill="url(#p)"/></svg>
+
+   Líneas diagonales como textura:
+   background: repeating-linear-gradient(-45deg, transparent, transparent 10px,
+     color-mix(in srgb, var(--brand-primary) 8%, transparent) 10px,
+     color-mix(in srgb, var(--brand-primary) 8%, transparent) 11px)
+
+5. SEPARADORES Y LÍNEAS EXPRESIVAS:
+   - Línea fina horizontal de ancho parcial (no full-width)
+   - Línea con nodo: punto de marca al final de una línea
+   - Gradiente de línea: de color sólido a transparente
+
+6. FLECHAS Y SUBRAYADOS SVG gestual (los de la Regla #5 general)
+
+════════════════════════════════════════════════════════
+REGLA #4 — COMPOSICIÓN (SIN FOTO, LA ESTRUCTURA ES TODO)
+════════════════════════════════════════════════════════
+Elegí una estructura que genere TENSIÓN VISUAL:
+
+SPLIT VERTICAL (color / blanco): Fondo en color de marca en 60%, texto blanco. Franja blanca con texto oscuro en 40%.
+DIAGONAL DE CORTE: Un elemento rotado 30–45° divide el canvas en dos zonas de color.
+FONDO TOTAL: Todo el canvas en color de marca. Texto en blanco o contraste.
+BLOQUES APILADOS: Franjas horizontales de color + blanco + color, como un afiche.
+MARCO INTERIOR: Borde grueso interior en color de marca, contenido en el centro.
+
+El ojo nunca debe dudar a dónde ir primero. Jerarquía tipográfica clara: h1 enorme, h2 mediano, body pequeño.
+
+════════════════════════════════════════════════════════
+REGLA #5 — CAMINO DEL LECTOR
+════════════════════════════════════════════════════════
+Patrón Z (feed): top-izq logo → top-der shape → diagonal → bottom mensaje → bottom-izq CTA
+Patrón F (stories): bloque superior dominante → subtítulo → CTA
+Patrón Focal: todo converge a UN elemento. El resto orbita.
+
+════════════════════════════════════════════════════════
+REGLA #6 — CSS FOUNDATION
+════════════════════════════════════════════════════════
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { -webkit-font-smoothing: antialiased; overflow: hidden; }
+:root {
+${cssScale}
+}
+${animations}
+
+════════════════════════════════════════════════════════
+REGLA #7 — LOGOS Y ASSETS
+════════════════════════════════════════════════════════
+${hasAssets ? `
+ASSETS:
+${regularAssets.map(a => `  <img src="{{asset:${a.name}}}" alt="${a.name}" />`).join('\n')}
+${logoAsset ? `\n⚠️ LOGO "${logoAsset.name}": Obligatorio. Esquina superior o franja inferior de marca.` : ''}
+` : `Sin assets. Si el brief menciona un producto, describir con tipografía y recursos gráficos.`}
+
+${styleDescription ? `
+════════════════════════════════════════════════════════
+REFERENCIAS DE ESTILO (Claude Vision)
+════════════════════════════════════════════════════════
+${styleDescription}
+Aplicá el mismo espíritu compositivo, tipográfico y de recursos gráficos.
+` : ''}
+
+════════════════════════════════════════════════════════
+REGLA #8 — ADN DE MARCA COMPLETO
+════════════════════════════════════════════════════════
+${adn ? `${adn}\n\nExtraer: RUBRO → lenguaje visual, PERSONALIDAD → recursos propios, LO QUE NO ES → evitar.` : 'Sin ADN. Diseñar con criterio profesional basado en el brief.'}
+
+════════════════════════════════════════════════════════
+CHECKLIST
+════════════════════════════════════════════════════════
+□ ¿Usé al menos 3 recursos gráficos propios de la marca?
+□ ¿Todo color deriva del ADN (cero grises genéricos)?
+□ ¿La tipografía tiene jerarquía clara (enorme / mediano / pequeño)?
+□ ¿El diseño se ve como una pieza de agencia, no como un template?
+□ ¿El logo está visible si fue subido?
+
+NOTA FINAL: Esta es una pieza INSTITUCIONAL. La identidad visual de la marca debe brillar sin necesitar una foto.
+Un buen diseño institucional es tan poderoso como uno fotográfico cuando la ejecución es correcta.`
+
+}
+
+/* DEAD CODE — mantenido como referencia histórica
   return `Sos un director de arte senior especializado en social media para agencias de marketing.
 Generás HTML/CSS 100% self-contained que se ve como una pieza de agencia real — lista para publicar.
 
@@ -598,4 +754,4 @@ CHECKLIST
 □ ¿El texto principal tiene mínimo ${Math.round(dims.w * 0.07)}px?
 □ ¿La composición tiene tensión/asimetría?
 □ ¿El logo está visible si fue subido?`
-}
+*/

@@ -2428,8 +2428,9 @@
                 <input type="file" id="genAssetInput" accept="image/*" multiple style="display: none;" onchange="handleAssetUpload(this)">
               </div>
               <div id="genAssetList" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
-              <div style="margin-top: 12px; font-size: 0.75rem; color: var(--text-tertiary);">
-                ✨ Claude usará estos assets si los nombrás en el brief
+              <div id="genAssetHint" style="display:none; margin-top: 10px; font-size: 0.75rem; color: var(--color-brand); background: var(--bg-secondary); padding: 6px 10px; border-radius: 6px;"></div>
+              <div style="margin-top: 8px; font-size: 0.75rem; color: var(--text-tertiary);">
+                ✨ Logo, fondo propio, referencias de estilo o assets genéricos
               </div>
             </div>
           </div>
@@ -2456,8 +2457,11 @@
             <textarea id="genIteracion" rows="3" placeholder="Describí qué querés cambiar de la pieza actual...&#10;&#10;Ej: Cambiar el fondo a oscuro, agrandar el título, agregar el logo arriba a la izquierda"></textarea>
           </div>
 
+          <!-- Interpretador de brief -->
+          <div id="genInterpretResult" style="display:none; background: var(--bg-secondary); border: 1px solid var(--color-brand); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-size: 0.82rem; color: var(--text-primary); line-height: 1.6;"></div>
+
           <div style="display: flex; gap: 10px;">
-            <button class="btn" onclick="generarDiseno()" id="genBtn"
+            <button class="btn" onclick="interpretarYGenerar()" id="genBtn"
               style="flex: 1; background: linear-gradient(135deg, #6860EE, #8B5CF6); border: none; color: white; font-weight: 700;">
               <span id="genSpinner"></span>
               🎨 Generar pieza
@@ -5112,6 +5116,52 @@ function switchTab(tabName, button) {
     let genHTMLActual = null
     let genVersionesHistory = []
 
+    // Interpreta el brief con IA y luego genera la pieza
+    async function interpretarYGenerar() {
+      const brief = document.getElementById('genBrief').value.trim()
+      if (!brief) { showToast('Escribí un brief primero', 'error'); return }
+
+      const iteracionTxt = document.getElementById('genIteracion')?.value.trim()
+
+      // En iteraciones, saltear interpretación
+      if (iteracionTxt && genHTMLActual) {
+        return generarDiseno()
+      }
+
+      document.getElementById('genBtn').disabled = true
+      document.getElementById('genSpinner').textContent = '🔍 '
+
+      try {
+        const res = await fetch('/api/interpret-brief', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brief, brain: currentBrand })
+        })
+        const data = await res.json()
+
+        if (data.formato) {
+          document.getElementById('genFormato').value = data.formato
+          actualizarDimsLabel && actualizarDimsLabel()
+        }
+
+        if (data.resumen) {
+          const el = document.getElementById('genInterpretResult')
+          el.style.display = 'block'
+          el.innerHTML = `<strong>🧠 Interpretación:</strong> ${data.resumen}
+            ${data.slides ? ` · <strong>${data.slides} slides</strong>` : ''}
+            ${data.formato ? ` · Formato: <strong>${data.formato}</strong>` : ''}`
+        }
+      } catch (e) {
+        // Si falla la interpretación, seguir igual
+        console.warn('interpret-brief falló:', e.message)
+      } finally {
+        document.getElementById('genBtn').disabled = false
+        document.getElementById('genSpinner').textContent = ''
+      }
+
+      generarDiseno()
+    }
+
     async function generarDiseno() {
       const brief = document.getElementById('genBrief').value.trim()
       const formato = document.getElementById('genFormato').value
@@ -5318,7 +5368,7 @@ function switchTab(tabName, button) {
           const base64 = e.target.result
           const name = file.name.replace(/\.[^/.]+$/, '').toLowerCase().replace(/\s+/g, '-')
 
-          genAssets.push({ name, base64, fileName: file.name, isReference: false })
+          genAssets.push({ name, base64, fileName: file.name, tipo: 'otro' })
           renderAssetList()
         }
         reader.readAsDataURL(file)
@@ -5338,8 +5388,11 @@ function switchTab(tabName, button) {
         return
       }
 
+      const tipoColors = { logo: '#6ac7ba', fondo: '#ffc80f', referencia: '#8253cc', otro: 'var(--border-light)' }
+      const tipoLabels = { logo: '🏷️ Logo', fondo: '🖼️ Fondo', referencia: '📌 Referencia', otro: '📁 Asset' }
+
       container.innerHTML = genAssets.map((asset, i) => `
-        <div style="display: flex; flex-direction: column; gap: 6px; background: var(--bg-secondary); padding: 8px; border-radius: 8px; border: 1px solid ${asset.isReference ? 'var(--color-brand)' : 'transparent'};">
+        <div style="display: flex; flex-direction: column; gap: 6px; background: var(--bg-secondary); padding: 8px; border-radius: 8px; border: 1px solid ${tipoColors[asset.tipo] || 'transparent'};">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img src="${asset.base64}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0;">
             <input type="text" value="${asset.name}"
@@ -5347,16 +5400,25 @@ function switchTab(tabName, button) {
               style="flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); padding: 6px 8px; border-radius: 6px; font-size: 0.8rem;">
             <button onclick="removeAsset(${i})" style="background: transparent; border: none; color: var(--color-error); cursor: pointer; font-size: 1rem; padding: 4px; flex-shrink: 0;">✕</button>
           </div>
-          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; font-size: 0.75rem; color: var(--text-secondary);">
-            <input type="checkbox" ${asset.isReference ? 'checked' : ''}
-              onchange="genAssets[${i}].isReference = this.checked; renderAssetList()"
-              style="accent-color: var(--color-brand); width: 14px; height: 14px; cursor: pointer;">
-            <span style="color: ${asset.isReference ? 'var(--color-brand)' : 'var(--text-secondary)'};">
-              📌 Usar como referencia de estilo
-            </span>
-          </label>
+          <select onchange="genAssets[${i}].tipo = this.value; renderAssetList()"
+            style="background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); padding: 5px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;">
+            <option value="otro" ${asset.tipo === 'otro' ? 'selected' : ''}>📁 Asset genérico</option>
+            <option value="logo" ${asset.tipo === 'logo' ? 'selected' : ''}>🏷️ Logo de marca</option>
+            <option value="fondo" ${asset.tipo === 'fondo' ? 'selected' : ''}>🖼️ Imagen de fondo</option>
+            <option value="referencia" ${asset.tipo === 'referencia' ? 'selected' : ''}>📌 Referencia de estilo</option>
+          </select>
         </div>
       `).join('')
+
+      // Hint contextual
+      const hasFondo = genAssets.some(a => a.tipo === 'fondo')
+      const hasRef = genAssets.some(a => a.tipo === 'referencia')
+      let hints = []
+      if (hasFondo) hints.push('🖼️ Se usará tu imagen como fondo (no se genera foto)')
+      if (hasRef) hints.push('📌 Claude Vision analizará el estilo de referencia')
+      const hintEl = document.getElementById('genAssetHint')
+      if (hintEl) hintEl.textContent = hints.join(' · ')
+      if (hintEl) hintEl.style.display = hints.length > 0 ? 'block' : 'none'
     }
 
     function removeAsset(index) {
