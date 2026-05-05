@@ -1,15 +1,16 @@
 /**
  * POST /api/generate-design
- * Flujo:
+ * Flujo mejorado (v3):
  * 1. Extrae colores/tipografía del ADN de marca programáticamente
- * 2. IA genera HTML/CSS con los tokens de marca inyectados como CSS real
- * 3. Placeholders <!--IMG:--> se resuelven con web search + gpt-image-1
- * 4. Assets {{asset:nombre}} se reemplazan en el frontend
+ * 2. [NUEVO] Si hay assets de referencia, los analiza con Claude Vision para extraer estilo
+ * 3. [NUEVO] Genera imagen de fondo fotográfica con Claude Banana + gpt-image-1
+ * 4. Claude genera SOLO la capa de texto/CTA sobre esa imagen de fondo
+ * 5. Assets {{asset:nombre}} se reemplazan en el frontend
  */
 
 import { getCurrentUser } from '@/lib/auth'
 import { getADNMarca } from '@/lib/cerebro'
-import { callGemini, generateImage } from '@/lib/gemini'
+import { callGemini, callGeminiVision, generateImage } from '@/lib/gemini'
 
 const FORMATOS = {
   'placa-feed':   { w: 1080, h: 1080, label: 'Placa Feed (1:1)' },
@@ -19,13 +20,20 @@ const FORMATOS = {
   'flyer':        { w: 800,  h: 1200, label: 'Flyer vertical' },
 }
 
+// Mapeo de formatos a tamaños válidos de gpt-image-1
+function getImageSize(dims) {
+  const ratio = dims.w / dims.h
+  if (ratio > 1.2) return '1536x1024'  // landscape
+  if (ratio < 0.8) return '1024x1536'  // portrait / stories
+  return '1024x1024'                   // cuadrado
+}
+
 /**
- * Extrae colores hex del texto del ADN (busca patrones #RRGGBB o #RGB)
+ * Extrae colores hex del texto del ADN
  */
 function extraerColoresDeMarca(adnText) {
   if (!adnText) return []
   const matches = adnText.match(/#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})\b/g) || []
-  // Deduplicar y normalizar a uppercase
   return [...new Set(matches.map(c => c.toUpperCase()))]
 }
 
@@ -46,7 +54,6 @@ function extraerTipografiasDeMarca(adnText) {
     /Impact[^\n,]*/g,
     /Arial[^\n,]*/g,
   ]
-
   for (const pattern of tipPatterns) {
     const match = adnText.match(pattern)
     if (match && match[0]) {
@@ -58,12 +65,11 @@ function extraerTipografiasDeMarca(adnText) {
 }
 
 /**
- * Construye los CSS tokens reales de marca para inyectar en el prompt
+ * Construye los CSS tokens reales de marca
  */
 function buildBrandTokens(adnText) {
   const colores = extraerColoresDeMarca(adnText)
   const tipografia = extraerTipografiasDeMarca(adnText)
-
   if (colores.length === 0 && !tipografia) return null
 
   const primary = colores[0] || null
@@ -75,7 +81,6 @@ function buildBrandTokens(adnText) {
   if (secondary) css += `  --brand-secondary: ${secondary};\n`
   if (tertiary) css += `  --brand-tertiary: ${tertiary};\n`
   if (primary) {
-    // Derivar oscuro y claro del primario para uso en fondos y textos
     css += `  --brand-primary-dark: color-mix(in srgb, ${primary} 75%, black);\n`
     css += `  --brand-primary-light: color-mix(in srgb, ${primary} 20%, white);\n`
   }
@@ -83,9 +88,7 @@ function buildBrandTokens(adnText) {
 
   let tipBlock = ''
   if (tipografia) {
-    tipBlock = `\n/* ═══ TIPOGRAFÍA DE MARCA ═══ */\n/* Tipografía principal: ${tipografia} */\n/* Mapear a font-family equivalente del sistema o usar como referencia */\n`
-
-    // Mapear tipografías conocidas a stacks del sistema
+    tipBlock = `\n/* ═══ TIPOGRAFÍA DE MARCA ═══ */\n`
     const fontMap = {
       'helvetica neue condensed': `'Arial Narrow', 'Helvetica Neue', Arial, sans-serif`,
       'helvetica': `'Helvetica Neue', Helvetica, Arial, sans-serif`,
@@ -96,13 +99,11 @@ function buildBrandTokens(adnText) {
       'impact': `Impact, 'Arial Black', sans-serif`,
       'gill sans': `'Gill Sans MT', Optima, Candara, sans-serif`,
     }
-
     const tipLower = tipografia.toLowerCase()
     let fontStack = null
     for (const [key, stack] of Object.entries(fontMap)) {
       if (tipLower.includes(key)) { fontStack = stack; break }
     }
-
     if (fontStack) {
       tipBlock += `:root { --font-brand: ${fontStack}; }\n`
     }
@@ -112,55 +113,89 @@ function buildBrandTokens(adnText) {
 }
 
 /**
- * Busca imagen en internet usando Gemini con Google Search.
+ * [CLAUDE BANANA] Construye un prompt fotográfico rico usando la fórmula
+ * Subject / Style / Environment / Lighting / Action / Camera / Texture
+ * para generar el fondo de la pieza con gpt-image-1.
  */
-async function buscarImagenProducto(descripcion) {
-  const { callGeminiWithSearch } = await import('@/lib/gemini')
-  const prompt = `Buscá una imagen PNG o JPG de "${descripcion}" en internet.
-Necesito la URL directa de la imagen (preferentemente en fondo blanco o transparente).
-Devolvé SOLO la URL de la imagen. Si no encontrás nada válido, devolvé "NO_ENCONTRADA".`
+async function buildImagePrompt(brief, adn, brain, dims) {
+  const ratio = dims.w / dims.h
+  const orientation = ratio > 1.2 ? 'landscape' : ratio < 0.8 ? 'portrait' : 'square'
+
+  const system = `Eres un director de fotografía y prompt engineer especializado en imágenes para publicidad y social media.
+Tu tarea: convertir un brief de campaña en un prompt fotográfico estructurado y detallado para gpt-image-1.
+
+USA SIEMPRE este formato de 7 elementos (Claude Banana formula):
+SUBJECT: [Qué es el elemento principal]
+STYLE: [Estilo fotográfico/artístico — cinematic, editorial, product photography, etc]
+ENVIRONMENT: [Ambiente, locación, contexto espacial]
+LIGHTING: [Tipo de luz, dirección, dureza, temperatura de color]
+ACTION: [Si hay movimiento, gesto, tensión]
+CAMERA: [Ángulo, distancia focal, profundidad de campo]
+TEXTURE: [Grain, bokeh, sharpness, tratamiento de post]
+
+REGLAS CRÍTICAS:
+- La imagen ES EL FONDO de una pieza de social media. Debe dejar ESPACIO VISUAL para texto.
+- NO incluir texto, logos, palabras, ni UI elements en la imagen.
+- Orientación: ${orientation}
+- Idioma del prompt: inglés (mejor compatibilidad con gpt-image-1)
+- Devolver SOLO el prompt final en inglés, sin explicaciones ni etiquetas.`
+
+  const userPrompt = `Brief de campaña: "${brief}"
+Marca: ${brain?.nombre || 'sin marca'}
+ADN resumido: ${adn ? adn.substring(0, 600) + '...' : 'no disponible'}
+Formato de imagen: ${orientation} (${dims.w}×${dims.h}px)`
+
   try {
-    const result = await callGeminiWithSearch(prompt, null, { maxTokens: 300 })
-    const urlMatch = result.text.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpg|jpeg|webp)(?:\?[^\s"'<>]*)?/i)
-    return urlMatch ? urlMatch[0] : null
+    const result = await callGemini(userPrompt, system, { maxTokens: 400 })
+    return result.text.trim()
   } catch (e) {
+    // Fallback: prompt básico extraído del brief
+    console.warn('[generate-design] Claude Banana prompt generation failed:', e.message)
+    return `${brief}, professional advertising photography, dramatic studio lighting, ${orientation} composition, photorealistic, high quality, no text`
+  }
+}
+
+/**
+ * Genera imagen de fondo fotográfica con gpt-image-1
+ */
+async function generateBackgroundImage(prompt, dims) {
+  const size = getImageSize(dims)
+  console.log(`[generate-design] Generando fondo (${size}): "${prompt.substring(0, 80)}..."`)
+  const base64 = await generateImage(prompt, { size })
+  return base64
+}
+
+/**
+ * Analiza assets de referencia con Claude Vision para extraer el estilo visual
+ * Útil cuando el usuario sube screenshots de posts que le gustan
+ */
+async function analyzeReferenceAssets(referenceAssets, brandName) {
+  if (!referenceAssets || referenceAssets.length === 0) return null
+
+  const images = referenceAssets.map(a => a.data || a.base64).filter(Boolean)
+  if (images.length === 0) return null
+
+  const systemPrompt = `Sos un director de arte especializado en análisis visual de piezas de comunicación.`
+
+  const prompt = `Analizá ${images.length > 1 ? 'estas piezas visuales de referencia' : 'esta pieza visual de referencia'} de la marca "${brandName || 'la marca'}".
+
+Extraé y describí en detalle:
+1. COMPOSICIÓN: ¿cómo está organizado el espacio? ¿hay grilla visible, asimetría, elementos dominantes?
+2. ATMÓSFERA: tono general (oscuro/claro, cálido/frío, dramático/limpio, editorial/popular)
+3. FOTOGRAFÍA: ¿hay foto? ¿qué tipo de imagen de fondo usan? Estilo, iluminación, ángulo
+4. TIPOGRAFÍA: tamaños relativos, pesos, uso de mayúsculas, estilo (condensed, serif, sans)
+5. RECURSOS GRÁFICOS: shapes, underlines, colores de acento, elementos decorativos
+6. ENERGÍA GENERAL: ¿cómo se siente esta pieza en 3 palabras?
+
+Sé específico y accionable. Esta descripción se usará directamente para generar una nueva pieza visual similar.`
+
+  try {
+    const result = await callGeminiVision(images, prompt, systemPrompt, { maxTokens: 600 })
+    return result.text
+  } catch (e) {
+    console.warn('[generate-design] Vision analysis failed:', e.message)
     return null
   }
-}
-
-/**
- * Descarga imagen y la convierte a base64
- */
-async function urlABase64(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
-  if (!res.ok) throw new Error('No se pudo descargar la imagen')
-  const buffer = await res.arrayBuffer()
-  const contentType = res.headers.get('content-type') || 'image/png'
-  return `data:${contentType};base64,${Buffer.from(buffer).toString('base64')}`
-}
-
-/**
- * Obtiene imagen: web search primero, gpt-image-1 como fallback
- */
-async function obtenerImagen(descripcion, openaiKey) {
-  try {
-    const url = await buscarImagenProducto(descripcion)
-    if (url) {
-      const base64 = await urlABase64(url)
-      return { base64, fuente: 'web' }
-    }
-  } catch (e) {
-    console.warn('[generate-design] búsqueda web falló:', e.message)
-  }
-  if (openaiKey) {
-    try {
-      const base64 = await generateImage(descripcion)
-      return { base64, fuente: 'generada' }
-    } catch (e) {
-      console.warn('[generate-design] gpt-image-1 falló:', e.message)
-    }
-  }
-  return null
 }
 
 export async function POST(request) {
@@ -168,7 +203,14 @@ export async function POST(request) {
     const user = await getCurrentUser()
     if (!user) return Response.json({ error: 'No autenticado' }, { status: 401 })
 
-    const { brief, formato = 'placa-feed', brain, iteracion = null, imagenAnotada = null, assets = [] } = await request.json()
+    const {
+      brief,
+      formato = 'placa-feed',
+      brain,
+      iteracion = null,
+      imagenAnotada = null,
+      assets = []
+    } = await request.json()
 
     if (!brief?.trim()) return Response.json({ error: 'Brief vacío' }, { status: 400 })
 
@@ -176,19 +218,259 @@ export async function POST(request) {
     const dims = FORMATOS[formato] || FORMATOS['placa-feed']
     const adn = getADNMarca(brain?.nombre)
 
-    // ── Extraer tokens de marca del ADN ──────────────────────────────
+    // ── Tokens de marca ─────────────────────────────────────────────────
     const brandTokens = buildBrandTokens(adn)
     const hasBrand = !!brain?.nombre
 
-    // ── Assets disponibles ───────────────────────────────────────────
-    const hasAssets = assets && assets.length > 0
-    const logoAsset = hasAssets ? assets.find(a =>
+    // ── Separar assets: referencias de estilo vs assets regulares ───────
+    const referenceAssets = assets.filter(a => a.isReference === true)
+    const regularAssets = assets.filter(a => a.isReference !== true)
+    const logoAsset = regularAssets.find(a =>
       a.name?.toLowerCase().includes('logo') ||
       a.fileName?.toLowerCase().includes('logo')
-    ) : null
+    )
+    const hasAssets = regularAssets.length > 0
 
-    // ── System Prompt ────────────────────────────────────────────────
-    const systemPrompt = `Sos un director de arte senior especializado en social media para agencias de marketing.
+    // ── PASO 1: Analizar referencias de estilo con Claude Vision ─────────
+    let styleDescription = null
+    if (referenceAssets.length > 0) {
+      console.log(`[generate-design] Analizando ${referenceAssets.length} assets de referencia`)
+      styleDescription = await analyzeReferenceAssets(referenceAssets, brain?.nombre)
+    }
+
+    // ── PASO 2: Generar imagen de fondo fotográfica (Claude Banana + gpt-image-1) ──
+    let backgroundImage = null
+    let bgPromptUsado = null
+    if (openaiKey && !iteracion) { // Solo en generación nueva, no en iteraciones
+      try {
+        bgPromptUsado = await buildImagePrompt(brief, adn, brain, dims)
+        backgroundImage = await generateBackgroundImage(bgPromptUsado, dims)
+        console.log('[generate-design] Fondo generado exitosamente')
+      } catch (e) {
+        console.warn('[generate-design] No se pudo generar fondo fotográfico:', e.message)
+        backgroundImage = null
+      }
+    }
+
+    // ── PASO 3: System Prompt (adaptado según si tenemos fondo o no) ──────
+    const systemPrompt = buildSystemPrompt({
+      dims, brandTokens, brain, adn, hasAssets, regularAssets, logoAsset,
+      backgroundImage, styleDescription, bgPromptUsado
+    })
+
+    // ── User Prompt ───────────────────────────────────────────────────────
+    let userPrompt
+    if (iteracion) {
+      const texto = `HTML actual:\n\n${iteracion}\n\nCambio solicitado: ${brief}\n\nDevolvé el HTML completo actualizado.`
+      userPrompt = imagenAnotada
+        ? `Esta imagen muestra la pieza con zonas marcadas indicando qué cambiar.\n\n${texto}`
+        : texto
+    } else {
+      userPrompt = `Generá una pieza de social media "${dims.label}" (${dims.w}×${dims.h}px).\n\nBRIEF:\n${brief}\n\nDevolvé solo el HTML.`
+    }
+
+    // ── Llamada a Claude ──────────────────────────────────────────────────
+    let htmlMessages = undefined
+    if (iteracion && imagenAnotada) {
+      const imageData = imagenAnotada.replace(/^data:image\/\w+;base64,/, '')
+      htmlMessages = [{
+        role: 'user',
+        parts: [
+          { inlineData: { mimeType: 'image/png', data: imageData } },
+          { text: userPrompt }
+        ]
+      }]
+    }
+
+    const result = await callGemini(userPrompt, systemPrompt, { maxTokens: 8000 })
+    let html = result.text
+    html = html.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
+
+    if (!html.includes('<')) throw new Error('La IA no devolvió HTML válido')
+
+    // ── Reemplazar el placeholder de imagen de fondo ─────────────────────
+    if (backgroundImage) {
+      // Reemplazar el placeholder que Claude usa en el HTML
+      html = html.replace(/\{\{BACKGROUND_IMAGE\}\}/g, backgroundImage)
+      // También reemplazar cualquier <!--IMG:--> residual por si la IA los agrega igual
+      html = html.replace(/<!--IMG:[^>]+-->/g, backgroundImage)
+    }
+
+    return Response.json({
+      success: true,
+      html,
+      formato,
+      dims,
+      fondo_generado: !!backgroundImage,
+      referencias_analizadas: referenceAssets.length,
+      imagenes_generadas: backgroundImage ? 1 : 0
+    })
+
+  } catch (error) {
+    console.error('Error en /api/generate-design:', error)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
+}
+
+/**
+ * Construye el system prompt adaptado según el contexto:
+ * - Si hay backgroundImage: Claude solo hace la capa de texto (mucho más fácil, mejor resultado)
+ * - Si no hay fondo: Claude hace todo con CSS (fallback al comportamiento anterior)
+ */
+function buildSystemPrompt({ dims, brandTokens, brain, adn, hasAssets, regularAssets, logoAsset, backgroundImage, styleDescription, bgPromptUsado }) {
+
+  const cssScale = `/* Escala tipográfica px (canvas fijo ${dims.w}px) */
+  --fs-micro: ${Math.round(dims.w * 0.022)}px;
+  --fs-xs:    ${Math.round(dims.w * 0.030)}px;
+  --fs-sm:    ${Math.round(dims.w * 0.038)}px;
+  --fs-md:    ${Math.round(dims.w * 0.050)}px;
+  --fs-lg:    ${Math.round(dims.w * 0.065)}px;
+  --fs-xl:    ${Math.round(dims.w * 0.085)}px;
+  --fs-2xl:   ${Math.round(dims.w * 0.110)}px;
+  --fs-3xl:   ${Math.round(dims.w * 0.150)}px;
+  --fs-hero:  ${Math.round(dims.w * 0.200)}px;
+  --sp-1: ${Math.round(dims.w * 0.008)}px;
+  --sp-2: ${Math.round(dims.w * 0.016)}px;
+  --sp-3: ${Math.round(dims.w * 0.025)}px;
+  --sp-4: ${Math.round(dims.w * 0.037)}px;
+  --sp-5: ${Math.round(dims.w * 0.055)}px;
+  --sp-6: ${Math.round(dims.w * 0.074)}px;
+  --sp-7: ${Math.round(dims.w * 0.100)}px;
+  --r-sm: 4px; --r-md: 12px; --r-lg: 24px; --r-xl: 40px; --r-pill: 9999px;
+  --shadow-text: 0 2px 16px rgba(0,0,0,0.85);
+  --shadow-block: 0 8px 40px rgba(0,0,0,0.35);`
+
+  const animations = `@keyframes fadeUp  { from { opacity:0; transform:translateY(40px) } to { opacity:1; transform:translateY(0) } }
+@keyframes scaleIn { from { opacity:0; transform:scale(0.88) } to { opacity:1; transform:scale(1) } }
+@keyframes slideR  { from { opacity:0; transform:translateX(-40px) } to { opacity:1; transform:translateX(0) } }
+[data-anim="up"]    { animation: fadeUp  0.7s cubic-bezier(0.16,1,0.3,1) both; }
+[data-anim="scale"] { animation: scaleIn 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+[data-anim="slide"] { animation: slideR  0.6s cubic-bezier(0.16,1,0.3,1) both; }
+[data-delay="1"]    { animation-delay: 0.1s; }
+[data-delay="2"]    { animation-delay: 0.2s; }
+[data-delay="3"]    { animation-delay: 0.35s; }
+[data-delay="4"]    { animation-delay: 0.5s; }`
+
+  // ════════════════════════════════════════════════════════
+  // MODO CON FONDO FOTOGRÁFICO (el mejor camino)
+  // ════════════════════════════════════════════════════════
+  if (backgroundImage) {
+    return `Sos un director de arte senior. Ya existe una imagen de fondo fotográfica generada para esta pieza.
+Tu trabajo es SOLO la capa de texto y CTA sobre ese fondo — nada más.
+
+════════════════════════════════════════════════════════
+REGLA #1 — OUTPUT (ABSOLUTA)
+════════════════════════════════════════════════════════
+- Respondé ÚNICAMENTE con el HTML completo. Cero texto afuera del HTML.
+- 100% self-contained: todo CSS en <style>. Sin CDN ni @import externos.
+- El contenedor raíz = exactamente ${dims.w}px × ${dims.h}px, overflow:hidden, position:relative.
+
+════════════════════════════════════════════════════════
+REGLA #2 — LA IMAGEN DE FONDO (YA ESTÁ GENERADA)
+════════════════════════════════════════════════════════
+La imagen de fondo ya está embebida como base64. Usarla así:
+
+<div style="position:relative;width:${dims.w}px;height:${dims.h}px;overflow:hidden;">
+  <img src="{{BACKGROUND_IMAGE}}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" />
+  <!-- TU CAPA DE TEXTO VA AQUÍ, sobre la imagen -->
+  <div style="position:absolute;inset:0;z-index:1;">
+    <!-- título, bajada, CTA, logo -->
+  </div>
+</div>
+
+IMPORTANTE: El placeholder {{BACKGROUND_IMAGE}} será reemplazado automáticamente.
+NO generes fondos con CSS. NO uses background-color como fondo principal. La foto ES el fondo.
+
+════════════════════════════════════════════════════════
+REGLA #3 — IDENTIDAD DE MARCA (NO NEGOCIABLE)
+════════════════════════════════════════════════════════
+${brandTokens ? `
+TOKENS EXTRAÍDOS DEL ADN — COPIAR EXACTAMENTE EN <style>:
+\`\`\`css
+${brandTokens.css}${brandTokens.tipBlock}
+\`\`\`
+COLORES: ${brandTokens.colores.join(' · ')}
+${brandTokens.tipografia ? `TIPOGRAFÍA: ${brandTokens.tipografia}` : ''}
+- Usar --brand-primary en CTAs, highlights, bordes de acento
+- Usar --brand-secondary en detalles
+- El texto sobre foto: SIEMPRE con sombra (text-shadow: var(--shadow-text)) o con bloque semitransparente detrás
+` : `Sin ADN. Elegí 1–2 colores fuertes para acentos y CTA.`}
+
+════════════════════════════════════════════════════════
+REGLA #4 — CAPA DE TEXTO (tu única responsabilidad)
+════════════════════════════════════════════════════════
+Diseñá la capa de información con JERARQUÍA CLARA:
+- 1 elemento dominante: el titular o mensaje principal (más grande, más contraste)
+- Elementos secundarios: datos de apoyo, bajada
+- 1 CTA: botón o texto de llamado a la acción
+
+POSICIONAMIENTO: No centres todo. Elegí una zona fuerte:
+- Tercio inferior (sobre franja de color semitransparente)
+- Esquina superior con titular grande
+- Centro con bloque de contraste detrás del texto
+- Fragmentado: título arriba, CTA abajo
+
+CONTRASTE DE TEXTO: El texto debe leerse sobre la foto.
+Opciones:
+  a) Sombra fuerte: text-shadow: 0 2px 20px rgba(0,0,0,0.9)
+  b) Franja de color: background: rgba(0,0,0,0.6) o background: var(--brand-primary) con opacity
+  c) Blur backdrop: backdrop-filter: blur(8px); background: rgba(0,0,0,0.4)
+  d) Texto blanco sobre zona oscura de la foto (análisis visual)
+
+RECURSOS GRÁFICOS (usar al menos uno):
+- Subrayado de pincel SVG en palabra clave
+- Borde/acento de esquina con color de marca
+- Emoji expresivo en titular si el tono lo permite 🔥 ✨ ⚡ 👉
+- Número grande semi-transparente como elemento decorativo
+- Línea diagonal o separador con color de marca
+
+${hasAssets ? `
+ASSETS DISPONIBLES:
+${regularAssets.map(a => `  <img src="{{asset:${a.name}}}" alt="${a.name}" />`).join('\n')}
+${logoAsset ? `\n⚠️ LOGO "${logoAsset.name}": OBLIGATORIO en la pieza. Preferentemente esquina superior con max-height:60px.` : ''}
+` : ''}
+
+${styleDescription ? `
+════════════════════════════════════════════════════════
+ANÁLISIS DE REFERENCIAS DE ESTILO (Claude Vision)
+════════════════════════════════════════════════════════
+El usuario subió referencias visuales. El estilo extraído es:
+
+${styleDescription}
+
+Aplicá este estilo en la composición, tipografía y recursos gráficos.
+` : ''}
+
+════════════════════════════════════════════════════════
+REGLA #5 — CSS FOUNDATION
+════════════════════════════════════════════════════════
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+img { display: block; object-fit: cover; }
+body { -webkit-font-smoothing: antialiased; overflow: hidden; }
+:root {
+${cssScale}
+}
+${animations}
+
+════════════════════════════════════════════════════════
+REGLA #6 — ADN DE MARCA
+════════════════════════════════════════════════════════
+${adn ? `${adn.substring(0, 1500)}\n\n[Extraer: tono, mensajes clave, lo que la marca NO es]` : 'Sin ADN. Usar el brief como guía.'}
+
+════════════════════════════════════════════════════════
+CHECKLIST
+════════════════════════════════════════════════════════
+□ El primer elemento visible es el más importante
+□ El texto tiene contraste suficiente sobre la foto
+□ Hay al menos un recurso gráfico expresivo
+□ El logo está visible si fue subido
+□ Los colores de acento son de la marca, no genéricos`
+  }
+
+  // ════════════════════════════════════════════════════════
+  // MODO SIN FONDO (fallback — Claude diseña todo con CSS)
+  // ════════════════════════════════════════════════════════
+  return `Sos un director de arte senior especializado en social media para agencias de marketing.
 Generás HTML/CSS 100% self-contained que se ve como una pieza de agencia real — lista para publicar.
 
 ════════════════════════════════════════════════════════
@@ -225,330 +507,95 @@ ${brandTokens.tipografia ? `- var(--font-brand) en h1/h2/display — nunca en bo
 ════════════════════════════════════════════════════════
 REGLA #3 — CAMINO DEL LECTOR (OBLIGATORIO DISEÑAR)
 ════════════════════════════════════════════════════════
-Antes de escribir código, elegí UNO de estos patrones de lectura y construí la pieza respetándolo:
+Elegí UNO de estos patrones y construí la pieza respetándolo:
 
-PATRÓN Z (feed cuadrado, impacto directo):
-  Top-izquierda [logo/eyebrow] → Top-derecha [elemento gráfico]
-       ↘ diagonal ↘
-  Bottom-izquierda [CTA] ← Bottom-centro [mensaje principal]
-  → Ideal para: promociones, ofertas, noticias de marca
+PATRÓN Z: Top-izq [logo/eyebrow] → Top-der [gráfico] ↘ diagonal ↘ Bottom-izq [CTA] ← Bottom-centro [mensaje]
+PATRÓN F: [BLOQUE SUPERIOR DOMINANTE 50%] → [Subtítulo] → [CTA]
+PATRÓN FOCAL: Todo converge hacia UN elemento central. El resto orbita.
+PATRÓN EDITORIAL: Columnas claras, texto + imagen en tensión.
 
-PATRÓN F (stories/vertical, info jerárquica):
-  [BLOQUE SUPERIOR DOMINANTE — 50% del canvas]
-  [Subtítulo o dato secundario]
-  [CTA o detalle final]
-  → Ideal para: contenido educativo, how-to, info de producto
-
-PATRÓN FOCAL (cualquier formato, máximo impacto):
-  Todo converge hacia UN elemento central (número grande, palabra clave, imagen)
-  El resto orbita alrededor
-  → Ideal para: lanzamientos, frases de marca, momentos emocionales
-
-PATRÓN EDITORIAL (grilla visible, contenido rico):
-  Columnas claras, texto + imagen en tensión
-  → Ideal para: carruseles, contenido de valor, marcas premium
-
-REGLA: El ojo del espectador NUNCA debe dudar a dónde mirar primero.
-El elemento más importante ocupa el mayor espacio visual o tiene el mayor contraste.
+El ojo del espectador NUNCA debe dudar a dónde mirar primero.
 
 ════════════════════════════════════════════════════════
 REGLA #4 — GRILLAS Y COMPOSICIÓN
 ════════════════════════════════════════════════════════
-Usá CSS Grid o posicionamiento absoluto para crear composiciones con TENSIÓN VISUAL.
-No apilar todo centrado verticalmente. Elegí una de estas estructuras:
-
-GRILLA 3 TERCIOS (rule of thirds):
-  display: grid; grid-template-rows: 1fr 1fr 1fr; /* o columns */
-  → Elementos en intersecciones de los tercios, no en el centro exacto
-
-SPLIT 60/40:
-  display: grid; grid-template-columns: 60% 40%; /* o rows */
-  → Un lado con imagen/color de fondo, otro con texto sobre contraste
-
-BLOQUE DOMINANTE + FOOTER:
-  display: grid; grid-template-rows: 1fr auto;
-  → 80% del canvas = mensaje/imagen, 20% = franja de marca en color sólido
-
-CAPAS (posicionamiento absoluto):
-  position: absolute; → Elementos superpuestos para profundidad
-  → Fondo (imagen/color) → Capa media (shapes) → Frente (texto)
-
-ASIMETRÍA INTENCIONAL:
-  padding-left: 80px; /* padding-right: 40px */
-  → Texto no centrado crea dinamismo y modernidad
+No apilar todo centrado. Elegí:
+- GRILLA 3 TERCIOS: grid-template-rows: 1fr 1fr 1fr (elementos en intersecciones)
+- SPLIT 60/40: grid-template-columns: 60% 40%
+- BLOQUE + FOOTER: grid-template-rows: 1fr auto (80% mensaje + 20% franja de marca)
+- CAPAS: position:absolute para profundidad (fondo → shapes → texto)
+- ASIMETRÍA: padding-left: 80px vs padding-right: 40px
 
 ════════════════════════════════════════════════════════
 REGLA #5 — RECURSOS GRÁFICOS DE SOCIAL MEDIA
 ════════════════════════════════════════════════════════
-Estas piezas viven en Instagram/Facebook/TikTok. Usar los recursos visuales del lenguaje nativo:
-
-1. EMOJIS Y CARACTERES EXPRESIVOS (usar cuando el tono de marca lo permita):
-   - En titulares para añadir emoción: 🔥 ✨ 💥 👉 ⚡ 🎯 💡 ✅ 🏆
-   - Como bullet points en listas: ✦ ◆ → ▸ ●
-   - Font-size: igual al texto circundante. Position: inline.
-
-2. FLECHAS SVG (inline, dibujadas a mano — estilo gestuales):
-   Flecha curva descendente:
+1. EMOJIS (si el tono lo permite): 🔥 ✨ 💥 👉 ⚡ 🎯 ✅ 🏆 como bullets o en titulares
+2. FLECHAS SVG gestual:
    <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
      <path d="M10 10 Q 30 5, 40 25 Q 48 40, 35 50" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
      <path d="M30 48 L35 55 L42 48" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
    </svg>
-
-   Flecha recta con cuerpo:
-   <svg width="80" height="24" viewBox="0 0 80 24" fill="currentColor">
-     <path d="M0 10 H60 L48 2 M60 12 L48 22" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/>
-   </svg>
-
-3. SUBRAYADOS Y HIGHLIGHTS (sobre texto clave):
-   Subrayado de pincel (orgánico, gestual):
+3. SUBRAYADO de pincel:
    <svg style="position:absolute;bottom:-8px;left:0;width:100%;height:12px" viewBox="0 0 200 12" preserveAspectRatio="none">
      <path d="M0 8 Q 50 4, 100 9 Q 150 13, 200 7" stroke="var(--brand-primary)" stroke-width="4" fill="none" stroke-linecap="round"/>
    </svg>
-
-   Highlight de marcador (rectángulo semitransparente detrás del texto):
-   background: color-mix(in srgb, var(--brand-primary) 30%, transparent);
-   padding: 2px 8px; display: inline;
-
-4. FORMAS GEOMÉTRICAS DECORATIVAS:
-   Círculo de acento: border-radius:50%; background:var(--brand-primary); opacity:0.15;
-   Línea diagonal: transform: rotate(-15deg); height:3px; background:var(--brand-secondary);
-   Punto de grid: width:6px; height:6px; border-radius:50%; background:currentColor; opacity:0.4;
-
-   Grid de puntos (textura decorativa):
-   <svg width="120" height="120" viewBox="0 0 120 120">
-     <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-       <circle cx="2" cy="2" r="2" fill="currentColor" opacity="0.3"/>
-     </pattern>
-     <rect width="120" height="120" fill="url(#dots)"/>
-   </svg>
-
-5. MARCOS Y BORDES EXPRESIVOS:
-   Borde de esquina (solo esquinas, no marco completo):
-   Implementar con ::before y ::after posicionados en absolute
-   border-top: 3px solid var(--brand-primary); border-left: 3px solid var(--brand-primary);
-   width:40px; height:40px; → en cada esquina
-
-   Línea separadora con acento:
-   border-bottom: 2px solid var(--brand-primary); width: 60px; /* no full-width */
-
-6. TIPOGRAFÍA EXPRESIVA:
-   - Mix de pesos en la misma línea: <span style="font-weight:900">PALABRA</span> normal
-   - Texto rotado como elemento decorativo: transform: rotate(-90deg); writing-mode: vertical-lr;
-   - Letras outline: -webkit-text-stroke: 2px var(--brand-primary); color: transparent;
-   - Número grande como elemento gráfico: font-size:200px; opacity:0.08; position:absolute;
+4. HIGHLIGHT de marcador: background: color-mix(in srgb, var(--brand-primary) 30%, transparent); padding: 2px 8px
+5. FORMAS GEOMÉTRICAS: círculo opacidad 0.15, línea diagonal rotada, grid de puntos SVG
+6. TIPOGRAFÍA EXPRESIVA: texto rotado, letras outline (-webkit-text-stroke), número grande opacity 0.08
 
 ════════════════════════════════════════════════════════
-REGLA #6 — ESTÉTICA POR RUBRO (leer el ADN para detectar cuál aplica)
+REGLA #6 — ESTÉTICA POR RUBRO
 ════════════════════════════════════════════════════════
-GASTRONOMÍA / BAR / BEBIDAS:
-  → Fondo muy oscuro (#0a0a0a o negro profundo)
-  → Tipografía condensed o serif clásica, MAYÚSCULAS
-  → Color de marca como bloque de acento (no como fondo)
-  → Fotografía dramática con luz lateral si hay imagen
-  → Texturas: grano, ruido, líneas finas
-  → Energía: nocturna, sofisticada, directa
+GASTRONOMÍA/BAR: Fondo oscuro #0a0a0a, tipografía condensed/mayúsculas, luz lateral dramática
+SALUD/FARMACIA: Fondo blanco, mucho aire, sans-serif moderno, íconos de línea
+MODA/LIFESTYLE: Asimetría, serif fashion o sans bold, blanco+negro+1 color
+AUTOMOTRIZ/TECH: Fondos oscuros, tipografía bold/condensed, detalles metálicos
+PROMOCIONES/RETAIL: Número de descuento DOMINANTE (200px+), color saturado, texto blanco
+SERVICIOS/B2B: Grid ordenado, tipografía serif/humanista, color en detalles
 
-SALUD / FARMACIA / BIENESTAR:
-  → Fondo blanco o muy claro
-  → Color de marca como acento limpio
-  → Tipografía sans-serif moderna, legible
-  → Mucho aire blanco (60%+ del canvas)
-  → Íconos de línea (no rellenos)
-  → Energía: confianza, claridad, cuidado
-
-MODA / LIFESTYLE / ESTÉTICA:
-  → Asimetría y tensión compositiva
-  → Tipografía con personalidad (serif fashion o sans bold)
-  → Blanco y negro + 1 color como regla de 3
-  → Fotografía en primer plano
-  → Energía: aspiracional, editorial, silencioso
-
-AUTOMOTRIZ / TECNOLOGÍA:
-  → Fondos oscuros con degradés sutiles
-  → Tipografía bold/condensed, precisión
-  → Detalles metálicos (gradientes plateados o grises)
-  → Energía: potencia, innovación, precisión
-
-PROMOCIONES / RETAIL / OFERTAS:
-  → Número de descuento como elemento DOMINANTE (200px+)
-  → Color de marca saturado como fondo
-  → Texto blanco sobre color o negro sobre blanco
-  → Urgencia sin caos: jerarquía clara
-  → Energía: impacto, acción, ahora
-
-SERVICIOS / PROFESIONAL / B2B:
-  → Grid ordenado, mucho espacio
-  → Tipografía serif o humanista
-  → Color de marca en detalles, no en masas
-  → Energía: confianza, expertise, orden
+Para imágenes fotográficas:
+  <img src="<!--IMG:descripción detallada en español-->" style="width:100%;height:100%;object-fit:cover;" />
+Máximo 1-2 imágenes.
 
 ════════════════════════════════════════════════════════
-REGLA #7 — CSS FOUNDATION (incluir siempre)
+REGLA #7 — CSS FOUNDATION
 ════════════════════════════════════════════════════════
-/* RESET */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 img { display: block; object-fit: cover; }
 body { -webkit-font-smoothing: antialiased; overflow: hidden; }
-
 :root {
-  /* Escala tipográfica px (canvas fijo ${dims.w}px) */
-  --fs-micro: ${Math.round(dims.w * 0.022)}px;
-  --fs-xs:    ${Math.round(dims.w * 0.030)}px;
-  --fs-sm:    ${Math.round(dims.w * 0.038)}px;
-  --fs-md:    ${Math.round(dims.w * 0.050)}px;
-  --fs-lg:    ${Math.round(dims.w * 0.065)}px;
-  --fs-xl:    ${Math.round(dims.w * 0.085)}px;
-  --fs-2xl:   ${Math.round(dims.w * 0.110)}px;
-  --fs-3xl:   ${Math.round(dims.w * 0.150)}px;
-  --fs-hero:  ${Math.round(dims.w * 0.200)}px;
-
-  /* Espaciado */
-  --sp-1: ${Math.round(dims.w * 0.008)}px;
-  --sp-2: ${Math.round(dims.w * 0.016)}px;
-  --sp-3: ${Math.round(dims.w * 0.025)}px;
-  --sp-4: ${Math.round(dims.w * 0.037)}px;
-  --sp-5: ${Math.round(dims.w * 0.055)}px;
-  --sp-6: ${Math.round(dims.w * 0.074)}px;
-  --sp-7: ${Math.round(dims.w * 0.100)}px;
-
-  /* Radios */
-  --r-sm: 4px; --r-md: 12px; --r-lg: 24px; --r-xl: 40px; --r-pill: 9999px;
-
-  /* Sombras */
-  --shadow-text: 0 2px 12px rgba(0,0,0,0.6);
-  --shadow-block: 0 8px 40px rgba(0,0,0,0.25);
+${cssScale}
 }
-
-/* Animaciones */
-@keyframes fadeUp  { from { opacity:0; transform:translateY(40px) } to { opacity:1; transform:translateY(0) } }
-@keyframes scaleIn { from { opacity:0; transform:scale(0.88) } to { opacity:1; transform:scale(1) } }
-@keyframes slideR  { from { opacity:0; transform:translateX(-40px) } to { opacity:1; transform:translateX(0) } }
-@keyframes pulse   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
-
-[data-anim="up"]    { animation: fadeUp  0.7s cubic-bezier(0.16,1,0.3,1) both; }
-[data-anim="scale"] { animation: scaleIn 0.6s cubic-bezier(0.16,1,0.3,1) both; }
-[data-anim="slide"] { animation: slideR  0.6s cubic-bezier(0.16,1,0.3,1) both; }
-[data-delay="1"]    { animation-delay: 0.1s; }
-[data-delay="2"]    { animation-delay: 0.2s; }
-[data-delay="3"]    { animation-delay: 0.35s; }
-[data-delay="4"]    { animation-delay: 0.5s; }
+${animations}
 
 ════════════════════════════════════════════════════════
 REGLA #8 — LOGOS Y ASSETS
 ════════════════════════════════════════════════════════
 ${hasAssets ? `
-ASSETS DISPONIBLES — USAR EN EL HTML:
-${assets.map(a => `  <img src="{{asset:${a.name}}}" alt="${a.name}" />`).join('\n')}
+ASSETS:
+${regularAssets.map(a => `  <img src="{{asset:${a.name}}}" alt="${a.name}" />`).join('\n')}
+${logoAsset ? `\n⚠️ LOGO "${logoAsset.name}": Colocarlo visible. Esquina sup-izquierda o franja inferior.` : ''}
+` : `Para imágenes: <img src="<!--IMG:descripción-->" style="width:100%;height:100%;object-fit:cover;" />`}
 
-${logoAsset ? `
-⚠️ LOGO DETECTADO: "${logoAsset.name}"
-OBLIGATORIO: Colocarlo en la pieza. Opciones:
-  a) Esquina superior izquierda (más común en social): position:absolute; top:var(--sp-4); left:var(--sp-4); max-height:60px; width:auto;
-  b) Franja inferior de marca: dentro del footer de color, centrado o alineado a la izquierda
-  c) Como elemento central si la pieza es de branding puro
-Nunca: aplastado, pixelado, o escondido en un rincón de 20px.
+${styleDescription ? `
+════════════════════════════════════════════════════════
+REFERENCIAS DE ESTILO (Claude Vision)
+════════════════════════════════════════════════════════
+${styleDescription}
 ` : ''}
-Para imágenes fotográficas adicionales:
-  <img src="<!--IMG:descripción detallada de la imagen-->" style="width:100%;height:100%;object-fit:cover;" />
-` : `
-Para imágenes fotográficas:
-  <img src="<!--IMG:descripción detallada en español-->" style="width:100%;height:100%;object-fit:cover;" />
-Máximo 1-2 imágenes.`}
-
-SVG inline para íconos y elementos gráficos — NUNCA imágenes externas para decoración.
-Los emojis están PERMITIDOS cuando el ADN de marca lo avala (tono informal, joven, expresivo).
 
 ════════════════════════════════════════════════════════
 REGLA #9 — ADN DE MARCA COMPLETO
 ════════════════════════════════════════════════════════
-${adn ? `
-${adn}
-
-INSTRUCCIÓN: Leer el ADN completo y extraer:
-1. El RUBRO → aplicar estética del rubro (Regla #6)
-2. La PERSONALIDAD → determinar si el tono pide emojis, mayúsculas, recursos gestuales
-3. LO QUE NO ES → evitar esos elementos aunque "queden bien" en abstracto
-4. Los MENSAJES CLAVE → usarlos como inspiración para el copy de la pieza
-La paleta ya está en Regla #2. La tipografía también. Acá: tono, estética, mensajes.
-` : 'Sin ADN. Crear con criterio profesional basado en el brief y el formato.'}
+${adn ? `${adn}\n\nExtraer: RUBRO → estética, PERSONALIDAD → tono, LO QUE NO ES → evitar.` : 'Sin ADN. Usar brief como guía.'}
 
 ════════════════════════════════════════════════════════
-REGLA #10 — CHECKLIST ANTES DE ENTREGAR
+CHECKLIST
 ════════════════════════════════════════════════════════
-Antes de cerrar el HTML, verificar mentalmente:
-□ ¿El primer elemento que ves es el más importante?
-□ ¿Los colores son 100% de la marca (no grises genéricos)?
-□ ¿Hay al menos UN recurso gráfico expressivo (flecha, underline, shape, emoji, número grande)?
-□ ¿El texto más importante tiene mínimo ${Math.round(dims.w * 0.07)}px?
-□ ¿La composición tiene tensión/asimetría (no todo centrado)?
-□ ¿El logo está visible si fue subido?
-□ ¿Hay contraste suficiente texto/fondo?
-□ ¿Se puede leer en thumbnail (80×80px mental)?`
-
-    // ── User Prompt ───────────────────────────────────────────────────
-    let userPrompt
-    if (iteracion) {
-      const texto = `HTML actual:\n\n${iteracion}\n\nCambio solicitado: ${brief}\n\nDevolvé el HTML completo actualizado.`
-      if (imagenAnotada) {
-        // Gemini recibe la imagen como parte del mensaje
-        userPrompt = `Esta imagen muestra la pieza con zonas marcadas indicando qué cambiar.\n\n${texto}`
-      } else {
-        userPrompt = texto
-      }
-    } else {
-      userPrompt = `Generá una pieza de social media "${dims.label}" (${dims.w}×${dims.h}px).\n\nBRIEF:\n${brief}\n\nDevolvé solo el HTML.`
-    }
-
-    // ── Llamada a la IA ───────────────────────────────────────────────
-    const messages = []
-    if (iteracion && imagenAnotada) {
-      // Si hay imagen anotada, enviarla como vision
-      const imageData = imagenAnotada.replace(/^data:image\/\w+;base64,/, '')
-      messages.push({
-        role: 'user',
-        parts: [
-          { inlineData: { mimeType: 'image/png', data: imageData } },
-          { text: userPrompt }
-        ]
-      })
-    }
-
-    const result = await callGemini(userPrompt, systemPrompt, { maxTokens: 8000 })
-    let html = result.text
-    html = html.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
-
-    if (!html.includes('<')) throw new Error('La IA no devolvió HTML válido')
-
-    // ── Resolver placeholders de imágenes ─────────────────────────────
-    const placeholders = [...html.matchAll(/<!--IMG:([^>]+)-->/g)]
-
-    if (placeholders.length > 0) {
-      const imagenes = await Promise.allSettled(
-        placeholders.map(([, desc]) => obtenerImagen(desc.trim(), openaiKey))
-      )
-
-      const resumen = []
-      placeholders.forEach(([match], i) => {
-        const resultado = imagenes[i]
-        if (resultado.status === 'fulfilled' && resultado.value) {
-          html = html.replace(`src="${match}"`, `src="${resultado.value.base64}"`)
-          html = html.replace(match, resultado.value.base64)
-          resumen.push({ desc: placeholders[i][1], fuente: resultado.value.fuente })
-        } else {
-          const svgFallback = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23111'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23555' font-size='18' font-family='sans-serif'%3EImagen%3C/text%3E%3C/svg%3E`
-          html = html.replace(`src="${match}"`, `src="${svgFallback}"`)
-          html = html.replace(match, svgFallback)
-          resumen.push({ desc: placeholders[i][1], fuente: 'fallback' })
-        }
-      })
-
-      return Response.json({ success: true, html, formato, dims, imagenes: resumen })
-    }
-
-    return Response.json({ success: true, html, formato, dims, imagenes_generadas: 0 })
-
-  } catch (error) {
-    console.error('Error en /api/generate-design:', error)
-    return Response.json({ error: error.message }, { status: 500 })
-  }
+□ ¿El primer elemento es el más importante?
+□ ¿Los colores son 100% de la marca?
+□ ¿Hay al menos UN recurso gráfico expresivo?
+□ ¿El texto principal tiene mínimo ${Math.round(dims.w * 0.07)}px?
+□ ¿La composición tiene tensión/asimetría?
+□ ¿El logo está visible si fue subido?`
 }

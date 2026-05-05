@@ -5318,7 +5318,7 @@ function switchTab(tabName, button) {
           const base64 = e.target.result
           const name = file.name.replace(/\.[^/.]+$/, '').toLowerCase().replace(/\s+/g, '-')
 
-          genAssets.push({ name, base64, fileName: file.name })
+          genAssets.push({ name, base64, fileName: file.name, isReference: false })
           renderAssetList()
         }
         reader.readAsDataURL(file)
@@ -5339,12 +5339,22 @@ function switchTab(tabName, button) {
       }
 
       container.innerHTML = genAssets.map((asset, i) => `
-        <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); padding: 8px; border-radius: 8px;">
-          <img src="${asset.base64}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">
-          <input type="text" value="${asset.name}" 
-            onchange="genAssets[${i}].name = this.value"
-            style="flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); padding: 6px 8px; border-radius: 6px; font-size: 0.8rem;">
-          <button onclick="removeAsset(${i})" style="background: transparent; border: none; color: var(--color-error); cursor: pointer; font-size: 1rem; padding: 4px;">✕</button>
+        <div style="display: flex; flex-direction: column; gap: 6px; background: var(--bg-secondary); padding: 8px; border-radius: 8px; border: 1px solid ${asset.isReference ? 'var(--color-brand)' : 'transparent'};">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="${asset.base64}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0;">
+            <input type="text" value="${asset.name}"
+              onchange="genAssets[${i}].name = this.value"
+              style="flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); padding: 6px 8px; border-radius: 6px; font-size: 0.8rem;">
+            <button onclick="removeAsset(${i})" style="background: transparent; border: none; color: var(--color-error); cursor: pointer; font-size: 1rem; padding: 4px; flex-shrink: 0;">✕</button>
+          </div>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; font-size: 0.75rem; color: var(--text-secondary);">
+            <input type="checkbox" ${asset.isReference ? 'checked' : ''}
+              onchange="genAssets[${i}].isReference = this.checked; renderAssetList()"
+              style="accent-color: var(--color-brand); width: 14px; height: 14px; cursor: pointer;">
+            <span style="color: ${asset.isReference ? 'var(--color-brand)' : 'var(--text-secondary)'};">
+              📌 Usar como referencia de estilo
+            </span>
+          </label>
         </div>
       `).join('')
     }
